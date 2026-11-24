@@ -1,0 +1,5 @@
+# tools/ の Python の道具が使うライブラリ（docs/layout.md の「道具」）
+# PyYAML: 表（YAML）を読む（datgen.py・build.py）
+PyYAML==6.0.3
+# Pillow: 絵を描くスクリプト（objects/ の draw.py など）。pak を組むだけなら要らない
+Pillow==13.0.0
