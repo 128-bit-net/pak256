@@ -2,7 +2,7 @@
 
 地面一式（`objects/ground/`）の決め事。256px のタイルで、本体（OTRP）が地面をどう読むかをまとめた。[#5](https://github.com/128-bit-net/pak256/issues/5) で描いた。絵は仮（数式で描いた物）で、見た目は後から描き直す。
 
-本体の読み方は `simutrans/descriptor/ground_desc.cc`・`simutrans/boden/grund.cc`、並べ方の見本は、作業場の参照用の pak128（`E:ddon_devefs\pak128` の `landscape/grounds`。リポジトリには入っていない）で確かめた。pak128 の絵は写していない（並べ方の決まりだけを読んだ）。
+本体の読み方は `simutrans/descriptor/ground_desc.cc`・`simutrans/boden/grund.cc`、並べ方の見本は、作業場の参照用の pak128（リポジトリの外。`landscape/grounds`）で確かめた。pak128 の絵は写していない（並べ方の決まりだけを読んだ）。
 
 ## 置き場と作り方
 
