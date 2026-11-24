@@ -5,14 +5,16 @@
 ## フォルダ
 
 ```
-objects/<種類>/<物>/   物（素材。CC BY-SA 4.0）。表・描く元・描いた PNG を一緒に置く
+objects/<種類>/<物>/   物。表・描く元・描いた PNG を一緒に置く
 config/               設定ファイル（simuconf.tab など。#3）
 text/                 物の名前の訳と街の名前（#10）
-vendor/ami/           同梱する AMI の版の指定（下の「AMI の 256 版を同梱する」）
-tools/                道具（MIT）
+vendor/ami/           同梱する AMI の版の指定と許諾の文（下の「AMI の 256 版を同梱する」）
+tools/                道具（下の「道具」）
 docs/                 文書
 build/                作った dat・pak（git に入れない）
 ```
+
+許諾は拡張子で決まる（[LICENSE.md](../LICENSE.md)）。`objects/` の絵・dat・表・`.blend` は CC BY-SA 4.0、`objects/` の中でも描く・書き出すスクリプト（`.py` など）は MIT。
 
 ### 物の種類
 
@@ -58,7 +60,9 @@ build/                作った dat・pak（git に入れない）
   ```
 
 - `obj`・`name`・`copyright` は必ず書く（無いと止まる）。`copyright` の書き方は [CONTRIBUTING.md](../CONTRIBUTING.md) の「クレジットの書き方」。
-- YAML は `yes`・`no`・`on`・`off` を真偽に読む。文字として渡すときは引用符で囲む。真偽は dat では `1`・`0` になる。
+- YAML は `yes`・`no`・`on`・`off` を真偽に読む。文字として渡すときは引用符で囲む。真偽は dat では `1`・`0` になる。キーが真偽になったときは止まる。
+- 数も YAML の決まりで読み替わる（`0123` は 8 進数で `83`、`0x10` は `16`、`1_0` は `10`）。書いたとおりに渡したいときは引用符で囲む。
+- 空の値・空の並び・同じキーの 2 度書きは止まる。
 - 作った dat は `build/dat/` に置き、git に入れない。
 - 値の釣り合い（費用・速さ）を一覧で比べたくなったら、表から CSV の一覧を書き出す道具を足す（今は無い）。
 
@@ -67,6 +71,7 @@ build/                作った dat・pak（git に入れない）
 - 描いた PNG は git に入れる。CI では描かない（CI は Python と makeobj だけで pak を作る。AMI も同じ）。PR で絵の差分が見える。
 - 256 のシートは pak128 の 4 倍の画素なので、リポジトリが太る。大きくなりすぎたら Git LFS を考える（今は入れない）。
 - 描く元は物のフォルダに置く。物をまたいで使う描画の道具は `tools/blender/` に置く（MIT。まだ無い）。
+- PNG は物のフォルダの下のフォルダ（`img/` など）に置いてもよい。dat からは `img/a.0.0` のように引く。表と dat は物のフォルダの直下に置く。
 - 描いた PNG と元がずれていないかの検査は、まだ無い。
 
 ### セルの大きさ
@@ -77,6 +82,20 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 - 自前の物は 256 のセル（1 タイル）に描く。`tools/build.py` は `pak256` で組む。
 - タイルからはみ出す物（大きな建物・長い車両など）は、大きいセルに描き、表に `cell_size`（例 `512`）と位置合わせを書く。makeobj は `cell_size` を物ごとに読む。
 - AMI は 2 タイル分のセル（512）に描き、AMI の側で `pak512` で組む。
+
+## 道具
+
+`tools/` の道具は MIT。Python 3 で動く。使うライブラリは `tools/requirements.txt` に版を固定する（`pip install -r tools/requirements.txt`）。
+
+| ファイル | すること |
+|---|---|
+| `build.py` | 物を dat にして pak に組む（下の「組み方」） |
+| `datgen.py` | 表（YAML）から dat を作る。`build.py` が使う。1 ファイルだけ試すときは `python -X utf8 tools/datgen.py <表>` |
+| `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
+| `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
+| `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
+
+物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
 
 ## 組み方
 
@@ -94,13 +113,14 @@ python -X utf8 tools/build.py
 
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
-- `vendor/ami/ami.env` に AMI の版・Release の zip の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に、許諾の文 `ami_license.txt` を `build/` に置く。取った zip は `build/cache/` に残す。
+- `vendor/ami/ami.env` に AMI の版・Release の zip の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
 - AMI が 256 版を Release に上げるまでは、`ami.env` を空のままにし、手元で組んだ AMI の pak のフォルダか zip を環境変数 `AMI_DIST` で渡す。
-- どちらも無いときは、AMI 抜きで組む。
+- どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
+- AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけの予定）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
 - 帰属の書き方（AMI を初めて同梱するとき。#7）:
   - [CREDITS.md](../CREDITS.md) に 1 行: 物 `AMI（vendor/ami）`、作者 128na、連絡先 `128na/simutrans-addon-dev`、許諾 CC BY 4.0。
   - [LICENSE.md](../LICENSE.md) に例外を書く: 同梱する AMI の pak と絵は CC BY 4.0（CC BY-SA ではない）。今の「配布物（`.pak`）にも同じ許諾が及びます」の例外にする。
-  - 配布の zip に、AMI の `ami_license.txt` を同じ名前で入れる。
+  - 配布の zip に、`build/ami_license.txt` を同じ名前で入れる（#2）。
 
 ## 見本の物
 

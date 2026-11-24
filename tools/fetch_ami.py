@@ -7,7 +7,8 @@
 
 どちらも無いときは何もしない（AMI 抜きで組む）。
 
-取った pak は <出力>/ に、AMI の許諾の文（zip の ami_license.txt）は <出力>/../ami_license.txt に置く。
+取った pak は <出力>/ に置く。pak を 1 つでも置いたら、AMI の許諾の文 vendor/ami/ami_license.txt を
+<出力>/../ami_license.txt に写す（CC BY 4.0 の表示。配布の zip に入れる）。
 
 使い方:
     python -X utf8 tools/fetch_ami.py <出力のフォルダ>
@@ -21,9 +22,11 @@ import urllib.request
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ENV_FILE = os.path.join(ROOT, "vendor", "ami", "ami.env")
-CACHE = os.path.join(ROOT, "build", "cache")
+VENDOR = os.path.join(ROOT, "vendor", "ami")
+ENV_FILE = os.path.join(VENDOR, "ami.env")
 LICENSE_NAME = "ami_license.txt"
+LICENSE_FILE = os.path.join(VENDOR, LICENSE_NAME)
+CACHE = os.path.join(ROOT, "build", "cache")
 
 
 def read_env(path=ENV_FILE):
@@ -38,28 +41,28 @@ def read_env(path=ENV_FILE):
     return env
 
 
+def _is_pak(name):
+    return name.lower().endswith(".pak")
+
+
 def _from_zip(data, out_dir):
     paks = []
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         for info in z.infolist():
             base = os.path.basename(info.filename)
-            if base.endswith(".pak"):
-                target = os.path.join(out_dir, base)
-            elif base == LICENSE_NAME:
-                target = os.path.join(os.path.dirname(out_dir), LICENSE_NAME)
-            else:
+            if not _is_pak(base):
                 continue
+            target = os.path.join(out_dir, base)
             with z.open(info) as src, open(target, "wb") as dst:
                 shutil.copyfileobj(src, dst)
-            if base.endswith(".pak"):
-                paks.append(target)
+            paks.append(target)
     return paks
 
 
 def _from_dir(src, out_dir):
     paks = []
     for name in sorted(os.listdir(src)):
-        if name.endswith(".pak"):
+        if _is_pak(name):
             target = os.path.join(out_dir, name)
             shutil.copyfile(os.path.join(src, name), target)
             paks.append(target)
@@ -68,7 +71,7 @@ def _from_dir(src, out_dir):
 
 def _download(url, sha256, version):
     os.makedirs(CACHE, exist_ok=True)
-    cached = os.path.join(CACHE, f"ami-{version or 'x'}.zip")
+    cached = os.path.join(CACHE, f"{version or 'ami'}.zip")  # version は Release のタグ（ami-256-alpha.1 など）
     if os.path.isfile(cached):
         with open(cached, "rb") as f:
             data = f.read()
@@ -77,6 +80,8 @@ def _download(url, sha256, version):
             data = r.read()
     got = hashlib.sha256(data).hexdigest()
     if got.lower() != sha256.lower():
+        if os.path.isfile(cached):
+            os.remove(cached)  # 次は取り直す
         sys.exit(f"[fetch_ami] SHA-256 が合わない: {url}（期待 {sha256}、実際 {got}）")
     if not os.path.isfile(cached):
         with open(cached, "wb") as f:
@@ -86,27 +91,34 @@ def _download(url, sha256, version):
 
 def fetch(out_dir):
     """AMI の pak を out_dir に置き、置いた pak の一覧を返す。取り方が無ければ空の一覧。"""
+    out_dir = os.path.normpath(os.path.abspath(out_dir))
     os.makedirs(out_dir, exist_ok=True)
     local = os.environ.get("AMI_DIST")
     if local:
+        where = f"AMI_DIST（{local}）"
         if os.path.isdir(local):
             paks = _from_dir(local, out_dir)
-        elif os.path.isfile(local) and local.endswith(".zip"):
+        elif os.path.isfile(local) and local.lower().endswith(".zip"):
             with open(local, "rb") as f:
                 paks = _from_zip(f.read(), out_dir)
         else:
             sys.exit(f"[fetch_ami] AMI_DIST がフォルダでも zip でもない: {local}")
-        if not paks:
-            sys.exit(f"[fetch_ami] AMI_DIST に pak が無い: {local}")
-        return paks
-    env = read_env()
-    url = env.get("AMI_ZIP_URL", "")
-    if not url:
-        return []
-    sha = env.get("AMI_ZIP_SHA256", "")
-    if not sha:
-        sys.exit("[fetch_ami] ami.env に AMI_ZIP_SHA256 が無い")
-    return _from_zip(_download(url, sha, env.get("AMI_VERSION", "")), out_dir)
+    else:
+        env = read_env()
+        url = env.get("AMI_ZIP_URL", "")
+        if not url:
+            return []
+        sha = env.get("AMI_ZIP_SHA256", "")
+        if not sha:
+            sys.exit("[fetch_ami] ami.env に AMI_ZIP_SHA256 が無い")
+        where = url
+        paks = _from_zip(_download(url, sha, env.get("AMI_VERSION", "")), out_dir)
+    if not paks:
+        sys.exit(f"[fetch_ami] {where} に pak が無い")
+    if not os.path.isfile(LICENSE_FILE):
+        sys.exit(f"[fetch_ami] AMI の許諾の文 {os.path.relpath(LICENSE_FILE, ROOT)} が無い")
+    shutil.copyfile(LICENSE_FILE, os.path.join(os.path.dirname(out_dir), LICENSE_NAME))
+    return paks
 
 
 def main():

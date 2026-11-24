@@ -36,7 +36,7 @@ def object_dirs():
     found = []
     for dirpath, dirnames, filenames in os.walk(OBJECTS):
         dirnames.sort()
-        if any(f.endswith((".yaml", ".dat")) for f in filenames):
+        if any(f.lower().endswith((".yaml", ".dat")) for f in filenames):
             found.append(dirpath)
     return found
 
@@ -46,11 +46,20 @@ def stage(src):
     rel = os.path.relpath(src, OBJECTS)
     dst = os.path.join(DAT_OUT, rel)
     os.makedirs(dst, exist_ok=True)
+    # PNG は下のフォルダ（img/ など）にあっても、同じ形で写す（dat から `img/a.0.0` と引けるように）
+    for dirpath, _, filenames in os.walk(src):
+        for name in filenames:
+            if name.lower().endswith(".png"):
+                sub = os.path.relpath(dirpath, src)
+                os.makedirs(os.path.join(dst, sub), exist_ok=True)
+                shutil.copyfile(os.path.join(dirpath, name), os.path.join(dst, sub, name))
+    # dat と表は物のフォルダの直下だけ
     for name in sorted(os.listdir(src)):
         path = os.path.join(src, name)
-        if name.endswith((".png", ".dat")):
+        low = name.lower()
+        if low.endswith(".dat"):
             shutil.copyfile(path, os.path.join(dst, name))
-        elif name.endswith(".yaml"):
+        elif low.endswith(".yaml"):
             text = datgen.yaml_to_dat(path)
             out = os.path.join(dst, name[: -len(".yaml")] + ".dat")
             if os.path.exists(out):
