@@ -32,6 +32,9 @@ class _Loader(yaml.SafeLoader):
         seen = set()
         for key_node, _ in node.value:
             key = self.construct_object(key_node, deep=deep)
+            if isinstance(key, (list, dict)):
+                raise DatError(f"キーに並びやマッピングは使えない（{key_node.start_mark}）")
+            key = str(key)  # 0 と '0' は dat では同じキーになる
             if key in seen:
                 raise DatError(f"キー {key!r} が 2 度ある（{key_node.start_mark}）")
             seen.add(key)
@@ -68,7 +71,7 @@ def object_to_dat(obj, where="?"):
     """物 1 つ（マッピング）を dat の文（末尾の `-` を含む）にする。"""
     if not isinstance(obj, dict):
         raise DatError(f"{where}: 物はマッピングで書く")
-    missing = [k for k in REQUIRED if not str(obj.get(k) or "").strip()]
+    missing = [k for k in REQUIRED if obj.get(k) is None or not str(obj.get(k)).strip()]
     if missing:
         raise DatError(f"{where}: {', '.join(missing)} が無いか空")
     lines = []
@@ -80,8 +83,11 @@ def object_to_dat(obj, where="?"):
 
 def yaml_to_dat(path):
     """YAML のファイルを読み、dat の文にする。"""
-    with open(path, encoding="utf-8") as f:
-        data = yaml.load(f, Loader=_Loader)  # noqa: S506（SafeLoader を元にした読み手）
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = yaml.load(f, Loader=_Loader)  # noqa: S506（SafeLoader を元にした読み手）
+    except yaml.YAMLError as e:
+        raise DatError(f"{path}: YAML として読めない: {e}") from e
     if data is None:
         raise DatError(f"{path}: 中身が無い")
     objs = data if isinstance(data, list) else [data]

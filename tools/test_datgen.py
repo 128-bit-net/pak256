@@ -42,6 +42,9 @@ class DatgenTest(unittest.TestCase):
             BASE + "name: b\n",                      # 同じキーが 2 度
             BASE + "x: 'a\n\n  b'\n",                # 値に改行
             "",                                      # 中身が無い
+            BASE + "image: {0: x, '0': y}\n",        # 数と文字のキーがぶつかる
+            BASE + "[a]: 1\n",                       # 並びのキー
+            BASE + "x: [\n",                         # YAML の文法の誤り
         ):
             with self.subTest(text=text), self.assertRaises(datgen.DatError):
                 run(text)
