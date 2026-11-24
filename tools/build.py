@@ -69,13 +69,18 @@ def stage(src):
     return rel, dst
 
 
+def bad_lines(out):
+    """makeobj のログの、警告（Warning）と誤り（ERROR）の行。終了コードは 0 のことがあるので、ログで見る。"""
+    return [ln for ln in out.splitlines() if ln.startswith(("Warning", "ERROR"))]
+
+
 def makeobj(rel, dat_dir):
     pak = os.path.join(PAK_OUT, rel.replace(os.sep, ".").replace("/", ".") + ".pak")
     # 相対のパスで渡す（makeobj の出力に手元の絶対パスを出さないため）
     args = [MAKEOBJ, f"pak{CELL}", os.path.relpath(pak, ROOT), os.path.relpath(dat_dir, ROOT).replace(os.sep, "/") + "/"]
     r = subprocess.run(args, cwd=ROOT, capture_output=True, text=True, errors="replace")
     out = (r.stdout + r.stderr).strip()
-    bad = [ln for ln in out.splitlines() if ln.startswith(("Warning", "ERROR"))]
+    bad = bad_lines(out)
     print(f"[build] {rel} → {os.path.relpath(pak, ROOT)}")
     if out:
         print("\n".join("    " + ln for ln in out.splitlines()))
