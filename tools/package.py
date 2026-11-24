@@ -5,6 +5,7 @@ zip の中身（先頭のフォルダ名は pak256。本体の pak のフォル�
     pak256/config/            config/ の中身（.gitkeep は除く）
     pak256/text/              text/ の中身（同上）
     pak256/LICENSE.md
+    pak256/LICENSES/          許諾の本文（CC BY-SA 4.0・MIT）
     pak256/CREDITS.md
     pak256/ami_license.txt    AMI の pak を入れたときだけ（build/ami_license.txt）
 
@@ -28,29 +29,37 @@ SKIP = {".gitkeep"}
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)  # 同じ中身なら同じ zip になるように
 
 
-def collect():
+def collect(root=ROOT, build=BUILD):
     """(zip の中の名前, 元のファイル) の一覧を返す。"""
     files = []
-    paks = sorted(glob.glob(os.path.join(BUILD, "pak", "*.pak")))
+    paks = sorted(glob.glob(os.path.join(build, "pak", "*.pak")))
     if not paks:
         sys.exit("[package] build/pak/ に pak が無い（先に tools/build.py を流す）")
     for p in paks:
         files.append((f"{TOP}/{os.path.basename(p)}", p))
     for sub in ("config", "text"):
-        base = os.path.join(ROOT, sub)
+        base = os.path.join(root, sub)
         for dirpath, dirnames, filenames in os.walk(base):
             dirnames.sort()
             for name in sorted(filenames):
                 if name in SKIP:
                     continue
                 path = os.path.join(dirpath, name)
-                rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
+                rel = os.path.relpath(path, root).replace(os.sep, "/")
                 files.append((f"{TOP}/{rel}", path))
     for name in ("LICENSE.md", "CREDITS.md"):
-        files.append((f"{TOP}/{name}", os.path.join(ROOT, name)))
+        files.append((f"{TOP}/{name}", os.path.join(root, name)))
+    # LICENSE.md が相対リンクで引く許諾の本文。zip の中でリンクが切れないように入れる
+    for name in sorted(os.listdir(os.path.join(root, "LICENSES"))):
+        files.append((f"{TOP}/LICENSES/{name}", os.path.join(root, "LICENSES", name)))
     # build.py が AMI の pak を入れたときだけ、fetch_ami.py がこの許諾の文を置く（build.py は毎回消してから組む）
-    lic = os.path.join(BUILD, "ami_license.txt")
+    lic = os.path.join(build, "ami_license.txt")
     if os.path.isfile(lic):
+        # AMI は CC BY 4.0。LICENSE.md の例外と CREDITS.md の行（#7）が先に要る
+        for name, word in (("LICENSE.md", "CC BY 4.0"), ("CREDITS.md", "AMI")):
+            with open(os.path.join(root, name), encoding="utf-8") as f:
+                if word not in f.read():
+                    sys.exit(f"[package] AMI を同梱するのに {name} に「{word}」が無い（#7 で書く）")
         files.append((f"{TOP}/ami_license.txt", lic))
     return files
 
@@ -67,6 +76,7 @@ def main():
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for arc, path in files:
             info = zipfile.ZipInfo(arc, FIXED_TIME)
+            info.create_system = 3
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             with open(path, "rb") as f:

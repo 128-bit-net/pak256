@@ -12,6 +12,9 @@ vendor/ami/           同梱する AMI の版の指定と許諾の文（下の�
 tools/                道具（下の「道具」）
 docs/                 文書
 build/                作った dat・pak（git に入れない）
+dist/                 作った配布の zip（git に入れない）
+ci.env                CI の道具の版（makeobj など）
+.github/workflows/    CI
 ```
 
 許諾は拡張子で決まる（[LICENSE.md](../LICENSE.md)）。`objects/` の絵・dat・表・`.blend` は CC BY-SA 4.0、`objects/` の中でも描く・書き出すスクリプト（`.py` など）は MIT。
@@ -120,6 +123,7 @@ pak256/*.pak            build/pak/ の pak（自前の物と AMI）
 pak256/config/          config/ の中身
 pak256/text/            text/ の中身
 pak256/LICENSE.md
+pak256/LICENSES/        許諾の本文
 pak256/CREDITS.md
 pak256/ami_license.txt  AMI の pak を入れたときだけ
 ```
@@ -128,9 +132,10 @@ CI は `.github/workflows/ci.yml`。
 
 - PR と main への push: 表の検査（`test_datgen.py`）→ `tools/build.py`（pak を組む）→ `tools/package.py`。zip は artifact `pak256-zip` に置く。
 - makeobj は警告（`Warning`）でも終了コード 0 なので、`build.py` がログの `Warning`・`ERROR` の行で失敗にする。CI も同じ。
+- CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` が空の間は入らない。埋めれば次の組みから同梱される。
+- AMI は `vendor/ami/ami.env` が空の間は入らない。埋めれば次の組みから同梱される。ただし AMI の pak を入れるときは、先に #7（`LICENSE.md` の例外と `CREDITS.md` の行）を済ませる。`package.py` は、無ければ止まる。
 
 ## AMI の 256 版を同梱する
 

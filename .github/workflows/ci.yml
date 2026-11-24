@@ -1,12 +1,12 @@
 name: ci
 
 # PR と main への push: 検査して pak と配布の zip を作る（artifact に置く）。
-# v* のタグ: 同じものを作り、zip を添えた Release を下書きで作る。説明は手で書いて公開する。
+# v[0-9]* のタグ: 同じものを作り、zip を添えた Release を下書きで作る。説明は手で書いて公開する。
 # 道具の版は ci.env（workflow に直に書かない）。
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["v[0-9]*"]
   pull_request:
 
 permissions:
@@ -17,12 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TOOLS_DIR: ${{ github.workspace }}/../ci-tools
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 道具の版を読む
-        run: grep -E '^[A-Z_]+=' ci.env >> "$GITHUB_ENV"
+        run: |
+          grep -E '^[A-Z0-9_]+=' ci.env >> "$GITHUB_ENV"
+          grep -qE '^PYTHON_VERSION=.+' ci.env && grep -qE '^MAKEOBJ_TAG=.+' ci.env
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -30,15 +33,11 @@ jobs:
           cache: pip
           cache-dependency-path: tools/requirements.txt
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ env.TOOLS_DIR }}
-          key: ci-tools-${{ runner.os }}-makeobj-${{ env.MAKEOBJ_TAG }}
-
+      # 小さい（約 120KB）ので、キャッシュせず毎回取る
       - name: makeobj を用意する
         run: |
-          bash tools/ci/setup_makeobj.sh "$MAKEOBJ_TAG" "$TOOLS_DIR"
-          echo "$TOOLS_DIR" >> "$GITHUB_PATH"
+          bash tools/ci/setup_makeobj.sh "$MAKEOBJ_TAG" "$RUNNER_TEMP/ci-tools"
+          echo "$RUNNER_TEMP/ci-tools" >> "$GITHUB_PATH"
 
       - run: pip install -r tools/requirements.txt
 
@@ -81,4 +80,4 @@ jobs:
           pre=""
           case "$TAG" in *-*) pre="--prerelease" ;; esac
           gh release create "$TAG" dist/*.zip -R "$GITHUB_REPOSITORY" --draft $pre --verify-tag \
-            --title "$TAG" --notes "（説明は手で書く）"
+            --title "$TAG" --notes "【要編集】説明を手で書いてから公開する"
