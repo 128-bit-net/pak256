@@ -1,0 +1,15 @@
+# 工事中の地面。0 基礎の穴・1 観光地(街)・2 観光地(田舎)・3 記念物・4 工場・5 役場・6 その他・7 住宅・8 商業・9 工業
+Obj=misc
+Name=Construction
+copyright=pak256.LongScale チーム
+cell_size=256
+Image[0]=construction.0.0
+Image[1]=construction.0.1
+Image[2]=construction.0.2
+Image[3]=construction.0.3
+Image[4]=construction.0.4
+Image[5]=construction.1.0
+Image[6]=construction.1.1
+Image[7]=construction.1.2
+Image[8]=construction.1.3
+Image[9]=construction.1.4

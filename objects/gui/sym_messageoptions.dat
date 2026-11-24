@@ -1,0 +1,7 @@
+Obj=symbol
+Name=MessageOptions
+copyright=pak256.LongScale チーム
+cell_size=32
+Image[0]=> sym_messageoptions.0.0
+Image[1]=> sym_messageoptions.0.1
+Image[2]=> sym_messageoptions.0.2

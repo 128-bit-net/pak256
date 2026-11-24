@@ -1,0 +1,5 @@
+Obj=symbol
+Name=TrainStop
+copyright=pak256.LongScale チーム
+cell_size=16
+Image[0]=> sym_trainstop.0.0
