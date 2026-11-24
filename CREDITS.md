@@ -8,4 +8,6 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 
 | 物（フォルダ） | 作者 | 作者の連絡先 | 改変 | 許諾 |
 |---|---|---|---|---|
+| `objects/ground/Outside` | pak256.LongScale チーム | | | CC BY-SA 4.0 |
+| `objects/ground/temperate`（地面一式。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_ground.py` は MIT） |
 | `objects/scenery/sample_marker`（見本。#9 で消す） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
