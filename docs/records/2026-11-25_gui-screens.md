@@ -31,5 +31,5 @@
 
 - `Message`・`NewWorld`・`NewYear`・`Logo`・`MessageOptions`・`Electricity`・`InTown`・`Passagiere`・`Post`・`Waren`・`Construction`・`Sidewalk`・`TunnelTexture`・`RibiArrow`・`PowerSource`・`PowerDest` の画面での見た目（起動して読み込まれることだけ）。
 - 起動のログの警告（`wrong icon` など）。画面で見えるものだけを確かめた。
-- アイコンの大きさ（`icon_width`）を 32 以外にしたときの見え方。
+- アイコンの大きさ（`icon_height`）を 48 にしたときの見え方（確認はすべて 32 で行った）。
 - CI（Linux 版 makeobj）。

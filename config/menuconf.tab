@@ -12,8 +12,7 @@
 # アイコンの大きさは icon_height（0〜64）だけが効く（icon_width は menuconf.tab では読まれない）。
 # 道具の番号は本体のもので、飛ばした番号は今は使わない道具。
 
-icon_width = 32
-icon_height = 32
+icon_height = 48
 
 # ---- 一般の道具 ----
 general_tool[0] = 0,0,9,a
