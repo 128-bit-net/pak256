@@ -5,12 +5,13 @@
 
 見るもの:
   menuconf.tab
-    - ツールバーの行（toolbar[段][位置]=…）の `=` の前後に空白が無い
-    - toolbar[段] が、ファイルに出てくる順に 0, 1, 2… と連番（抜け・飛びが無い）
+    - ツールバーの行（toolbar[段][位置]=…）の `=` の後ろに空白が無い（前の空白は本体が捨てるが、そろえて禁じる）
+    - toolbar[N] の参照が、本体が読む順（toolbar[0] から、位置の順）に 1, 2, 3… と 1 回ずつ出る
     - 位置が 0 から連番（抜け・重なりが無い）
     - ツールバーの行が使う toolbar[N]・general_tool[N]・simple_tool[N]・dialog_tool[N] の定義がある
       （道具の行が無くても、ツールバーの行がアイコンの番号を書いていれば使える）
     - toolbar[0] 以外の段は、どこかの行から使われている
+  行頭が空白の行は、本体が読み飛ばすので誤りにする
   cityrules.tab
     - house_N・road_N が 1 から連番で、それぞれ .chance がある
     - 規則が正方形（1 辺 3・5・7）で、使える記号だけを使い、中央が n（空き地）
@@ -25,7 +26,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-RULE_CHARS = set("nsShHtT.")
+RULE_CHARS = set("nsShHtTuU.")  # 本体 simcity.cc の "SsnHhTtUu" と、何でもよい .
 RULE_SIZES = (3, 5, 7)
 
 TOOLBAR_LINE = re.compile(r"^toolbar\[(\d+)\]\[(\d+)\]")
@@ -41,14 +42,18 @@ def read_lines(path):
 
 
 def is_comment(line):
+    """本体が読み飛ばす行（空行・# の注釈・行頭が空白の行）。"""
     s = line.strip()
-    return s == "" or s.startswith("#")
+    return s == "" or s.startswith("#") or line[:1] in (" ", "	")
 
 
 def check_syntax(lines):
     errors = []
     for n, line in lines:
-        if not is_comment(line) and "=" not in line:
+        s = line.strip()
+        if s and not s.startswith("#") and line[0] in (" ", "	"):
+            errors.append(f"{n}: 行頭が空白の行は本体が読み飛ばす（# の注釈にするか、行頭の空白を除く）: {s}")
+        elif not is_comment(line) and "=" not in line:
             errors.append(f"{n}: `キー = 値` の形でない行: {line.strip()}")
     return errors
 
@@ -57,7 +62,7 @@ def check_menuconf(lines):
     errors = []
     defs = set()  # ("general_tool", 3) など
     bars = {}  # 段 -> [(行番号, 位置)]
-    bar_order = []  # 出てきた順の段
+    bar_refs = {}  # 段 -> [(行番号, 位置, 参照する toolbar の番号 か None)]
     refs = []  # (行番号, 種類, 番号)
     for n, line in lines:
         if is_comment(line):
@@ -72,25 +77,22 @@ def check_menuconf(lines):
         bar, pos = int(m.group(1)), int(m.group(2))
         if bar not in bars:
             bars[bar] = []
-            bar_order.append(bar)
         bars[bar].append((n, pos))
         # `=` の前後の空白。本体は空白があると道具名として読まない
         if not re.match(r"^toolbar\[\d+\]\[\d+\]=\S", line):
             errors.append(f"{n}: ツールバーの行は `=` の前後に空白を入れない（`toolbar[段][位置]=道具`）: {line.strip()}")
         value = line.split("=", 1)[1]
-        r = TOOL_REF.match(value)  # 値の先頭が道具。2 つ目の欄にアイコンの番号があれば、道具の行が無くても使える
+        r = TOOL_REF.match(value)
+        bar_refs.setdefault(bar, []).append((pos, n, int(r.group(2)) if r and r.group(1) == "toolbar" else None))  # 値の先頭が道具。2 つ目の欄にアイコンの番号があれば、道具の行が無くても使える
         if r:
             fields = value.split(",")
             has_icon = len(fields) > 1 and fields[1].strip() != ""
             refs.append((n, r.group(1), int(r.group(2)), has_icon))
 
-    # 段の番号は、ファイルに出てくる順の連番
-    if bar_order != list(range(len(bar_order))):
-        errors.append(f"toolbar[段] の番号が、出てくる順の 0, 1, 2… になっていない: {bar_order}")
+    # 位置は 0 からの連番（本体は位置を番号で読むので、行の順は問わない）
     for bar, items in bars.items():
         seen = [p for _, p in items]
-        want = list(range(len(seen)))
-        if seen != want:
+        if sorted(seen) != list(range(len(seen))):
             dup = sorted({p for p in seen if seen.count(p) > 1})
             miss = sorted(set(range(max(seen) + 1)) - set(seen))
             detail = []
@@ -98,9 +100,25 @@ def check_menuconf(lines):
                 detail.append(f"重なり {dup}")
             if miss:
                 detail.append(f"抜け {miss}")
-            if not detail:
-                detail.append("並びが 0 から順でない")
             errors.append(f"toolbar[{bar}] の位置が 0 からの連番でない（{', '.join(detail)}）")
+
+    # 本体は toolbar[0] から順に位置の順で読み、toolbar[N] の参照を見たとき、
+    # 今のツールバーの数が N に等しいときだけ新しい段を作る。違えば中身ごと黙って捨てる。
+    if 0 in bars:
+        count = 1
+        i = 0
+        while i < count:
+            for pos, n, ref in sorted(bar_refs.get(i, [])):
+                if ref is None:
+                    continue
+                if ref == count:
+                    count += 1
+                else:
+                    errors.append(f"{n}: toolbar[{ref}] の参照が、読む順の {count} 番でない（本体は黙って捨てる。参照は 1, 2, 3… の順に、1 回ずつ）")
+            i += 1
+        for bar in bars:
+            if bar >= count:
+                errors.append(f"toolbar[{bar}] の行はあるが、読む順に作られる段にならない")
 
     used_bars = set()
     for n, kind, num, has_icon in refs:
@@ -134,7 +152,7 @@ def parse_rules(lines):
         else:
             if name in rules:
                 errors.append(f"{n}: {name} が重なっている")
-            rules[name] = (n, value.split())
+            rules[name] = (n, value.split(" "))
     return rules, chances, errors
 
 
@@ -151,6 +169,9 @@ def check_cityrules(lines):
         if name not in chances:
             errors.append(f"{n}: {name} に {name}.chance が無い")
         size = len(rows)
+        if "" in rows:
+            errors.append(f"{n}: {name} の行どうしは、空白 1 個で区切る（本体は 1 個として読む。空白が 2 個以上・タブ・前後の空白は誤り）")
+            continue
         if size not in RULE_SIZES:
             errors.append(f"{n}: {name} の規則の大きさが 3・5・7 のどれでもない（{size} 行）")
             continue

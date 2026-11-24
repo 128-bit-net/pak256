@@ -41,9 +41,13 @@ class LintConfigTest(unittest.TestCase):
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2] = general_tool[0]"))
         self.assertFails("`=` の前後に空白")
 
+    def test_space_after_equal_in_toolbar(self):
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2]= general_tool[0]"))
+        self.assertFails("`=` の前後に空白")
+
     def test_toolbar_position_gap(self):
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=", "toolbar[0][3]=", 1))
-        self.assertFails("toolbar[0] の位置が")
+        self.assertFails("抜け [2]")
 
     def test_toolbar_position_duplicate(self):
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][1]=general_tool[0]"))
@@ -52,7 +56,28 @@ class LintConfigTest(unittest.TestCase):
     def test_toolbar_number_skipped(self):
         # toolbar[2] を toolbar[9] に書き換えると、出てくる順の連番でなくなる
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[2][", "toolbar[9]["))
-        self.assertFails("出てくる順の 0, 1, 2")
+        self.assertFails("その段の行が無い")
+
+    def test_toolbar_reference_order_swapped(self):
+        # toolbar[0] で toolbar[3] を toolbar[2] より先に参照すると、本体は toolbar[3] を捨てる
+        def swap(t):
+            t = t.replace("toolbar[0][3]=toolbar[2],0", "toolbar[0][3]=toolbar[X],0")
+            t = t.replace("toolbar[0][4]=toolbar[3],4", "toolbar[0][3]=toolbar[2],0".replace("[3]=", "[4]=").replace("toolbar[2]", "toolbar[2]"))
+            return t.replace("toolbar[X]", "toolbar[3]")
+        self.edit("menuconf.tab", swap)
+        self.assertFails("参照が、読む順の")
+
+    def test_toolbar_double_reference(self):
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][1]=dialog_tool[2]", "toolbar[0][1]=toolbar[1],29,,X,x.txt"))
+        self.assertFails("参照が、読む順の")
+
+    def test_toolbar_missing_menuconf(self):
+        os.remove(os.path.join(self.dir, "menuconf.tab"))
+        self.assertFails("menuconf.tab: ファイルが無い")
+
+    def test_leading_space_line(self):
+        self.edit("cityrules.tab", lambda t: t + " house_6 = ... .n. sss\n")
+        self.assertFails("行頭が空白の行")
 
     def test_undefined_tool(self):
         self.edit("menuconf.tab", lambda t: t.replace("dialog_tool[2] = 2,m\n", ""))
@@ -73,6 +98,30 @@ class LintConfigTest(unittest.TestCase):
     def test_rule_bad_size(self):
         self.edit("cityrules.tab", lambda t: t.replace("house_1 = ... .n. sss", "house_1 = .n. sss"))
         self.assertFails("3・5・7 のどれでもない")
+
+    def test_rule_row_separator(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1 = ... .n. sss", "house_1 = ...  .n.  sss"))
+        self.assertFails("空白 1 個で区切る")
+
+    def test_rule_four_rows(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1 = ... .n. sss", "house_1 = .... .n.. .... ...."))
+        self.assertFails("3・5・7 のどれでもない")
+
+    def test_rule_slope_chars_ok(self):
+        self.edit("cityrules.tab", lambda t: t.replace("road_3 = .S. sns .S.", "road_3 = .u. sns .U."))
+        self.assertEqual(lint_config.lint(self.dir), [])
+
+    def test_road_rule_checked(self):
+        self.edit("cityrules.tab", lambda t: t.replace("road_3 = .S. sns .S.", "road_3 = .S. sns .S"))
+        self.assertFails("road_3 は正方形でない")
+
+    def test_rule_duplicate(self):
+        self.edit("cityrules.tab", lambda t: t + "house_1 = ... .n. sss\n")
+        self.assertFails("house_1 が重なっている")
+
+    def test_chance_without_rule(self):
+        self.edit("cityrules.tab", lambda t: t + "house_9.chance = -2\n")
+        self.assertFails("house_9.chance があるが")
 
     def test_rule_bad_char(self):
         self.edit("cityrules.tab", lambda t: t.replace("house_1 = ... .n. sss", "house_1 = ... .n. ssx"))
