@@ -30,6 +30,8 @@ COPYRIGHT = dg.COPYRIGHT
 ICON = 128          # アイコンの元の絵
 TILE = 256
 GUI_BLUE = (36, 84, 140)
+# 本体は GeneralTools のカーソルを Z_PLAN（4/64 タイル = 16px）下げて描く。タイルの強調表示に重なるよう、絵を 16px 上に描く
+CURSOR_DY = -16
 
 TYPE_STYLE = {      # 種類: (表示の記号, 色)
     "general": ("G", (46, 125, 110)),
@@ -70,7 +72,7 @@ class Sheet:
         self.im.save(os.path.join(outdir, self.name + ".png"))
 
 
-def write_dat(outdir, filename, obj, name, lines, cell, comment="", unzoom=False):
+def write_dat(outdir, filename, obj, name, lines, cell, comment=""):
     text = ["# " + comment] if comment else []
     text += [f"Obj={obj}", f"Name={name}", f"copyright={COPYRIGHT}", f"cell_size={cell}"]
     text += lines
@@ -78,7 +80,7 @@ def write_dat(outdir, filename, obj, name, lines, cell, comment="", unzoom=False
         f.write("\n".join(text) + "\n")
 
 
-def image_lines(sheet, images, unzoom, key="Image[{i}]"):
+def image_lines(sheet, images, unzoom):
     """images: 番号 -> 絵 or None（空き）。"""
     lines = []
     last = max(images) if images else -1
@@ -98,7 +100,9 @@ def used_icons():
     used = {k: set() for k in TYPE_STYLE}
     defaults = {}
     kind_of = {"general_tool": "general", "simple_tool": "simple", "dialog_tool": "dialog"}
-    for ln in open(path, encoding="utf-8"):
+    with open(path, encoding="utf-8") as f:
+        text = f.read().splitlines()
+    for ln in text:
         ln = ln.split("#")[0].strip()
         m = re.match(r"(general_tool|simple_tool|dialog_tool)\[(\d+)\]\s*=\s*(.*)", ln)
         if m:
@@ -152,12 +156,11 @@ def build_menu(outdir, used):
 
 # ---------------------------------------------------------------- タイルの上の絵
 
-def outline_diamond(color, width=6, fill=None):
+def outline_diamond(color, width=6, fill=None, dy=0):
     """平らなタイルの菱形の輪郭（カーソル）。タイルの菱形は行 128〜255。"""
     pix = Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0))
     d = ImageDraw.Draw(pix)
-    top, bottom, left, right = (128, 128), (128, 255), (0, 192), (255, 192)
-    pts = [(128, 128), (255, 192), (128, 255), (0, 192)]
+    pts = [(128, 128 + dy), (255, 192 + dy), (128, 255 + dy), (0, 192 + dy)]
     if fill:
         d.polygon(pts, fill=special_safe(fill))
     d.line(pts + [pts[0]], fill=special_safe(color), width=width, joint="curve")
@@ -165,9 +168,9 @@ def outline_diamond(color, width=6, fill=None):
 
 
 def cursor_image(n, color=(255, 230, 0, 255)):
-    im = outline_diamond(color)
+    im = outline_diamond(color, dy=CURSOR_DY)
     d = ImageDraw.Draw(im)
-    d.text((128, 192), str(n), font=font(48), fill=special_safe(color), anchor="mm")
+    d.text((128, 192 + CURSOR_DY), str(n), font=font(48), fill=special_safe(color), anchor="mm")
     return im
 
 
@@ -252,11 +255,9 @@ def arrow(d, c, vec, color, size=70):
     dx, dy = vec
     n = math.hypot(dx, dy)
     ux, uy = dx / n, dy / n
-    tip = (c[0] + ux * size, c[1] + uy * size / 2 * 1.0)
     # 菱形の上なので縦は半分に潰す
     def p(a, b):
         return (c[0] + a * ux - b * uy * 1, c[1] + (a * uy + b * ux) / 2)
-    pts = [p(size * 0.2, 0), p(size * 0.2 - 22, -18), p(size * 0.2 - 22, 18)]
     d.line([p(0, 0), p(size * 0.2 - 10, 0)], fill=color, width=6)
     d.polygon([p(size * 0.2 + 14, 0), p(size * 0.2 - 18, -20), p(size * 0.2 - 18, 20)], fill=color)
 
@@ -279,17 +280,20 @@ def build_ribi_arrow(outdir):
 
 
 def build_power(outdir):
-    for fname, name, col, label in (("power_source", "PowerSource", (255, 200, 0, 255), "+"),
-                                    ("power_dest", "PowerDest", (90, 200, 255, 255), "-")):
-        s = Sheet(fname, 1, TILE)
-        im = Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0))
-        d = ImageDraw.Draw(im)
-        d.ellipse((98, 172, 158, 212), fill=special_safe(col), outline=special_safe((20, 20, 20, 255)), width=4)
-        d.text((128, 192), label, font=font(36), fill=special_safe((20, 20, 20, 255)), anchor="mm")
-        s.put(0, im)
+    # 本体は動作中の絵を番号 1 で引く（leitung2.cc）。0 = 止まっている（くすんだ色）、1 = 動いている
+    for fname, name, col, label in (("power_source", "PowerSource", (255, 200, 0), "+"),
+                                    ("power_dest", "PowerDest", (90, 200, 255), "-")):
+        s = Sheet(fname, 2, TILE, cols=2)
+        for frame in (0, 1):
+            im = Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0))
+            d = ImageDraw.Draw(im)
+            c = col if frame else tuple(v // 2 for v in col)
+            d.ellipse((98, 172, 158, 212), fill=special_safe((*c, 255)), outline=special_safe((20, 20, 20, 255)), width=4)
+            d.text((128, 192), label, font=font(36), fill=special_safe((20, 20, 20, 255)), anchor="mm")
+            s.put(frame, im)
         s.save(outdir)
-        write_dat(outdir, fname + ".dat", "misc", name, image_lines(s, {0: True}, False), TILE,
-                  "発電所と使う側の印（送電網の表示）")
+        write_dat(outdir, fname + ".dat", "misc", name, image_lines(s, {0: True, 1: True}, False), TILE,
+                  "発電所と使う側の印（送電網の表示）。0 止まっている・1 動いている")
 
 
 # ---------------------------------------------------------------- 記号（小さな絵）
@@ -319,6 +323,10 @@ def glyph(kind, size):
         d.rectangle((0, 0, s, s), fill=c(200, 200, 210))
         d.polygon([(0, s * .5), (s / 2, 0), (s, s * .5)], fill=c(160, 60, 50))
         d.rectangle((s * .15, s * .5, s * .85, s), fill=c(230, 220, 190))
+    elif kind == "stop":
+        d.rectangle((0, 0, s, s), fill=c(250, 250, 250))
+        d.rectangle((0, 0, s, s), outline=c(30, 90, 170), width=max(1, size // 8))
+        d.text((s / 2, s / 2), "H", font=font(max(8, size * 3 // 4)), fill=c(30, 90, 170), anchor="mm")
     elif kind == "color":
         d.rectangle((0, 0, s, s), fill=c(30, 30, 30))
         d.ellipse((2, 2, s - 2, s - 2), fill=special_safe((128, 128, 128, 255)), outline=c(240, 240, 240))
@@ -365,6 +373,11 @@ def build_symbols(outdir):
     single("sym_newworld", "NewWorld", glyph("world", 64), 64)
     single("sym_newyear", "NewYear", glyph("newyear", 64), 64)
     single("sym_logo", "Logo", glyph("logo", 128), 128)
+
+    # 駅・車庫の窓が NULL を確かめずに使う記号（本体は無くても起動するが、窓を開くと落ちる）。仮の同じ絵
+    for name in ("TrainStop", "CarStop", "ShipStop", "BusStop", "AirStop", "MonorailStop", "MaglevStop",
+                 "NarrowgaugeStop", "TramStop"):
+        single("sym_" + name.lower(), name, glyph("stop", 16), 16)
 
     # Seasons: 状態の行に出る季節の印（番号 = 季節。0 夏・1 秋・2 冬・3 春）
     s = Sheet("sym_seasons", 4, 16, cols=4)

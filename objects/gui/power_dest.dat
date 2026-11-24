@@ -1,6 +1,7 @@
-# 発電所と使う側の印（送電網の表示）
+# 発電所と使う側の印（送電網の表示）。0 止まっている・1 動いている
 Obj=misc
 Name=PowerDest
 copyright=pak256.LongScale チーム
 cell_size=256
 Image[0]=power_dest.0.0
+Image[1]=power_dest.0.1
