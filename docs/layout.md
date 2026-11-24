@@ -51,7 +51,7 @@ build/                作った dat・pak（git に入れない）
   ```yaml
   obj: tree
   name: pak256_sample
-  copyright: pak256.LongScale team
+  copyright: pak256.LongScale チーム
   image:              # image[0][0]=sample_marker.0.0 になる
     0: {0: sample_marker.0.0}
   freight: [a, b]     # freight[0]=a、freight[1]=b になる

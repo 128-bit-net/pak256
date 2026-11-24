@@ -2,7 +2,7 @@
 # #9 で木が入ったら、このフォルダごと消す。
 obj: tree
 name: pak256_sample
-copyright: pak256.LongScale team
+copyright: pak256.LongScale チーム
 climates: temperate
 distributionweight: 1
 seasons: 1
