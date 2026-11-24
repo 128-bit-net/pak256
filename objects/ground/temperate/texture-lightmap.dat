@@ -1,0 +1,166 @@
+# 番号 = sw + 3*se + 9*ne + 27*nw（各隅の高さ 0〜2）
+Obj=ground
+Name=LightTexture
+copyright=pak256.LongScale チーム
+# sw0 se0 ne0 nw0
+Image[0][0]=texture-lightmap.0.0
+# sw1 se0 ne0 nw0
+Image[1][0]=texture-lightmap.0.1
+# sw2 se0 ne0 nw0
+Image[2][0]=texture-lightmap.0.2
+# sw0 se1 ne0 nw0
+Image[3][0]=texture-lightmap.0.3
+# sw1 se1 ne0 nw0
+Image[4][0]=texture-lightmap.0.4
+# sw2 se1 ne0 nw0
+Image[5][0]=texture-lightmap.0.5
+# sw0 se2 ne0 nw0
+Image[6][0]=texture-lightmap.0.6
+# sw1 se2 ne0 nw0
+Image[7][0]=texture-lightmap.0.7
+# sw2 se2 ne0 nw0
+Image[8][0]=texture-lightmap.0.8
+# sw0 se0 ne1 nw0
+Image[9][0]=texture-lightmap.1.0
+# sw1 se0 ne1 nw0
+Image[10][0]=texture-lightmap.1.1
+# sw2 se0 ne1 nw0
+Image[11][0]=texture-lightmap.1.2
+# sw0 se1 ne1 nw0
+Image[12][0]=texture-lightmap.1.3
+# sw1 se1 ne1 nw0
+Image[13][0]=texture-lightmap.1.4
+# sw2 se1 ne1 nw0
+Image[14][0]=texture-lightmap.1.5
+# sw0 se2 ne1 nw0
+Image[15][0]=texture-lightmap.1.6
+# sw1 se2 ne1 nw0
+Image[16][0]=texture-lightmap.1.7
+# sw2 se2 ne1 nw0
+Image[17][0]=texture-lightmap.1.8
+# sw0 se0 ne2 nw0
+Image[18][0]=texture-lightmap.2.0
+# sw1 se0 ne2 nw0
+Image[19][0]=texture-lightmap.2.1
+# sw2 se0 ne2 nw0
+Image[20][0]=texture-lightmap.2.2
+# sw0 se1 ne2 nw0
+Image[21][0]=texture-lightmap.2.3
+# sw1 se1 ne2 nw0
+Image[22][0]=texture-lightmap.2.4
+# sw2 se1 ne2 nw0
+Image[23][0]=texture-lightmap.2.5
+# sw0 se2 ne2 nw0
+Image[24][0]=texture-lightmap.2.6
+# sw1 se2 ne2 nw0
+Image[25][0]=texture-lightmap.2.7
+# sw2 se2 ne2 nw0
+Image[26][0]=texture-lightmap.2.8
+# sw0 se0 ne0 nw1
+Image[27][0]=texture-lightmap.3.0
+# sw1 se0 ne0 nw1
+Image[28][0]=texture-lightmap.3.1
+# sw2 se0 ne0 nw1
+Image[29][0]=texture-lightmap.3.2
+# sw0 se1 ne0 nw1
+Image[30][0]=texture-lightmap.3.3
+# sw1 se1 ne0 nw1
+Image[31][0]=texture-lightmap.3.4
+# sw2 se1 ne0 nw1
+Image[32][0]=texture-lightmap.3.5
+# sw0 se2 ne0 nw1
+Image[33][0]=texture-lightmap.3.6
+# sw1 se2 ne0 nw1
+Image[34][0]=texture-lightmap.3.7
+# sw2 se2 ne0 nw1
+Image[35][0]=texture-lightmap.3.8
+# sw0 se0 ne1 nw1
+Image[36][0]=texture-lightmap.4.0
+# sw1 se0 ne1 nw1
+Image[37][0]=texture-lightmap.4.1
+# sw2 se0 ne1 nw1
+Image[38][0]=texture-lightmap.4.2
+# sw0 se1 ne1 nw1
+Image[39][0]=texture-lightmap.4.3
+# sw1 se1 ne1 nw1
+Image[40][0]=texture-lightmap.4.4
+# sw2 se1 ne1 nw1
+Image[41][0]=texture-lightmap.4.5
+# sw0 se2 ne1 nw1
+Image[42][0]=texture-lightmap.4.6
+# sw1 se2 ne1 nw1
+Image[43][0]=texture-lightmap.4.7
+# sw2 se2 ne1 nw1
+Image[44][0]=texture-lightmap.4.8
+# sw0 se0 ne2 nw1
+Image[45][0]=texture-lightmap.5.0
+# sw1 se0 ne2 nw1
+Image[46][0]=texture-lightmap.5.1
+# sw2 se0 ne2 nw1
+Image[47][0]=texture-lightmap.5.2
+# sw0 se1 ne2 nw1
+Image[48][0]=texture-lightmap.5.3
+# sw1 se1 ne2 nw1
+Image[49][0]=texture-lightmap.5.4
+# sw2 se1 ne2 nw1
+Image[50][0]=texture-lightmap.5.5
+# sw0 se2 ne2 nw1
+Image[51][0]=texture-lightmap.5.6
+# sw1 se2 ne2 nw1
+Image[52][0]=texture-lightmap.5.7
+# sw2 se2 ne2 nw1
+Image[53][0]=texture-lightmap.5.8
+# sw0 se0 ne0 nw2
+Image[54][0]=texture-lightmap.6.0
+# sw1 se0 ne0 nw2
+Image[55][0]=texture-lightmap.6.1
+# sw2 se0 ne0 nw2
+Image[56][0]=texture-lightmap.6.2
+# sw0 se1 ne0 nw2
+Image[57][0]=texture-lightmap.6.3
+# sw1 se1 ne0 nw2
+Image[58][0]=texture-lightmap.6.4
+# sw2 se1 ne0 nw2
+Image[59][0]=texture-lightmap.6.5
+# sw0 se2 ne0 nw2
+Image[60][0]=texture-lightmap.6.6
+# sw1 se2 ne0 nw2
+Image[61][0]=texture-lightmap.6.7
+# sw2 se2 ne0 nw2
+Image[62][0]=texture-lightmap.6.8
+# sw0 se0 ne1 nw2
+Image[63][0]=texture-lightmap.7.0
+# sw1 se0 ne1 nw2
+Image[64][0]=texture-lightmap.7.1
+# sw2 se0 ne1 nw2
+Image[65][0]=texture-lightmap.7.2
+# sw0 se1 ne1 nw2
+Image[66][0]=texture-lightmap.7.3
+# sw1 se1 ne1 nw2
+Image[67][0]=texture-lightmap.7.4
+# sw2 se1 ne1 nw2
+Image[68][0]=texture-lightmap.7.5
+# sw0 se2 ne1 nw2
+Image[69][0]=texture-lightmap.7.6
+# sw1 se2 ne1 nw2
+Image[70][0]=texture-lightmap.7.7
+# sw2 se2 ne1 nw2
+Image[71][0]=texture-lightmap.7.8
+# sw0 se0 ne2 nw2
+Image[72][0]=texture-lightmap.8.0
+# sw1 se0 ne2 nw2
+Image[73][0]=texture-lightmap.8.1
+# sw2 se0 ne2 nw2
+Image[74][0]=texture-lightmap.8.2
+# sw0 se1 ne2 nw2
+Image[75][0]=texture-lightmap.8.3
+# sw1 se1 ne2 nw2
+Image[76][0]=texture-lightmap.8.4
+# sw2 se1 ne2 nw2
+Image[77][0]=texture-lightmap.8.5
+# sw0 se2 ne2 nw2
+Image[78][0]=texture-lightmap.8.6
+# sw1 se2 ne2 nw2
+Image[79][0]=texture-lightmap.8.7
+# sw2 se2 ne2 nw2
+Image[80][0]=texture-lightmap.8.8

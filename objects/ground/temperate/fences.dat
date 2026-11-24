@@ -1,0 +1,10 @@
+# 0〜2 が自然の柵（左・奥・両方）、3〜5 が建物の柵
+Obj=ground
+Name=Fence
+copyright=pak256.LongScale チーム
+Image[0][0]=fences.0.0
+Image[1][0]=fences.0.1
+Image[2][0]=fences.0.2
+Image[3][0]=fences.1.0
+Image[4][0]=fences.1.1
+Image[5][0]=fences.1.2

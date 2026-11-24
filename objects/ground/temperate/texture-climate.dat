@@ -1,0 +1,19 @@
+Obj=ground
+Name=ClimateTexture
+copyright=pak256.LongScale チーム
+# water
+Image[0][0]=texture-climate.0.0
+# desert
+Image[1][0]=texture-climate.0.1
+# tropic
+Image[2][0]=texture-climate.0.2
+# mediterran
+Image[3][0]=texture-climate.0.3
+# temperate
+Image[4][0]=texture-climate.0.4
+# tundra
+Image[5][0]=texture-climate.0.5
+# rocky
+Image[6][0]=texture-climate.0.6
+# arctic
+Image[7][0]=texture-climate.0.7

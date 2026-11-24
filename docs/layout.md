@@ -23,7 +23,7 @@ ci.env                CI の道具の版（makeobj など）
 
 | フォルダ | 中身 | issue |
 |---|---|---|
-| `objects/ground/` | 地面・水・坂・海岸・基礎・柵・印・境界・地図の外 | #5 |
+| `objects/ground/` | 地面・水・坂・海岸・基礎・柵・印・境界・地図の外。描き方は [ground.md](ground.md)。`Outside/` だけは別のフォルダ（本体が `ground.Outside.pak` を先に探すため） | #5 |
 | `objects/gui/` | 記号・カーソル・ツールバーのアイコン | #6 |
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む） | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
