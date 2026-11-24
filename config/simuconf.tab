@@ -1,0 +1,175 @@
+# pak256.LongScale の設定（本体が pak の読み込み時に読む）
+#
+# 値の根拠と pak128 からの変更は docs/config.md にまとめてある。
+# 「pak128 と同じ」と書いた値は、移行する人の感覚（値段・速さ・成長の速さ）を保つために
+# あえて変えていない。釣り合いは車両・産業が入ってから見直す（#4 以降）。
+
+############################  タイルの大きさ  ############################
+
+# 高さ 1 段の絵の高さ = tile_height × タイルの幅 ÷ 64。
+# pak128（幅 128）の 8 で 16px、256 でも 8 のままなら 32px になり、タイルの幅との
+# 比（1/8）が pak128 と同じになる。高さの比を保つので、この値は変えない。
+tile_height = 8
+
+# 古い保存データの坂を新しい坂に読み替えるときの倍率（1 か 2）。
+# 坂の高さを 1 段にするか 2 段にするかで、pak128 と同じ 2 にする。
+height_conversion_factor = 2
+
+# 斜めに進むときの長さ。1024 で割った値が直線に対する比。
+# 724 は 1/√2 に近い値（等角投影で斜めが 1.41 倍の長さに見える）。タイルの画素数に
+# よらず、地面の菱形の縦横比（2:1）で決まるので pak128 と同じ。
+diagonal_multiplier = 724
+
+############################  街と旅客・貨物  ############################
+
+mail_multiplier = 20
+goods_multiplier = 20
+electricity_multiplier = 0
+
+# 街の大きさ（<1000 / 1000〜10000 / >10000）ごとの成長の速さ。大きいほど速い。
+growthfactor_villages = 400
+growthfactor_cities = 200
+growthfactor_capitals = 100
+
+# 旅客の出やすさ。小さいほど少ない（既定 16）。
+passenger_factor = 16
+
+# 旅客のうち、産業・名所に向かう割合（％）。残りは街どうし。
+factory_worker_percentage = 33
+tourist_percentage = 16
+
+# 産業が従業員の行き先として街につながる範囲。
+factory_worker_radius = 77
+factory_worker_minimum_towns = 1
+factory_worker_maximum_towns = 4
+
+seperate_halt_capacities = 0
+
+# 運賃を決める距離。0 = 前の停留所からの距離。
+pay_for_total_distance = 0
+
+avoid_overcrowding = 0
+no_routing_over_overcrowded = 0
+
+##############################  道路  ##############################
+
+drive_left = 0
+
+# 初めの街どうしをつなぐ道路の最大の長さ。
+intercity_road_length = 6000
+
+# 街の外の道路（街どうしをつなぐ道路）。名前は AMI の道路の物（vendor/ami で同梱。
+# AMI の 256 版は 128na/simutrans-addon-dev#266）。書き方は 名前,登場年,退役年。
+# 速さ・費用は AMI の dat のとおり: local 40km/h（1900〜）、general 120km/h（1930〜）。
+intercity_road[0] = ami_road_local,0,1930
+intercity_road[1] = ami_road_general,1930,2999
+
+# 街が建てる道路（生活道路）。AMI の local は 1900 年からなので、それより前の年に
+# 始めても道路が無くならないよう、登場年は 0 にしてある（開始年の推奨は 1930 年以降）。
+city_road[0] = ami_road_local,0,2999
+
+# 道路を自動で引くときの重み（大きいほど避ける）。pak128 と同じ。
+way_straight = 1
+way_curve = 2
+way_double_curve = 6
+way_90_curve = 15
+way_slope = 10
+way_tunnel = 8
+way_max_bridge_len = 15
+way_leave_road = 25
+
+##############################  川  ##############################
+
+# 川の物（#5 の地面）がまだ無いので、名前は書かない。川の物ができたら、太い順に
+# river_type[0] 〜 に並べる（大きい番号ほど細い）。
+river_min_length = 8
+
+##############################  木  ##############################
+
+# 木の数は地図の重さ（メモリ）に直結する。256 の絵は 1 本あたり約 4 倍の画素なので、
+# 1 タイルあたりの最大本数は pak128 と同じ 3 のまま、密度は変えない（重さは概念の 2.1 で
+# 小さな地図では問題なしと確かめてある）。木の絵が入ってから、重ければ減らす。
+max_no_of_trees_on_square = 3
+forest_base_size = 36
+forest_map_size_divisor = 38
+forest_count_divisor = 16
+forest_inverse_spare_tree_density = 400
+
+# 木で埋まる気候・木が生えない気候（ビット: 1 水、2 砂漠、4 熱帯、8 地中海、16 温帯、
+# 32 ツンドラ、64 岩、128 北極）。
+tree_climates = 4
+no_tree_climates = 130
+
+##############################  遊び方  ##############################
+
+beginner_price_factor = 1500
+
+# 停留所が拾う範囲（タイル）。タイルの絵が 2 倍でも、1 タイルが指す広さは変えない
+# （街の 1 区画と停留所の関係が pak128 と同じになる）。
+station_coverage = 2
+
+max_transfers = 7
+
+##############################  産業  ##############################
+
+industry_increase_every = 5000
+crossconnect_factories_percentage = 20
+factory_spacing = 20
+electric_promille = 330
+just_in_time = 1
+
+##############################  お金  ##############################
+
+# 値の単位は 1/100 クレジット。pak128 と同じ。車両の値段（#4 以降）をこの釣り合いで決める。
+starting_money[0] = 1930,50000000,1
+starting_money[1] = 2030,150000000,1
+
+allow_buying_obsolete_vehicles = 1
+used_vehicle_reduction = 150
+maintenance_building = 1800
+
+cost_multiply_dock = 750
+cost_multiply_station = 600
+cost_multiply_roadstop = 400
+cost_multiply_airterminal = 1000
+cost_multiply_post = 500
+cost_multiply_headquarter = 10000
+
+cost_depot_air = 12500
+cost_depot_rail = 8500
+cost_depot_road = 7000
+cost_depot_ship = 9000
+
+cost_signal = 500
+cost_tunnel = 11000
+cost_third_rail = 80
+
+cost_buy_land = 125
+cost_alter_land = 1250
+cost_set_slope = 1500
+cost_multiply_found_industry = 500000
+cost_remove_tree = 40
+cost_multiply_remove_haus = 1000
+cost_transformer = 2500
+cost_maintain_transformer = 100
+
+##############################  時間  ##############################
+
+# 開始年。車両・道路の登場年が 1930 年台から並ぶので、それより前にしない。
+starting_year = 1930
+starting_month = 1
+
+# 1 か月の長さ = 2^bits_per_month マイクロ秒。19 は本体の既定（20）の半分。
+# 車両の速さを変えずに「同じ道のりを走る月数」を決める値で、車両を実物の長さに
+# 比例させても本体の速さの換算（1 タイルの長さ）は変わらないので、pak128 と同じにする。
+bits_per_month = 19
+
+##############################  表示  ##############################
+
+random_grounds_probability = 10
+random_wildlife_probability = 1000
+water_animation_ms = 100
+
+# 街の車（citycar）。物（#8 以降）が入るまで台数に意味は無いが、値は pak128 と同じ。
+citycar_level = 5
+default_citycar_life = 120
