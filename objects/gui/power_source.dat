@@ -1,0 +1,6 @@
+# 発電所と使う側の印（送電網の表示）
+Obj=misc
+Name=PowerSource
+copyright=pak256.LongScale チーム
+cell_size=256
+Image[0]=power_source.0.0

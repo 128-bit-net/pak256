@@ -1,0 +1,5 @@
+Obj=symbol
+Name=NewWorld
+copyright=pak256.LongScale チーム
+cell_size=64
+Image[0]=> sym_newworld.0.0

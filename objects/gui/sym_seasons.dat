@@ -1,0 +1,8 @@
+Obj=symbol
+Name=Seasons
+copyright=pak256.LongScale チーム
+cell_size=16
+Image[0]=> sym_seasons.0.0
+Image[1]=> sym_seasons.0.1
+Image[2]=> sym_seasons.0.2
+Image[3]=> sym_seasons.0.3
