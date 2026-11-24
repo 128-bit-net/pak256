@@ -14,7 +14,7 @@
 
 | 項目 | 結果 | 出典 |
 |---|---|---|
-| makeobj の大きさの指定 | `pak16` 〜 `pak32765` を受け付ける | `makeobj/makeobj.cc` 86 行付近 |
+| makeobj の大きさの指定 | `pak16` 〜 `pak32765` を受け付ける。数字は PNG を切るマス（セル）の大きさで、タイルの大きさではない。dat の `cell_size=` で物ごとに変えられる（[layout.md](layout.md) の「セルの大きさ」） | `makeobj/makeobj.cc` 86 行付近、`descriptor/writer/obj_writer.cc` 50 行付近 |
 | pak の中の画像の形式 | 今の形式（版 3）は位置・幅・高さとも 16 ビット。読み込み側・描画側も 16 ビット。256px の幅を持てる（古い版 0〜2 は幅・高さが 8 ビット） | `descriptor/writer/image_writer.cc` 493 行付近、`descriptor/reader/image_reader.cc` 98 行付近、`display/simgraph16.cc` の `struct imd` |
 | タイルの画素数 | 地面の絵の幅から決まる（pak の設定ではない） | `descriptor/ground_desc.cc` 398 行付近 |
 | 高さ 1 段の画素数 | `tile_height` × タイル幅 ÷ 64。pak128 と同じ `tile_height = 8` なら 32px | `dataobj/settings.cc` 1929 行付近、`simconst.h` の `tile_raster_scale_y` |
@@ -118,10 +118,10 @@ CC BY-SA 4.0 で足りること（`https://creativecommons.org/licenses/by-sa/4.
 ### H. 作り方
 
 - 絵は Blender の元データから描く。手元の道具（`simutrans-addon-dev` の `sheetlib`）の `CELL = 256` は pak128 の 2 タイル分の絵の大きさで、pak256 のことではない。タイルの大きさを引数にして描けるようにする。→ 倍率を 1 つ足せば、AMI の在来線を 256px のタイルで描けた（2026-11-24、[記録](records/2026-11-24_ami-rail-at-256.md)）。道具は `simutrans-addon-dev` に置いたまま、AMI の側で任意の pak の大きさに対応する（2026-11-24、ユーザー。[128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)）。
-- dat は表（YAML など）から作り、CI で makeobj を回して pak を作る。
+- dat は表（YAML）から作り、CI で makeobj を回して pak を作る。自前の物は 256 のセル（`pak256`）、AMI は 2 タイル分のセル（`pak512`）で組む。置き場と作り方は [layout.md](layout.md)（2026-11-25、ユーザー。#1）。
 
 ## 4. 最初の試し（案）
 
-1. pak128 の基本の部分（地面・GUI・カーソル）を 2 倍に拡大し、`makeobj pak256` で pak にする。本体で起動するか、メモリと描画の速さを見る。→ 2026-11-24 に pak128 の全体で試し、起動とメモリを確かめた（[記録](records/2026-11-24_poc-upscale-pak128.md)）。描画の重さも小さな地図で測った。
+1. pak128 の基本の部分（地面・GUI・カーソル）を 2 倍に拡大し、`makeobj pak256` で pak にする（元のセルの 2 倍。元が 176・250 のセルの物は `pak352`・`pak500`）。本体で起動するか、メモリと描画の速さを見る。→ 2026-11-24 に pak128 の全体で試し、起動とメモリを確かめた（[記録](records/2026-11-24_poc-upscale-pak128.md)）。描画の重さも小さな地図で測った。
 2. 線路 1 種と車両 1 両を Blender から 256px で描き、描画位置の規格の試験の形を作る。→ 線路は AMI の在来線を流用して描き、地面と坂に合った（[記録](records/2026-11-24_ami-rail-at-256.md)）。車両はまだ。
 3. 1・2 の結果で 2.1 の未確認を埋め、C の換算と D の数値を決める。2 の車両は、カーブでのはみ出し方も撮って見る。

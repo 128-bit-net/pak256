@@ -1,0 +1,14 @@
+# 見本の物（仮）。表から dat を作る形と、256 のセルの絵が makeobj で通ることを見せる。
+# #9 で木が入ったら、このフォルダごと消す。
+obj: tree
+name: pak256_sample
+copyright: pak256.LongScale team
+climates: temperate
+distributionweight: 1
+seasons: 1
+image:            # image[age][season]。絵は draw.py が描く
+  0: {0: sample_marker.0.0}
+  1: {0: sample_marker.0.1}
+  2: {0: sample_marker.0.2}
+  3: {0: sample_marker.0.3}
+  4: {0: sample_marker.0.4}
