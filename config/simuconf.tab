@@ -43,7 +43,7 @@ factory_worker_radius = 77
 factory_worker_minimum_towns = 1
 factory_worker_maximum_towns = 4
 
-seperate_halt_capacities = 0
+separate_halt_capacities = 0
 
 # 運賃を決める距離。0 = 前の停留所からの距離。
 pay_for_total_distance = 0
@@ -64,8 +64,8 @@ intercity_road_length = 6000
 intercity_road[0] = ami_road_local,0,1930
 intercity_road[1] = ami_road_general,1930,2999
 
-# 街が建てる道路（生活道路）。AMI の local は 1900 年からなので、それより前の年に
-# 始めても道路が無くならないよう、登場年は 0 にしてある（開始年の推奨は 1930 年以降）。
+# 街が建てる道路（生活道路）。登場年を 0 にすると、本体はその道路自身の登場年
+# （AMI の local は 1900 年）に置き換える。1900 年より前に始めると、本体が代わりの道路を使う。
 city_road[0] = ami_road_local,0,2999
 
 # 道路を自動で引くときの重み（大きいほど避ける）。pak128 と同じ。
@@ -155,7 +155,7 @@ cost_maintain_transformer = 100
 
 ##############################  時間  ##############################
 
-# 開始年。車両・道路の登場年が 1930 年台から並ぶので、それより前にしない。
+# 開始年。pak128 と同じ 1930 年。車両（#4 以降）の登場年が決まったら見直す。
 starting_year = 1930
 starting_month = 1
 
