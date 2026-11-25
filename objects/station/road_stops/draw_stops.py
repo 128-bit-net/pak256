@@ -14,7 +14,7 @@ import importlib.util
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 _B = os.path.join(os.path.dirname(os.path.dirname(HERE)), "city", "town_buildings", "draw_buildings.py")
@@ -147,12 +147,44 @@ def sheet(stop):
         out.paste(cell(stop["back"], i), (i * CELL, 0))
         out.paste(cell(stop["front"], i), (i * CELL, CELL))
     # 道具の絵: 向き 0（NS 中）の後ろと前を重ねる
-    icon = Image.new("RGB", (CELL, CELL), CLEAR)
+    art = Image.new("RGB", (CELL, CELL), CLEAR)
     for row in (0, 1):
         part = out.crop((0, row * CELL, CELL, row * CELL + CELL))
-        icon.paste(part, (0, 0), _mask(part))
-    out.paste(icon, (0, CELL * 2))
+        art.paste(part, (0, 0), _mask(part))
+    out.paste(tool_icon(art, ICON_BG), (0, CELL * 2))
     return out
+
+
+ICON_SIZE = 192  # 本体はアイコンを表示の高さ（48）に収まる倍率で縮める。192 なら 1/4 でちょうど 48 になる
+ICON_BG = (84, 104, 134)
+
+
+def tool_icon(art, bg):
+    """道具の絵: 地の色の角丸の四角（192px）に、停留所の絵を収めて置く。
+
+    絵に透明な所があると、本体は絵の見える範囲だけを縮めて置くので、アイコンの枠がずれて灰色の空きに見える（#71）。
+    四角を左上の角（0, 0）から置き、見える範囲の始まりを 0 にする。四角の外と角は透明色。
+    """
+    box = Image.new("RGB", (CELL, CELL), CLEAR)
+    mask = Image.new("L", (ICON_SIZE, ICON_SIZE), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, ICON_SIZE - 1, ICON_SIZE - 1), 24, fill=255)
+    dark = db.safe(tuple(int(v * 0.65) for v in bg))
+    plate = Image.new("RGB", (ICON_SIZE, ICON_SIZE), db.safe(bg))
+    ImageDraw.Draw(plate).rounded_rectangle((0, 0, ICON_SIZE - 1, ICON_SIZE - 1), 24, outline=dark, width=4)
+    box.paste(plate, (0, 0), mask)
+    bbox = _mask(art).getbbox()
+    if bbox:
+        part = art.crop(bbox)
+        k = min(150 / part.width, 150 / part.height)
+        size = (max(1, round(part.width * k)), max(1, round(part.height * k)))
+        alpha = _mask(part).resize(size, Image.LANCZOS).point(lambda v: 255 if v >= 128 else 0)
+        small = part.resize(size, Image.LANCZOS)
+        px = small.load()
+        for y in range(size[1]):
+            for x in range(size[0]):
+                px[x, y] = db.safe(px[x, y])
+        box.paste(small, ((ICON_SIZE - size[0]) // 2, (ICON_SIZE - size[1]) // 2), alpha)
+    return box
 
 
 def _mask(im):
