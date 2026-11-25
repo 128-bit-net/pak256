@@ -24,7 +24,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 | GUI | ツールバーのアイコン（一般・簡単・ダイアログ・バー）・記号（季節・旅客・郵便・貨物など）・カーソル・建設中の絵・ロゴ | pak256 | 要る（記号と同じ大きさで足りる） |
 | 貨物 | `Passagiere`・`Post`・`None` と、pak128 に寄せた貨物（concept の E） | pak256 | 要る（産業の分だけ） |
 | 道路・線路など | 道路・線路・路面軌道・高架・橋・トンネル・車庫（道路の車庫は AMI の `ami_road_depot`。[#64](https://github.com/128-bit-net/pak256/issues/64)）・架線・踏切・道路標識・運河・モノレール | AMI | 要る（道路・線路。線路は [#46](https://github.com/128-bit-net/pak256/issues/46) で `ami-256-alpha.2` の `ami_rail_ballast` と `ami_rail_depot` を使った） |
-| 駅・停留所 | 駅・バス停・トラックの荷役所・港・空港の建物 | 線路の駅は pak256（[#73](https://github.com/128-bit-net/pak256/issues/73)。AMI は駅を作らない、2026-11-26）。バス停と荷役所は、仮に pak256 で作った（[#44](https://github.com/128-bit-net/pak256/issues/44)）後、AMI の 256 版（`ami-256-alpha.3`）に置き換えた（[#72](https://github.com/128-bit-net/pak256/issues/72)） | 要る（バス停・荷役所・駅。駅は #46・#73 で pak256 の物にした） |
+| 駅・停留所 | 駅・バス停・トラックの荷役所・港・空港の建物 | 線路の駅は pak256（[#73](https://github.com/128-bit-net/pak256/issues/73)。AMI は駅を作らない、2026-11-26）。バス停と荷役所は、仮に pak256 で作り（[#44](https://github.com/128-bit-net/pak256/issues/44)）、AMI の 256 版に置き換えた（[#72](https://github.com/128-bit-net/pak256/issues/72)）が、2026-11-26 に pak256 の物に戻した（[#94](https://github.com/128-bit-net/pak256/issues/94)） | 要る（バス停・荷役所・駅。どれも pak256 の物） |
 | 信号 | 線路の信号 | pak256（[#73](https://github.com/128-bit-net/pak256/issues/73)。2026-11-26 に AMI から変えた） | 要る（1 種） |
 | 空港・港の道 | 滑走路・誘導路・船の航路の物 | AMI（#264） | 要らない |
 | 電線 | 電線・変電所 | AMI（#264） | 要らない |
