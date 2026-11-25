@@ -1,4 +1,4 @@
-"""温帯の木 3 種の絵と表を書き出す（docs/trees.md）。絵は仮（数式で描いた物）で、見た目は後から描き直す。
+"""温帯の木 3 種の絵と表を書き出す（docs/trees.md）。MIT License。絵は仮（数式で描いた物）で、見た目は後から描き直す。
 
 - 種類: ケヤキ風の広葉樹（zelkova）、スギ風の針葉樹（cedar）、シラカバ風の細い広葉樹（birch）
 - 縮尺（docs/concept.md の 3 章 C）: 1 タイル = 16 単位 × 1.65m = 26.4m。256px のタイルの菱形から、
@@ -104,13 +104,13 @@ def speckle(cv, rng, cx, cy, rx, ry, n, size, colors):
 
 
 def draw_zelkova(cv, k, rng):
-    """広葉樹。幹の上に、大きな樹冠（球をいくつか重ねる）。樹冠の幅は高さの 0.75 倍ほど。"""
+    """広葉樹。幹の上に、大きな樹冠（球をいくつか重ねる）。樹冠の幅は 13m ほど。"""
     h = SPECIES["zelkova"]["height"] * k
     H = h * PX_H
     trunk(cv, H * 0.42, max(3, 1.0 * PX_W * k * 1.1), (84, 58, 38), (122, 88, 58))
     x, y = BASE
-    cr = 6.5 * k * PX_W  # 樹冠の半径（横）
-    cz = 0.62 * H  # 樹冠の中心の高さ
+    cr = 5.6 * k * PX_W  # 樹冠の半径（横。球の端まで入れた幅が 13m ほどになる）
+    cz = 0.69 * H  # 樹冠の中心の高さ
     ry = cr * 0.80
     blobs = [(0.0, 0.0, 1.0), (-0.55, 0.1, 0.62), (0.55, 0.1, 0.62), (-0.25, -0.35, 0.6), (0.3, -0.38, 0.56), (0.0, 0.3, 0.55)]
     blobs.sort(key=lambda b: b[1] * -1)
@@ -132,7 +132,7 @@ def draw_cedar(cv, k, rng):
         t = i / (tiers - 1)
         z0 = H * (0.16 + 0.60 * t)  # 段の下の縁の高さ
         w = cr * (1.0 - 0.78 * t)
-        top = z0 + H * 0.26 * (1.0 - 0.30 * t)
+        top = z0 + H * 0.275 * (1.0 - 0.127 * t)  # 一番上の段の頂点が H に届く
         base_y = y - z0
         # 円錐: 頂点・左右の縁・下の縁の楕円
         apex = (x, y - top)
@@ -193,9 +193,10 @@ def table(species):
 
 
 def main():
+    heights = "・".join(f"{k} {v['height']:g}m" for k, v in SPECIES.items())
     header = (
         "# 温帯の木（絵は仮）。この表と PNG は draw_trees.py が書き出す。直すときはスクリプトを直して流し直す。\n"
-        "# 1 タイル = 26.4m の縮尺で、成木の高さは 広葉樹 18m・針葉樹 24m・シラカバ 14m（docs/trees.md）。\n"
+        f"# 1 タイル = 26.4m の縮尺で、成木の高さは {heights}（docs/trees.md）。\n"
     )
     for species in SPECIES:
         sheet(species).save(os.path.join(HERE, f"{species}.png"))

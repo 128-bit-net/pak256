@@ -55,10 +55,10 @@ ci.env                CI の道具の版（makeobj など）
 
   ```yaml
   obj: tree
-  name: pak256_sample
+  name: pak256_zelkova
   copyright: pak256.LongScale チーム
-  image:              # image[0][0]=sample_marker.0.0 になる
-    0: {0: sample_marker.0.0}
+  image:              # image[0][0]=zelkova.0.0 になる
+    0: {0: zelkova.0.0}
   freight: [a, b]     # freight[0]=a、freight[1]=b になる
   ```
 
