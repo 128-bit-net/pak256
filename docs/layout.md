@@ -30,11 +30,11 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [vehicles.md](vehicles.md) | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 仮の停留所（バス停・荷役所）。AMI の物が出たら消す。[stations.md](stations.md) | #44 |
+| `objects/station/` | 仮の停留所（バス停・荷役所）と駅。AMI の物が出たら消す。[stations.md](stations.md) | #44・#46 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、仮のバス停と荷役所（`objects/station/`。#44）だけ。AMI の 256 版が出たら置き換えて消す（[stations.md](stations.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、仮のバス停・荷役所・駅（`objects/station/`。#44・#46）だけ。AMI の 256 版が出たら置き換えて消す（[stations.md](stations.md)）。道路の車庫は #64 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 
@@ -102,14 +102,14 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
-| `test_stations.py` | 仮の停留所の表の検査: `type: stop`・`waytype: road`・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
+| `test_stations.py` | 仮の停留所・駅の表の検査: `type: stop`・`waytype`（道路は `road_stops/`、線路は `rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
 | `vehicles.py` | 車両の長さと描画位置の決まり（[vehicles.md](vehicles.md)）の計算。車両を描くスクリプトと検査が使う |
-| `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） |
+| `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。

@@ -45,9 +45,15 @@ pak256_bus_stop
 バス停
 pak256_truck_stop
 トラックの荷役所
+pak256_train_station
+駅
 pak256_bus
 バス
 pak256_mail_truck
 郵便のトラック
 pak256_coal_truck
 石炭トラック
+pak256_railcar
+気動車
+pak256_railcar_trailer
+気動車の付随車

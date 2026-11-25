@@ -1,4 +1,4 @@
-# ツールバーの並び（道路・街・地形の道具だけ。線路・船・飛行機・産業は後で足す）
+# ツールバーの並び（道路・線路・街・地形の道具だけ。船・飛行機・産業は後で足す）
 #
 # 書き方（本体の tool/simmenu.h の番号に合わせてある）:
 #   general_tool[番号] = アイコンの番号, カーソルの番号, 音の番号, キー
@@ -95,33 +95,34 @@ toolbar[0][0]=toolbar[1],29,,Einstellungen aendern,settingtools.txt
 toolbar[0][1]=dialog_tool[2]
 toolbar[0][2]=general_tool[0]
 toolbar[0][3]=toolbar[2],0,,SLOPETOOLS,slopetools.txt
-toolbar[0][4]=toolbar[3],4,,ROADTOOLS,roadtools.txt
-toolbar[0][5]=toolbar[4],7,,SPECIALTOOLS,special.txt
-toolbar[0][6]=general_tool[1]
-toolbar[0][7]=-
-toolbar[0][8]=dialog_tool[3]
-toolbar[0][9]=toolbar[5],9,,EDITTOOLS,edittools.txt
-toolbar[0][10]=toolbar[6],8,,LISTTOOLS,list.txt
-toolbar[0][11]=dialog_tool[4]
-toolbar[0][12]=dialog_tool[5]
-toolbar[0][13]=dialog_tool[31],,F6
-toolbar[0][14]=-
-toolbar[0][15]=simple_tool[2]
-toolbar[0][16]=simple_tool[0],,^p,
-toolbar[0][17]=simple_tool[1]
-toolbar[0][18]=dialog_tool[0]
-toolbar[0][19]=-
-toolbar[0][20]=simple_tool[8]
-toolbar[0][21]=simple_tool[9]
-toolbar[0][22]=simple_tool[15],44,^U,K
-toolbar[0][23]=simple_tool[15],22,END,I
-toolbar[0][24]=simple_tool[15],23,HOME,D
-toolbar[0][25]=simple_tool[12]
-toolbar[0][26]=simple_tool[16]
-toolbar[0][27]=simple_tool[33]
-toolbar[0][28]=simple_tool[34]
-toolbar[0][29]=-
-toolbar[0][30]=dialog_tool[28]
+toolbar[0][4]=toolbar[3],1,,RAILTOOLS,railtools.txt
+toolbar[0][5]=toolbar[4],4,,ROADTOOLS,roadtools.txt
+toolbar[0][6]=toolbar[5],7,,SPECIALTOOLS,special.txt
+toolbar[0][7]=general_tool[1]
+toolbar[0][8]=-
+toolbar[0][9]=dialog_tool[3]
+toolbar[0][10]=toolbar[6],9,,EDITTOOLS,edittools.txt
+toolbar[0][11]=toolbar[7],8,,LISTTOOLS,list.txt
+toolbar[0][12]=dialog_tool[4]
+toolbar[0][13]=dialog_tool[5]
+toolbar[0][14]=dialog_tool[31],,F6
+toolbar[0][15]=-
+toolbar[0][16]=simple_tool[2]
+toolbar[0][17]=simple_tool[0],,^p,
+toolbar[0][18]=simple_tool[1]
+toolbar[0][19]=dialog_tool[0]
+toolbar[0][20]=-
+toolbar[0][21]=simple_tool[8]
+toolbar[0][22]=simple_tool[9]
+toolbar[0][23]=simple_tool[15],44,^U,K
+toolbar[0][24]=simple_tool[15],22,END,I
+toolbar[0][25]=simple_tool[15],23,HOME,D
+toolbar[0][26]=simple_tool[12]
+toolbar[0][27]=simple_tool[16]
+toolbar[0][28]=simple_tool[33]
+toolbar[0][29]=simple_tool[34]
+toolbar[0][30]=-
+toolbar[0][31]=dialog_tool[28]
 
 # ---- 設定・保存・読み込みなどの窓 ----
 toolbar[1][0]=dialog_tool[13]
@@ -176,50 +177,64 @@ toolbar[2][20]=general_tool[39],37,,5 #気候: ツンドラ
 toolbar[2][21]=general_tool[39],38,,6 #気候: 岩
 toolbar[2][22]=general_tool[39],39,,7 #気候: 北極
 
+# ---- 線路（AMI の線路・橋・トンネル・駅・車庫。信号はまだ無い）----
+toolbar[3][0]=ways(2,0)
+toolbar[3][1]=ways(2,1)
+toolbar[3][2]=bridges(2)
+toolbar[3][3]=tunnels(2)
+toolbar[3][4]=wayobjs(2)
+toolbar[3][5]=signs(2)
+toolbar[3][6]=general_tool[17],20,,2
+toolbar[3][7]=general_tool[33],,,2
+toolbar[3][8]=buildings(33,2)
+toolbar[3][9]=buildings(34,2)
+toolbar[3][10]=buildings(35,2)
+toolbar[3][11]=general_tool[14],,t,2
+
 # ---- 道路（AMI の道路・橋・トンネル・標識・停留所・車庫）----
-toolbar[3][0]=ways(1,0)
-toolbar[3][1]=ways(1,1)
-toolbar[3][2]=bridges(1)
-toolbar[3][3]=tunnels(1)
-toolbar[3][4]=wayobjs(1)
-toolbar[3][5]=signs(1)
-toolbar[3][6]=general_tool[17],20,,1
-toolbar[3][7]=general_tool[33],,,1
-toolbar[3][8]=buildings(33,1)
-toolbar[3][9]=buildings(34,1)
-toolbar[3][10]=buildings(35,1)
-toolbar[3][11]=general_tool[14],,s,1
+toolbar[4][0]=ways(1,0)
+toolbar[4][1]=ways(1,1)
+toolbar[4][2]=bridges(1)
+toolbar[4][3]=tunnels(1)
+toolbar[4][4]=wayobjs(1)
+toolbar[4][5]=signs(1)
+toolbar[4][6]=general_tool[17],20,,1
+toolbar[4][7]=general_tool[33],,,1
+toolbar[4][8]=buildings(33,1)
+toolbar[4][9]=buildings(34,1)
+toolbar[4][10]=buildings(35,1)
+toolbar[4][11]=general_tool[14],,s,1
 
 # ---- 特殊（プレイヤーの切り替え・木・目印・街の建物の購入・スクリプト）----
-toolbar[4][0]=buildings(35,0)
-toolbar[4][1]=simple_tool[5]
-toolbar[4][2]=general_tool[11]
-toolbar[4][3]=general_tool[6]
-toolbar[4][4]=general_tool[35]
-toolbar[4][5]=dialog_tool[34]
+toolbar[5][0]=buildings(35,0)
+toolbar[5][1]=simple_tool[5]
+toolbar[5][2]=general_tool[11]
+toolbar[5][3]=general_tool[6]
+toolbar[5][4]=general_tool[35]
+toolbar[5][5]=dialog_tool[34]
 
 # ---- 編集（街を足す・広げる・街の道路・木・家）----
-toolbar[5][0]=general_tool[10],25,,+100
-toolbar[5][1]=general_tool[10],26,,-100
-toolbar[5][2]=general_tool[9]
-toolbar[5][3]=general_tool[36],27,,
-toolbar[5][4]=dialog_tool[22],,&
-toolbar[5][5]=dialog_tool[23]
-toolbar[5][6]=general_tool[30]
-toolbar[5][7]=general_tool[29]
-toolbar[5][8]=dialog_tool[24]
-toolbar[5][9]=general_tool[28]
-toolbar[5][10]=dialog_tool[35]
+toolbar[6][0]=general_tool[10],25,,+100
+toolbar[6][1]=general_tool[10],26,,-100
+toolbar[6][2]=general_tool[9]
+toolbar[6][3]=general_tool[36],27,,
+toolbar[6][4]=dialog_tool[22],,&
+toolbar[6][5]=dialog_tool[23]
+toolbar[6][6]=general_tool[30]
+toolbar[6][7]=general_tool[29]
+toolbar[6][8]=dialog_tool[24]
+toolbar[6][9]=general_tool[28]
+toolbar[6][10]=dialog_tool[35]
 
 # ---- 一覧 ----
-toolbar[6][0]=dialog_tool[3]
-toolbar[6][1]=dialog_tool[15]
-toolbar[6][2]=dialog_tool[14]
-toolbar[6][3]=dialog_tool[32]
-toolbar[6][4]=dialog_tool[33]
-toolbar[6][5]=dialog_tool[16]
-toolbar[6][6]=dialog_tool[17]
-toolbar[6][7]=dialog_tool[18]
-toolbar[6][8]=dialog_tool[19]
-toolbar[6][9]=dialog_tool[25]
-toolbar[6][10]=dialog_tool[6]
+toolbar[7][0]=dialog_tool[3]
+toolbar[7][1]=dialog_tool[15]
+toolbar[7][2]=dialog_tool[14]
+toolbar[7][3]=dialog_tool[32]
+toolbar[7][4]=dialog_tool[33]
+toolbar[7][5]=dialog_tool[16]
+toolbar[7][6]=dialog_tool[17]
+toolbar[7][7]=dialog_tool[18]
+toolbar[7][8]=dialog_tool[19]
+toolbar[7][9]=dialog_tool[25]
+toolbar[7][10]=dialog_tool[6]

@@ -628,6 +628,15 @@ def g_road_tool(c):
     road(c)
 
 
+def g_rail_tool(c):
+    """線路の道具: 道床の帯に、まくらぎと 2 本のレール。"""
+    c.poly([(48, 16), (80, 16), (116, 112), (12, 112)], (112, 98, 84), outline=W, w=3)
+    for y in (30, 52, 76, 100):
+        c.poly([(46 - (y - 16) * 0.5, y), (82 + (y - 16) * 0.5, y), (82 + (y - 16) * 0.5, y + 6), (46 - (y - 16) * 0.5, y + 6)], (70, 50, 36))
+    for dx in (-8, 8):
+        c.poly([(64 + dx - 1, 16), (64 + dx + 1, 16), (64 + dx * 7 + 2, 112), (64 + dx * 7 - 2, 112)], (200, 204, 210))
+
+
 def g_special(c):
     pts = []
     for i in range(10):
@@ -852,6 +861,7 @@ ICONS = {
     ("dialog", 35): g_edit_bush,
     # ツールバーの行で指定する番号（BarTools）
     ("bar", 0): g_slope_tool,
+    ("bar", 1): g_rail_tool,
     ("bar", 4): g_road_tool,
     ("bar", 7): g_special,
     ("bar", 8): g_list,

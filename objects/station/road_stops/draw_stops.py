@@ -1,4 +1,4 @@
-"""道路の停留所（バス停・トラックの荷役所）の絵と表を書き出す（docs/stations.md）。MIT License。絵は仮（箱を数式で描いた物）。
+"""停留所（バス停・トラックの荷役所）と駅の絵と表を書き出す（docs/stations.md）。MIT License。絵は仮（箱を数式で描いた物）。
 
 - 縮尺・タイルの座標は objects/city/town_buildings/draw_buildings.py と同じ（1 タイル = 26.4m、高さ 1m = 5.94px）。
 - 停留所は 1x1 タイル。道路の向きごとに 8 通り（本体の決まり。0 NS 中、1 EW 中、2 NS 南端、3 EW 東端、4 NS 北端、5 EW 西端、
@@ -53,15 +53,15 @@ def box_a_c(cv, axis, a0, a1, c0, c1, z0, z1, wall, roof):
         db.flat_box(cv, a0, a1, c0, c1, z0, z1, wall, roof)
 
 
-def platform(cv, axis, south_end, north_end, z, wall, roof):
-    """近い側の帯。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（道路はふさがない）。"""
+def platform(cv, axis, south_end, north_end, z, wall, roof, near=NEAR):
+    """近い側の帯。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（道路・線路はふさがない）。"""
     a0 = 0.05 if north_end else 0.0
     a1 = 0.95 if south_end else 1.0
-    box_a_c(cv, axis, a0, a1, NEAR[0], NEAR[1], 0, z, wall, roof)
+    box_a_c(cv, axis, a0, a1, near[0], near[1], 0, z, wall, roof)
     if north_end:
-        box_a_c(cv, axis, 0.0, 0.05, NEAR[0], NEAR[1], 0, z + 0.2, KERB, KERB)
+        box_a_c(cv, axis, 0.0, 0.05, near[0], near[1], 0, z + 0.2, KERB, KERB)
     if south_end:
-        box_a_c(cv, axis, 0.95, 1.0, NEAR[0], NEAR[1], 0, z + 0.2, KERB, KERB)
+        box_a_c(cv, axis, 0.95, 1.0, near[0], near[1], 0, z + 0.2, KERB, KERB)
 
 
 # ---- バス停: 低い歩道に、屋根つきの待合 ----
@@ -92,11 +92,38 @@ def truck_front(cv, axis, s, n):
     box_a_c(cv, axis, 0.14, 0.145, 0.88, 0.895, 1.0, 4.0, POST, SIGN)  # 標識
 
 
+# ---- 駅（線路）: 線路の脇の高さ 0.9m のホームに、屋根つきの待合 ----
+# 線路はタイルの中央（c = 0.43〜0.57。道床の幅 約 3.4m）を通ると見て、近い側にホームを置く。
+RAIL_NEAR = (0.66, 0.98)
+ROOF_STATION = (60, 96, 140)
+PLATFORM_Z = 0.9
+
+
+def station_back(cv, axis, s, n):
+    platform(cv, axis, s, n, PLATFORM_Z, (176, 174, 168), CONCRETE, RAIL_NEAR)  # ホーム（高さ 0.9m）
+
+
+def station_front(cv, axis, s, n):
+    c0, c1 = 0.78, 0.94
+    z0, z1 = PLATFORM_Z, PLATFORM_Z + 2.7
+    for a in (0.2, 0.8):  # 柱 4 本
+        for c in (c0, c1 - 0.02):
+            box_a_c(cv, axis, a - 0.01, a + 0.01, c, c + 0.02, z0, z1, POST, POST)
+    box_a_c(cv, axis, 0.12, 0.88, c0 - 0.02, c1 + 0.02, z1, z1 + 0.3, ROOF_STATION, ROOF_STATION)  # 屋根
+    box_a_c(cv, axis, 0.40, 0.60, c1 - 0.03, c1, z0, z0 + 0.5, (140, 100, 70), (150, 110, 80))  # ベンチ
+    box_a_c(cv, axis, 0.04, 0.045, c1 - 0.02, c1 - 0.015, z0, z0 + 3.2, POST, SIGN)  # 駅名の標識
+
+
 STOPS = {
     "bus_stop": dict(
         name="pak256_bus_stop", back=bus_back, front=bus_front,
         dat={"waytype": "road", "enables_pax": 1, "enables_post": 1, "level": 2, "intro_year": 1900},
         note="バス停。旅客と郵便。屋根つきの待合（高さ 2.9m）のある歩道",
+    ),
+    "train_station": dict(
+        name="pak256_train_station", back=station_back, front=station_front, dir="rail_stops",
+        dat={"waytype": "track", "enables_pax": 1, "level": 2, "intro_year": 1900},
+        note="駅（旅客）。線路の脇の高さ 0.9m のホームに、屋根つきの待合",
     ),
     "truck_stop": dict(
         name="pak256_truck_stop", back=truck_back, front=truck_front,
@@ -146,7 +173,7 @@ def fmt(v):
 
 def table(key, o):
     lines = [
-        "# 道路の停留所（絵は仮。AMI の物が出たら置き換えて消す。docs/stations.md）。この表と PNG は draw_stops.py が書き出す。",
+        "# 停留所・駅（絵は仮。AMI の物が出たら置き換えて消す。docs/stations.md）。この表と PNG は draw_stops.py が書き出す。",
         "# 1 タイル = 26.4m の縮尺（docs/buildings.md）。",
         "obj: building",
         f"name: {o['name']}",
@@ -173,8 +200,10 @@ def table(key, o):
 
 def main():
     for key, o in STOPS.items():
-        sheet(o).save(os.path.join(HERE, f"{key}.png"))
-        with open(os.path.join(HERE, f"{key}.yaml"), "w", encoding="utf-8", newline="\n") as f:
+        out = os.path.join(os.path.dirname(HERE), o.get("dir", os.path.basename(HERE)))
+        os.makedirs(out, exist_ok=True)
+        sheet(o).save(os.path.join(out, f"{key}.png"))
+        with open(os.path.join(out, f"{key}.yaml"), "w", encoding="utf-8", newline="\n") as f:
             f.write(table(key, o))
 
 
