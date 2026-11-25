@@ -55,10 +55,10 @@ ci.env                CI の道具の版（makeobj など）
 
   ```yaml
   obj: tree
-  name: pak256_sample
+  name: pak256_zelkova
   copyright: pak256.LongScale チーム
-  image:              # image[0][0]=sample_marker.0.0 になる
-    0: {0: sample_marker.0.0}
+  image:              # image[0][0]=zelkova.0.0 になる
+    0: {0: zelkova.0.0}
   freight: [a, b]     # freight[0]=a、freight[1]=b になる
   ```
 
@@ -152,4 +152,4 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 ## 見本の物
 
-`objects/scenery/sample_marker/` は、この形で dat → pak が通ることを見せる仮の物（木、名前 `pak256_sample`）。絵は `draw.py` が描く。#9 で木が入ったら消す。
+表から dat → pak が通る形の見本は、温帯の木 `objects/scenery/temperate_trees/`（[trees.md](trees.md)）。絵は `draw_trees.py` が描き、表も書き出す。
