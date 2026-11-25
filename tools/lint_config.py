@@ -11,6 +11,7 @@
     - ツールバーの行が使う toolbar[N]・general_tool[N]・simple_tool[N]・dialog_tool[N] の定義がある
       （道具の行が無くても、ツールバーの行がアイコンの番号を書いていれば使える）
     - toolbar[0] 以外の段は、どこかの行から使われている
+    - 本家 125.0.1 と OTRP で番号が違う道具（general_tool 48〜・simple_tool 36〜・dialog_tool 36〜）を使っていない
   行頭が空白の行は、本体が読み飛ばすので誤りにする
   cityrules.tab
     - house_N・road_N が 1 から連番で、それぞれ .chance がある
@@ -25,6 +26,10 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 本家 125.0.1 と OTRP で番号が同じ最大の番号 + 1。これ以上の番号は両方で別の道具になるので使わない
+# （docs/config.md の「ツールの番号」）。本体のバージョンが変わったら見直す。
+TOOL_ID_LIMITS = {"general_tool": 48, "simple_tool": 36, "dialog_tool": 36}
 
 RULE_CHARS = set("nsShHtTuU.")  # 本体 simcity.cc の "SsnHhTtUu" と、何でもよい .
 RULE_SIZES = (3, 5, 7)
@@ -70,6 +75,9 @@ def check_menuconf(lines):
         m = TOOL_DEF.match(line)
         if m:
             defs.add((m.group(1), int(m.group(2))))
+            limit = TOOL_ID_LIMITS[m.group(1)]
+            if int(m.group(2)) >= limit:
+                errors.append(f"{n}: {m.group(1)}[{m.group(2)}] は本家 125.0.1 と OTRP で番号が違う道具（{limit} 以上。docs/config.md の「ツールの番号」）")
             continue
         m = TOOLBAR_LINE.match(line)
         if not m:
@@ -85,6 +93,8 @@ def check_menuconf(lines):
         r = TOOL_REF.match(value)
         bar_refs.setdefault(bar, []).append((pos, n, int(r.group(2)) if r and r.group(1) == "toolbar" else None))  # 値の先頭が道具。2 つ目の欄にアイコンの番号があれば、道具の行が無くても使える
         if r:
+            if r.group(1) in TOOL_ID_LIMITS and int(r.group(2)) >= TOOL_ID_LIMITS[r.group(1)]:
+                errors.append(f"{n}: {r.group(1)}[{r.group(2)}] は本家 125.0.1 と OTRP で番号が違う道具（{TOOL_ID_LIMITS[r.group(1)]} 以上。docs/config.md の「ツールの番号」）")
             fields = value.split(",")
             has_icon = len(fields) > 1 and fields[1].strip() != ""
             refs.append((n, r.group(1), int(r.group(2)), has_icon))

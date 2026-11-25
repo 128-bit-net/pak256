@@ -37,6 +37,14 @@ class LintConfigTest(unittest.TestCase):
     def test_current_config_passes(self):
         self.assertEqual(lint_config.lint(CONFIG), [])
 
+    def test_mismatched_tool_id_definition(self):
+        self.edit("menuconf.tab", lambda t: t + "simple_tool[40] = 40,\n")
+        self.assertFails("番号が違う道具")
+
+    def test_mismatched_tool_id_in_toolbar(self):
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2]=general_tool[48],1"))
+        self.assertFails("general_tool[48] は本家")
+
     def test_space_around_equal_in_toolbar(self):
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2] = general_tool[0]"))
         self.assertFails("`=` の前後に空白")
