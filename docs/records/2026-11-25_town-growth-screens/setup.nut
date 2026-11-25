@@ -1,5 +1,5 @@
 // 街の成長の確かめ（#30）。#41 の setup.nut から、人口を足す行を外した。MIT License.
-// 先頭に足す変数: WAY（道路の名前）, DEPOT（車庫の名前）, NOBUS（true なら車両を出さない。比較用）。街を 2 つ置いて道でつなぎ、道の上にバス停を置いて、バスとトラックを走らせる。
+// 先頭に足す変数: WAY（道路の名前）, DEPOT（車庫の名前）, NOBUS（true なら車両を出さない）, NOSTOP（true なら停留所も置かない。比較用）。街を 2 つ置いて道でつなぎ、道の上にバス停を置いて、バスとトラックを走らせる。
 local pl = player_x(0);
 local s = "";
 function r(name, v) { if (v != null) s += name + "=[" + v + "]\n"; }
@@ -9,6 +9,7 @@ r("road", command_x(tool_build_way).work(pl, coord3d(ax - 10, ay, 0), coord3d(bx
 r("cityA", command_x(tool_add_city).work(pl, coord3d(ax, ay - 3, 0)));
 r("cityB", command_x(tool_add_city).work(pl, coord3d(bx, by - 3, 0)));
 // 人口は足さない（輸送だけで育つかを見る。#30）
+if (NOSTOP) return s + "no stops (control: no halts)";
 // バス停: 各街の中心の真南の道の上（置けなければ隣のタイル。T は置けた所）
 local T = [];
 foreach (cx in [ax, bx]) {

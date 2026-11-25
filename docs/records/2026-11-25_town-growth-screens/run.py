@@ -1,6 +1,6 @@
 """街が輸送で育つことの確かめ（#30）。MIT License。tools/game.py の Game で、街を 2 つ置き、バスで旅客を運び、早送りして人口と建物を読む。
-使い方: python -X utf8 run.py <検証環境> <ポート> <出力フォルダ> [--extra-pak <車庫の pak>] [--nobus] [--shots 1] [--polls N] [--wait 秒]
-人口はスクリプトで足さない。--nobus は車両を出さない比較用（輸送が無いと育たないことの確かめ）。
+使い方: python -X utf8 run.py <検証環境> <ポート> <出力フォルダ> [--extra-pak <車庫の pak>] [--nobus] [--nostop] [--shots 1] [--polls N] [--wait 秒]
+人口はスクリプトで足さない。--nobus は車両だけ出さない比較（停留所は置く）、--nostop は車両も停留所も置かない比較（停留所が無い街が育つか）。
 注意: run_squirrel に渡す文字列にバックスラッシュを入れない（バックスラッシュ+n が本物の改行に化けて、コンパイルが通らない）。"""
 import os, sys, time, argparse
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -14,13 +14,14 @@ ap.add_argument("--polls", type=int, default=30)
 ap.add_argument("--wait", type=float, default=20.0)
 ap.add_argument("--speed", type=int, default=128)
 ap.add_argument("--nobus", action="store_true")
+ap.add_argument("--nostop", action="store_true")
 ap.add_argument("--shots", default="")
 a = ap.parse_args()
 os.makedirs(a.out, exist_ok=True)
 READ = ('local s=""; foreach (c in city_list_x()) { s += c.get_name()+" pop="+c.get_citizens()[0]+" bld="+c.get_buildings()[0]'
-        '+" gen_pax="+c.get_generated_pax()[0]+" tr_pax="+c.get_transported_pax()[0]+" growth="+c.get_growth()[0]+" / "; }'
+        '+" gen_pax="+c.get_generated_pax()[0]+" tr_pax="+c.get_transported_pax()[0]+" gen_mail="+c.get_generated_mail()[0]+" tr_mail="+c.get_transported_mail()[0]+" growth="+c.get_growth()[0]+" / "; }'
         ' local t=world.get_time(); s += "year="+t.year+" month="+t.month; return s;')
-HEAD = 'local WAY = "ami_road_local"; local DEPOT = ""; local NOBUS = ' + ("true" if a.nobus else "false") + "; "
+HEAD = 'local WAY = "ami_road_local"; local DEPOT = ""; local NOBUS = ' + ("true" if a.nobus else "false") + "; local NOSTOP = " + ("true" if a.nostop else "false") + "; "
 with Game(a.env, "flat_512_left_v64", a.port, extra_paks=a.extra_pak) as g:
     log = open(os.path.join(a.out, "growth.log"), "w", encoding="utf-8")
 
