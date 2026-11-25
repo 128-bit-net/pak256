@@ -23,7 +23,7 @@
   夜の灯りを見るときだけ --night。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
-- MCP のポートは、割り当てられた範囲（47880〜47899）の中を必ず明示する。
+- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47899）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
 - pak を入れる処理は install_pak（#38 のテストプレイのフォルダへ入れる道具と共通）。
 """
 import argparse
@@ -48,6 +48,7 @@ PAK_DIR = "pak"
 DAY_NIGHT_OFF = "day_night_shift = 0"
 MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
+PORT_MIN, PORT_MAX = 47800, 47899  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
 
 
 def default_client():
@@ -145,8 +146,8 @@ def launch_command(work, save, port, exe=EXE, screensize=SCREENSIZE):
 
 
 def check_port(port):
-    if not 47880 <= port <= 47899:
-        raise RuntimeError(f"MCP のポートは 47880〜47899 の中で明示する: {port}")
+    if not PORT_MIN <= port <= PORT_MAX:
+        raise RuntimeError(f"MCP のポートは {PORT_MIN}〜{PORT_MAX} の中で明示する: {port}")
 
 
 def port_in_use(port):
@@ -304,7 +305,7 @@ def main():
     ap = argparse.ArgumentParser(description="ゲームを起動して Squirrel を流し、撮って、閉じる")
     ap.add_argument("--env", default=os.environ.get("PAK256_GAME_ENV"), help="検証環境（環境変数 PAK256_GAME_ENV）")
     ap.add_argument("--save", required=True, help="保存データの名前（拡張子なし）")
-    ap.add_argument("--port", type=int, required=True, help="MCP のポート（47880〜47899）")
+    ap.add_argument("--port", type=int, required=True, help=f"MCP のポート（{PORT_MIN}〜{PORT_MAX}。割り当てられた範囲の中）")
     ap.add_argument("--script", action="append", default=[], help="流す Squirrel のファイル（順に流す）")
     ap.add_argument("--capture", help="撮る PNG のパス（Squirrel の後）")
     ap.add_argument("--extra-pak", action="append", default=[], help="借りる pak のファイル（試験のときだけ）")
