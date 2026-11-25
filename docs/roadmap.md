@@ -77,7 +77,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 5. [#30](https://github.com/128-bit-net/pak256/issues/30) 街の成長（住宅・商業・工業の建物を、`cityrules.tab` の段ごとに数軒）
 6. [#45](https://github.com/128-bit-net/pak256/issues/45) α0.2 を出す。線路側の [#46](https://github.com/128-bit-net/pak256/issues/46) を待たない。
 
-線路・車庫・列車・駅・信号は [#46](https://github.com/128-bit-net/pak256/issues/46) に起こした。AMI の 256 版（[#261](https://github.com/128na/simutrans-addon-dev/issues/261) の C・D）が出るのを待つ。α0.2 に間に合えば入れ、間に合わなければ次（α0.3）に回す。駅・信号は、AMI の見込みを聞いてから起票する。
+線路・車庫・列車は [#46](https://github.com/128-bit-net/pak256/issues/46) に起こした。AMI の 256 版（[#261](https://github.com/128na/simutrans-addon-dev/issues/261) の C・D）が出るのを待つ。α0.2 に間に合えば入れ、間に合わなければ次（α0.3）に回す。駅・信号は、AMI の見込みを聞いてから起票する。
 
 - 車両: バス・トラックを先に。旅客と郵便・貨物の列車は、線路が来てから 1〜2 編成。concept の C（長さの換算）と D（描画位置の数値）は #40 で決めた。
 - 線路・車庫・架線・駅・信号 1 種: AMI。
