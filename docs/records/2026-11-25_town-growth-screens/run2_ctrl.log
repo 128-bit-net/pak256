@@ -1,0 +1,33 @@
+setup: stop 60: No through station here!
+stop 61: No through station here!
+stop 100: No through station here!
+stops 2 nobus (control)
+t0: 高知 pop=304 bld=12 gen_pax=0 tr_pax=0 growth=0 / 川崎 pop=292 bld=10 gen_pax=0 tr_pax=0 growth=0 / year=1930 month=0
+poll 0: 高知 pop=310 bld=12 gen_pax=2 tr_pax=0 growth=0 / 川崎 pop=294 bld=10 gen_pax=3 tr_pax=0 growth=0 / year=1930 month=5
+poll 1: 高知 pop=323 bld=13 gen_pax=67 tr_pax=0 growth=4 / 川崎 pop=297 bld=10 gen_pax=73 tr_pax=0 growth=1 / year=1930 month=9
+poll 2: 高知 pop=327 bld=13 gen_pax=68 tr_pax=0 growth=0 / 川崎 pop=299 bld=10 gen_pax=67 tr_pax=0 growth=1 / year=1931 month=2
+poll 3: 高知 pop=333 bld=13 gen_pax=74 tr_pax=0 growth=1 / 川崎 pop=300 bld=10 gen_pax=55 tr_pax=0 growth=0 / year=1931 month=7
+poll 4: 高知 pop=338 bld=13 gen_pax=65 tr_pax=0 growth=1 / 川崎 pop=302 bld=10 gen_pax=61 tr_pax=0 growth=0 / year=1932 month=0
+poll 5: 高知 pop=343 bld=13 gen_pax=62 tr_pax=0 growth=1 / 川崎 pop=304 bld=10 gen_pax=57 tr_pax=0 growth=0 / year=1932 month=5
+poll 6: 高知 pop=347 bld=13 gen_pax=48 tr_pax=0 growth=0 / 川崎 pop=305 bld=10 gen_pax=38 tr_pax=0 growth=0 / year=1932 month=10
+poll 7: 高知 pop=359 bld=14 gen_pax=40 tr_pax=0 growth=1 / 川崎 pop=307 bld=10 gen_pax=37 tr_pax=0 growth=0 / year=1933 month=3
+poll 8: 高知 pop=364 bld=14 gen_pax=47 tr_pax=0 growth=0 / 川崎 pop=309 bld=10 gen_pax=38 tr_pax=0 growth=0 / year=1933 month=8
+poll 9: 高知 pop=375 bld=15 gen_pax=25 tr_pax=0 growth=0 / 川崎 pop=310 bld=10 gen_pax=23 tr_pax=0 growth=0 / year=1934 month=1
+poll 10: 高知 pop=400 bld=18 gen_pax=21 tr_pax=0 growth=0 / 川崎 pop=312 bld=10 gen_pax=27 tr_pax=0 growth=0 / year=1934 month=6
+poll 11: 高知 pop=406 bld=18 gen_pax=17 tr_pax=0 growth=0 / 川崎 pop=313 bld=10 gen_pax=6 tr_pax=0 growth=0 / year=1934 month=11
+poll 12: 高知 pop=418 bld=19 gen_pax=5 tr_pax=0 growth=0 / 川崎 pop=315 bld=10 gen_pax=2 tr_pax=0 growth=0 / year=1935 month=4
+poll 13: 高知 pop=435 bld=21 gen_pax=126 tr_pax=0 growth=1 / 川崎 pop=317 bld=10 gen_pax=70 tr_pax=0 growth=0 / year=1935 month=8
+poll 14: 高知 pop=440 bld=21 gen_pax=99 tr_pax=0 growth=2 / 川崎 pop=319 bld=10 gen_pax=72 tr_pax=0 growth=1 / year=1936 month=1
+poll 15: 高知 pop=444 bld=21 gen_pax=84 tr_pax=0 growth=1 / 川崎 pop=321 bld=10 gen_pax=63 tr_pax=0 growth=0 / year=1936 month=6
+poll 16: 高知 pop=449 bld=21 gen_pax=81 tr_pax=0 growth=1 / 川崎 pop=334 bld=12 gen_pax=64 tr_pax=0 growth=0 / year=1936 month=11
+poll 17: 高知 pop=452 bld=21 gen_pax=78 tr_pax=0 growth=0 / 川崎 pop=354 bld=15 gen_pax=60 tr_pax=0 growth=0 / year=1937 month=4
+poll 18: 高知 pop=456 bld=21 gen_pax=85 tr_pax=0 growth=0 / 川崎 pop=373 bld=17 gen_pax=68 tr_pax=0 growth=0 / year=1937 month=9
+poll 19: 高知 pop=460 bld=21 gen_pax=62 tr_pax=0 growth=0 / 川崎 pop=376 bld=17 gen_pax=56 tr_pax=0 growth=0 / year=1938 month=2
+poll 20: 高知 pop=464 bld=21 gen_pax=47 tr_pax=0 growth=1 / 川崎 pop=380 bld=17 gen_pax=45 tr_pax=0 growth=2 / year=1938 month=7
+poll 21: 高知 pop=473 bld=22 gen_pax=45 tr_pax=0 growth=0 / 川崎 pop=383 bld=17 gen_pax=38 tr_pax=0 growth=0 / year=1939 month=0
+poll 22: 高知 pop=478 bld=22 gen_pax=38 tr_pax=0 growth=0 / 川崎 pop=387 bld=17 gen_pax=32 tr_pax=0 growth=0 / year=1939 month=5
+poll 23: 高知 pop=482 bld=22 gen_pax=22 tr_pax=0 growth=0 / 川崎 pop=390 bld=17 gen_pax=20 tr_pax=0 growth=0 / year=1939 month=10
+poll 24: 高知 pop=486 bld=22 gen_pax=15 tr_pax=0 growth=1 / 川崎 pop=392 bld=17 gen_pax=15 tr_pax=0 growth=0 / year=1940 month=3
+poll 25: 高知 pop=489 bld=22 gen_pax=7 tr_pax=0 growth=0 / 川崎 pop=394 bld=17 gen_pax=6 tr_pax=0 growth=0 / year=1940 month=8
+poll 26: 高知 pop=493 bld=22 gen_pax=111 tr_pax=0 growth=1 / 川崎 pop=396 bld=17 gen_pax=96 tr_pax=0 growth=0 / year=1941 month=0
+poll 27: 高知 pop=496 bld=22 gen_pax=117 tr_pax=0 growth=1 / 川崎 pop=399 bld=17 gen_pax=106 tr_pax=0 growth=1 / year=1941 month=5

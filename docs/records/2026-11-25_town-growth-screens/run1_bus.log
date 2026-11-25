@@ -1,0 +1,37 @@
+setup: stop 60: No through station here!
+stop 61: No through station here!
+stop 100: No through station here!
+stop 101: No through station here!
+depot 68,61
+[convoy] pak256_bus
+[convoy] pak256_mail_truck
+ok
+t0: 太田 pop=298 bld=11 gen_pax=0 tr_pax=0 growth=0 / 高松 pop=292 bld=10 gen_pax=0 tr_pax=0 growth=0 / year=1930 month=0
+poll 0: 太田 pop=304 bld=11 gen_pax=3 tr_pax=0 growth=0 / 高松 pop=299 bld=10 gen_pax=5 tr_pax=0 growth=0 / year=1930 month=5
+poll 1: 太田 pop=317 bld=12 gen_pax=75 tr_pax=0 growth=2 / 高松 pop=303 bld=10 gen_pax=75 tr_pax=0 growth=1 / year=1930 month=9
+poll 2: 太田 pop=323 bld=12 gen_pax=56 tr_pax=2 growth=0 / 高松 pop=316 bld=11 gen_pax=63 tr_pax=2 growth=1 / year=1931 month=2
+poll 3: 太田 pop=329 bld=12 gen_pax=55 tr_pax=4 growth=1 / 高松 pop=328 bld=12 gen_pax=68 tr_pax=4 growth=2 / year=1931 month=7
+poll 4: 太田 pop=337 bld=12 gen_pax=51 tr_pax=2 growth=1 / 高松 pop=337 bld=12 gen_pax=51 tr_pax=2 growth=1 / year=1932 month=0
+poll 5: 太田 pop=357 bld=14 gen_pax=49 tr_pax=0 growth=0 / 高松 pop=345 bld=12 gen_pax=44 tr_pax=0 growth=1 / year=1932 month=5
+poll 6: 太田 pop=364 bld=14 gen_pax=51 tr_pax=3 growth=1 / 高松 pop=352 bld=12 gen_pax=40 tr_pax=3 growth=1 / year=1932 month=10
+poll 7: 太田 pop=394 bld=18 gen_pax=37 tr_pax=2 growth=1 / 高松 pop=357 bld=12 gen_pax=38 tr_pax=2 growth=0 / year=1933 month=3
+poll 8: 太田 pop=405 bld=19 gen_pax=25 tr_pax=4 growth=0 / 高松 pop=371 bld=13 gen_pax=27 tr_pax=4 growth=0 / year=1933 month=8
+poll 9: 太田 pop=412 bld=19 gen_pax=16 tr_pax=0 growth=0 / 高松 pop=379 bld=13 gen_pax=11 tr_pax=0 growth=1 / year=1934 month=1
+poll 10: 太田 pop=419 bld=19 gen_pax=9 tr_pax=0 growth=0 / 高松 pop=385 bld=13 gen_pax=8 tr_pax=0 growth=1 / year=1934 month=6
+poll 11: 太田 pop=423 bld=19 gen_pax=2 tr_pax=0 growth=0 / 高松 pop=397 bld=14 gen_pax=4 tr_pax=0 growth=0 / year=1934 month=11
+poll 12: 太田 pop=428 bld=19 gen_pax=101 tr_pax=4 growth=1 / 高松 pop=409 bld=15 gen_pax=92 tr_pax=4 growth=1 / year=1935 month=3
+poll 13: 太田 pop=431 bld=19 gen_pax=83 tr_pax=2 growth=0 / 高松 pop=427 bld=17 gen_pax=86 tr_pax=2 growth=7 / year=1935 month=8
+poll 14: 太田 pop=435 bld=19 gen_pax=88 tr_pax=1 growth=0 / 高松 pop=435 bld=17 gen_pax=94 tr_pax=1 growth=1 / year=1936 month=1
+poll 15: 太田 pop=439 bld=19 gen_pax=75 tr_pax=4 growth=1 / 高松 pop=439 bld=17 gen_pax=66 tr_pax=4 growth=1 / year=1936 month=6
+poll 16: 太田 pop=442 bld=19 gen_pax=64 tr_pax=0 growth=0 / 高松 pop=444 bld=17 gen_pax=57 tr_pax=0 growth=0 / year=1936 month=11
+poll 17: 太田 pop=446 bld=19 gen_pax=54 tr_pax=2 growth=0 / 高松 pop=450 bld=17 gen_pax=58 tr_pax=2 growth=1 / year=1937 month=4
+poll 18: 太田 pop=451 bld=19 gen_pax=46 tr_pax=1 growth=0 / 高松 pop=455 bld=17 gen_pax=46 tr_pax=1 growth=1 / year=1937 month=9
+poll 19: 太田 pop=456 bld=19 gen_pax=40 tr_pax=3 growth=0 / 高松 pop=472 bld=19 gen_pax=45 tr_pax=3 growth=0 / year=1938 month=2
+poll 20: 太田 pop=461 bld=19 gen_pax=22 tr_pax=1 growth=0 / 高松 pop=486 bld=20 gen_pax=39 tr_pax=1 growth=0 / year=1938 month=7
+poll 21: 太田 pop=466 bld=19 gen_pax=18 tr_pax=0 growth=0 / 高松 pop=490 bld=20 gen_pax=18 tr_pax=0 growth=0 / year=1939 month=0
+poll 22: 太田 pop=471 bld=19 gen_pax=5 tr_pax=0 growth=0 / 高松 pop=495 bld=20 gen_pax=6 tr_pax=0 growth=0 / year=1939 month=5
+poll 23: 太田 pop=481 bld=20 gen_pax=2 tr_pax=0 growth=0 / 高松 pop=505 bld=21 gen_pax=0 tr_pax=0 growth=0 / year=1939 month=10
+poll 24: 太田 pop=486 bld=20 gen_pax=113 tr_pax=7 growth=1 / 高松 pop=510 bld=21 gen_pax=115 tr_pax=7 growth=1 / year=1940 month=2
+poll 25: 太田 pop=497 bld=21 gen_pax=97 tr_pax=3 growth=1 / 高松 pop=520 bld=22 gen_pax=110 tr_pax=3 growth=7 / year=1940 month=7
+poll 26: 太田 pop=522 bld=24 gen_pax=98 tr_pax=4 growth=2 / 高松 pop=530 bld=23 gen_pax=111 tr_pax=4 growth=0 / year=1941 month=0
+poll 27: 太田 pop=524 bld=24 gen_pax=92 tr_pax=0 growth=0 / 高松 pop=533 bld=23 gen_pax=84 tr_pax=0 growth=0 / year=1941 month=5
