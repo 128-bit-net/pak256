@@ -2,7 +2,7 @@
 
 取り方は 2 つ。上が優先。
 1. 環境変数 AMI_DIST: 手元で組んだ AMI の pak のフォルダか、AMI の配る zip の場所。
-   AMI が 256 版を Release に上げるまでは、これで渡す。
+   手元で組んだ pak を試すときに使う（ami.env より優先）。
 2. vendor/ami/ami.env の AMI_ZIP_URL: AMI の Release の zip。AMI_ZIP_SHA256 と合うときだけ使う。
 
 どちらも無いときは何もしない（AMI 抜きで組む）。
