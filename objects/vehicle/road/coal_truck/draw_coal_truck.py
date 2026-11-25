@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "..", "tools"))
 import vehicles as V  # noqa: E402
 
 NAME = "pak256_coal_truck"
-REAL_LENGTH_M = 7.0  # 実物の長さ（pak128 の石炭のトラックの 1 つ、Tatra 801 の級の 2 軸の貨物車）
+REAL_LENGTH_M = 7.0  # 実物の長さ（仮。2 軸の貨物車の大きさ）
 WIDTH_M = 2.5
 SS = 3  # 描くときの拡大（縁をなめらかにしてから、半透明を切る）
 
@@ -119,7 +119,7 @@ def draw_cell(direction, loaded):
     return img
 
 
-def write_yaml(path, stem):
+def yaml_lines(stem):
     length = V.length_units(REAL_LENGTH_M)
     lines = [
         "# 石炭のトラック（絵は仮）。この表と PNG は draw_coal_truck.py が書き出す。直すときはスクリプトを直して流し直す。",
@@ -147,8 +147,12 @@ def write_yaml(path, stem):
     lines.append("freightimage:     # 石炭を積んだ絵（1 行）")
     for i, direction in enumerate(V.DIRECTIONS):
         lines.append(f"  {direction}: {stem}.1.{i}")
+    return "\n".join(lines) + "\n"
+
+
+def write_yaml(path, stem):
     with open(path, "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(lines) + "\n")
+        f.write(yaml_lines(stem))
 
 
 def main():

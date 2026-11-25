@@ -160,6 +160,24 @@ class TestCoalTruck(unittest.TestCase):
             self.assertEqual(t["emptyimage"][d], f"coal_truck.0.{i}")
             self.assertEqual(t["freightimage"][d], f"coal_truck.1.{i}")
 
+    def test_yaml_is_what_the_script_writes(self):
+        # 表は draw_coal_truck.py が書き出す物。スクリプトだけ直して流し直さないと落ちる
+        with open(os.path.join(TRUCK_DIR, "coal_truck.yaml"), encoding="utf-8", newline="") as f:
+            self.assertEqual(f.read(), self.truck.yaml_lines("coal_truck"))
+
+    def test_values_match_docs_table(self):
+        # docs/vehicles.md の「石炭のトラック」の表の値と、表（yaml）の値が同じ
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        head = next(l for l in text.splitlines() if l.startswith("| `name` |") and "`payload`" in l)
+        row = next(l for l in text.splitlines() if l.startswith(f"| `{self.truck.NAME}` |"))
+        keys = [c.strip().strip("`") for c in head.strip("|").split("|")]
+        vals = [c.strip() for c in row.strip("|").split("|")]
+        doc = dict(zip(keys, vals))
+        for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+            self.assertEqual(str(self.table[k]), doc[k], k)
+        self.assertEqual(doc["name"].strip("`"), self.table["name"])
+
     def test_body_length_matches_length(self):
         # 絵の車体の長さは length × 1.65m（運転席と荷台で全長）。前の端は基準点（0）
         length_m = self.table["length"] * V.M_PER_UNIT

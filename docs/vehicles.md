@@ -58,9 +58,9 @@
 
 最初の産業の連鎖（炭鉱 → 発電所。[goods.md](goods.md)・[industry.md](industry.md)）で石炭（`Kohle`）を運ぶ道路の車両 1 種。[#42](https://github.com/128-bit-net/pak256/issues/42) で足した。絵は仮（箱を組んだ物。赤い運転席と、上が開いた灰色の荷台。積んだ絵は荷台に石炭の山）で、pak128 の絵は使っていない。置き場は `objects/vehicle/road/coal_truck/`。`draw_coal_truck.py`（MIT）が PNG と表を書き出す（`python -X utf8 objects/vehicle/road/coal_truck/draw_coal_truck.py`）。
 
-値は pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵は写していない。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
+値は pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。[goods.md](goods.md) と同じ。法律の専門家には確かめていない）。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
 
-| `name` | 画面の名前（ja / en） | 貨物 | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` | 実物の長さ → `length` |
+| `name` | 画面の名前（ja / en） | 貨物 | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` | 実物の長さ（仮。2 軸の貨物車の大きさ） → `length` |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `pak256_coal_truck` | 石炭トラック / Coal Truck | `Kohle` | 12 | 55 | 95 | 90 | 8 | 384000 | 24 | 1930 | 7m → 4 |
 
