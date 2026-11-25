@@ -152,4 +152,4 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 ## 見本の物
 
-`objects/scenery/sample_marker/` は、この形で dat → pak が通ることを見せる仮の物（木、名前 `pak256_sample`）。絵は `draw.py` が描く。#9 で木が入ったら消す。
+表から dat → pak が通る形の見本は、温帯の木 `objects/scenery/temperate_trees/`（[trees.md](trees.md)）。絵は `draw_trees.py` が描き、表も書き出す。

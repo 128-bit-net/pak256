@@ -3,16 +3,16 @@
 YAML の 1 ファイルに、物を 1 つ（マッピング）か、いくつか（マッピングの並び）書く。
 キーは dat のキーそのまま。値の入れ子は dat の添字になる。
 
-    image:                     image[0][0]=sample_marker.0.0
+    image:                     image[0][0]=zelkova.0.0
       0:                  →
-        0: sample_marker.0.0
+        0: zelkova.0.0
     freight: [a, b]       →    freight[0]=a
                                freight[1]=b
 
 `obj`・`name`・`copyright` の無い物は止める（CREDITS.md と dat の copyright= を必ず書くため。CONTRIBUTING.md）。
 
 使い方（1 ファイルを dat にして標準出力へ）:
-    python -X utf8 tools/datgen.py objects/scenery/sample_marker/sample_marker.yaml
+    python -X utf8 tools/datgen.py objects/scenery/temperate_trees/zelkova.yaml
 """
 import sys
 
