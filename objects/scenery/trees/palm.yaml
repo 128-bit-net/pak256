@@ -1,0 +1,14 @@
+# 木（絵は仮）。この表と PNG は draw_trees.py が書き出す。直すときはスクリプトを直して流し直す。
+# 1 タイル = 26.4m の縮尺で、成木の高さは zelkova 18m・cedar 24m・birch 14m・pine 16m・palm 14m・kapok 22m・acacia 8m・spruce 12m（docs/trees.md）。
+obj: tree
+name: pak256_palm
+copyright: pak256.LongScale チーム
+climates: tropic
+distributionweight: 2
+seasons: 2
+image:            # image[age][season]。絵は draw_trees.py が描く。season は 0 夏・1 秋・2 冬・3 春・4 雪（seasons=2 は 0 夏・1 雪）
+  0: {0: palm.0.0, 1: palm.1.0}
+  1: {0: palm.0.1, 1: palm.1.1}
+  2: {0: palm.0.2, 1: palm.1.2}
+  3: {0: palm.0.3, 1: palm.1.3}
+  4: {0: palm.0.4, 1: palm.1.4}
