@@ -11,4 +11,6 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/ground/Outside` | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/ground/temperate`（地面一式。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_ground.py` は MIT） |
 | `objects/gui`（GUI の絵一式。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_gui.py` は MIT） |
+| `objects/scenery/sample_marker`（見本。#9 で消す） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
+| `AMI（vendor/ami）`（同梱する AMI の pak。256 版） | 128na | `128na/simutrans-addon-dev` | | CC BY 4.0 |
 | `objects/scenery/temperate_trees`（温帯の木 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_trees.py` は MIT） |
