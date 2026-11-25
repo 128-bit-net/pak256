@@ -49,6 +49,7 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 - Squirrel の文字列の中に改行を入れると、本体でコンパイルが通らない。Python の通常の文字列に書いたバックスラッシュ n は本物の改行になるので、`sq`・`sq_file` は流す前に `ValueError` で止める（文字列の外の改行・注釈の中・`@"…"` は構わない）。区切りに改行を使わないか、raw 文字列で渡す。
 - 親が強制終了されても閉じる: ゲームは起動のとき Windows の Job Object（`KILL_ON_JOB_CLOSE`）に入れる。`tools/game.py` を動かす Python を `TaskStop` などで強制終了しても、OS がゲームを終わらせ、ポートを握ったまま残らない（#30 で 47810 が残った）。それでも、長い確かめは強制終了せず待つ。入れられなかったときは `[game] Job Object に入れられなかった` と出る（Python が別の Job の中で、入れ子にできない環境）。
 - `tools/vehicle_check/run.py`（[vehicles.md](vehicles.md) の「試験」）はこの上で動く。
+- 配布の zip の中身だけで起動するときは、zip を展開して `*.pak`（と `ami_license.txt`）を 1 つのフォルダに集め、`Game(..., build=<その pak のフォルダの親>, root=<config/ と text/ のある所>)` を渡す。手元で組んだ物（`build/pak/`）や作業フォルダの `config/` を混ぜずに確かめられる（2026-11-25、#70。手順は `records/2026-11-25_alpha03-check.md` の 1）。
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
 
