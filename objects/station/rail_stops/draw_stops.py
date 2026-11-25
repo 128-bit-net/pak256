@@ -26,7 +26,7 @@ _spec.loader.exec_module(db)
 CELL = db.CELL
 CLEAR = db.CLEAR
 LAYOUTS = 8  # 向きの数
-# 向きごとの (道路の軸, 南（+v）または東（+u）が連なりの端か, 北（-v）または西（-u）が連なりの端か)
+# 向きごとの (線路の軸, 南（+v）または東（+u）が連なりの端か, 北（-v）または西（-u）が連なりの端か)
 LAYOUT = [
     ("NS", False, False), ("EW", False, False),
     ("NS", True, False), ("EW", True, False),
@@ -40,7 +40,7 @@ POST = (88, 92, 98)
 SIGN = (232, 200, 60)
 
 def box_a_c(cv, axis, a0, a1, c0, c1, z0, z1, wall, roof):
-    """道路の軸 a（along）と、軸に直交する c（across）で書いた箱を、向きに合わせて描く。"""
+    """線路の軸 a（along）と、軸に直交する c（across）で書いた箱を、向きに合わせて描く。"""
     if axis == "NS":  # a = v, c = u
         db.flat_box(cv, c0, c1, a0, a1, z0, z1, wall, roof)
     else:  # a = u, c = v
@@ -48,7 +48,7 @@ def box_a_c(cv, axis, a0, a1, c0, c1, z0, z1, wall, roof):
 
 
 def platform(cv, axis, south_end, north_end, z, wall, roof, near):
-    """近い側の帯。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（道路・線路はふさがない）。"""
+    """近い側の帯。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（線路はふさがない）。"""
     a0 = 0.05 if north_end else 0.0
     a1 = 0.95 if south_end else 1.0
     box_a_c(cv, axis, a0, a1, near[0], near[1], 0, z, wall, roof)
@@ -116,7 +116,7 @@ ICON_BG = (84, 104, 134)
 
 
 def tool_icon(art, bg):
-    """道具の絵: 地の色の角丸の四角（192px）に、停留所の絵を収めて置く。
+    """道具の絵: 地の色の角丸の四角（192px）に、駅の絵を収めて置く。
 
     絵に透明な所があると、本体は絵の見える範囲だけを縮めて置くので、アイコンの枠がずれて灰色の空きに見える（#71）。
     四角を左上の角（0, 0）から置き、見える範囲の始まりを 0 にする。四角の外と角は透明色。

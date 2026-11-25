@@ -6,7 +6,7 @@
 
 - 完璧を目指さず、まず動く状態にしてアルファ版を出す。その後は週に 1 回くらい、小さく出して活動を見せながら進める。
 - まずは 1 人で進める。複数人で進捗を合わせる仕組みは、メンバーが増えたときに考える。
-- インフラ（線路・道路・橋・トンネル・車庫・架線・駅・停留所・信号・空港と港の道・電線）は AMI に任せる（α0.2 のバス停と荷役所、#46 の駅だけは仮に pak256 で作る。#44。道路の車庫は #64 で AMI の物にした）。AMI の 256 対応は [128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)、駅・信号などを AMI の範囲に入れるのは [#264](https://github.com/128na/simutrans-addon-dev/issues/264)。
+- インフラ（線路・道路・橋・トンネル・車庫・架線・駅・停留所・信号・空港と港の道・電線）は AMI に任せる（#46 の駅だけは仮に pak256 で作る。道路の車庫は #64、バス停と荷役所は #72 で AMI の物にした）。AMI の 256 対応は [128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)、駅・信号などを AMI の範囲に入れるのは [#264](https://github.com/128na/simutrans-addon-dev/issues/264)。
 - AMI の 256 版は pak256 の配布に同梱する（2026-11-24、ユーザー）。道路が 1 つも無いと本体が起動しないので、pak256 だけで遊べるようにする。AMI は CC BY 4.0 なので入れられる。帰属は配布の文書に書く。
 - AMI は 128 用で、256 は本来 AMI の範囲外。256 の見た目の直し（道路の路面の粗さなど。[#81](https://github.com/128-bit-net/pak256/issues/81)）は pak256 で引き受け、128 の絵に影響するものだけ AMI の側で合わせる（2026-11-25、ユーザー）。
 
@@ -21,7 +21,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 | GUI | ツールバーのアイコン（一般・簡単・ダイアログ・バー）・記号（季節・旅客・郵便・貨物など）・カーソル・建設中の絵・ロゴ | pak256 | 要る（記号と同じ大きさで足りる） |
 | 貨物 | `Passagiere`・`Post`・`None` と、pak128 に寄せた貨物（concept の E） | pak256 | 要る（産業の分だけ） |
 | 道路・線路など | 道路・線路・路面軌道・高架・橋・トンネル・車庫（道路の車庫は AMI の `ami_road_depot`。[#64](https://github.com/128-bit-net/pak256/issues/64)）・架線・踏切・道路標識・運河・モノレール | AMI | 要る（道路・線路。線路は [#46](https://github.com/128-bit-net/pak256/issues/46) で `ami-256-alpha.2` の `ami_rail_ballast` と `ami_rail_depot` を使った） |
-| 駅・停留所 | 駅・バス停・トラックの荷役所・港・空港の建物 | AMI（#264）。α0.2 のバス停と荷役所は仮に pak256 で作り（[#44](https://github.com/128-bit-net/pak256/issues/44)）、AMI の 256 版が出たら置き換える | 要る（バス停・荷役所・駅。駅は #46 で仮に作った） |
+| 駅・停留所 | 駅・バス停・トラックの荷役所・港・空港の建物 | AMI（#264）。バス停と荷役所は、仮に pak256 で作った（[#44](https://github.com/128-bit-net/pak256/issues/44)）後、AMI の 256 版（`ami-256-alpha.3`）に置き換えた（[#72](https://github.com/128-bit-net/pak256/issues/72)） | 要る（バス停・荷役所・駅。駅は #46 で仮に作った） |
 | 信号 | 線路の信号 | AMI（#264） | 要る（1 種。AMI の #264 待ちで、#46 には入れていない） |
 | 空港・港の道 | 滑走路・誘導路・船の航路の物 | AMI（#264） | 要らない |
 | 電線 | 電線・変電所 | AMI（#264） | 要らない |
@@ -73,7 +73,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 
 1. [#40](https://github.com/128-bit-net/pak256/issues/40) 車両の長さと描画位置の決まり（済み。[vehicles.md](vehicles.md)）
 2. [#43](https://github.com/128-bit-net/pak256/issues/43) 産業 1 本の連鎖（炭鉱 → 発電所。済み）
-3. [#44](https://github.com/128-bit-net/pak256/issues/44) 仮のバス停と荷役所。AMI の 256 版の停留所は AMI の第 5 弾なので、pak256 で仮に作り、AMI の版が出たら置き換える。
+3. [#44](https://github.com/128-bit-net/pak256/issues/44) 仮のバス停と荷役所。AMI の第 5 弾の 256 版が出るまで pak256 で仮に作り、[#72](https://github.com/128-bit-net/pak256/issues/72) で AMI の物に置き換えた（済み）。
 4. [#41](https://github.com/128-bit-net/pak256/issues/41) バスと郵便の車両、[#42](https://github.com/128-bit-net/pak256/issues/42) 石炭のトラック
 5. [#30](https://github.com/128-bit-net/pak256/issues/30) 街の成長（旅客を運んで街が育つことを確かめる。住宅の段ごとの数軒は #8 で済み。商業・工業の建物は α0.2 では作らない）
 6. [#45](https://github.com/128-bit-net/pak256/issues/45) α0.2 を出す。線路側の [#46](https://github.com/128-bit-net/pak256/issues/46) を待たない。
