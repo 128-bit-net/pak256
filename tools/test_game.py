@@ -417,7 +417,7 @@ class InboxTest(unittest.TestCase):
         def __init__(self):
             self.calls = []
 
-        def sq(self, code):
+        def sq(self, code, timeout=30):
             self.calls.append(("sq", code))
             if code == "boom":
                 raise RuntimeError("bad")
@@ -469,6 +469,36 @@ class InboxTest(unittest.TestCase):
     def test_idle_limit_stops(self):
         with tempfile.TemporaryDirectory() as t:
             game.serve_inbox(self.Fake(), os.path.join(t, "inbox"), 0.1, 0.02, lambda *_: None)
+
+    def test_send_fails_fast_when_inbox_disappears(self):
+        import shutil
+        import threading
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            os.makedirs(inbox)
+            threading.Timer(0.3, shutil.rmtree, args=(inbox,)).start()
+            start = time.monotonic()
+            with self.assertRaises(RuntimeError):
+                game.send_command(inbox, "return 1", 30)
+            self.assertLess(time.monotonic() - start, 10)
+
+    def test_withdrawn_command_does_not_crash_server(self):
+        real_open = open
+        calls = []
+
+        def flaky(path, *a, **k):
+            if str(path).endswith(".cmd") and not calls:
+                calls.append(1)
+                raise FileNotFoundError(path)
+            return real_open(path, *a, **k)
+
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            os.makedirs(inbox)
+            put(os.path.join(inbox, "1.cmd"), "@quit")
+            with mock.patch("builtins.open", flaky):
+                game.serve_inbox(self.Fake(), inbox, 30, 0.01, lambda *_: None)
+            self.assertTrue(os.path.isfile(os.path.join(inbox, "1.out")))
 
     def test_send_without_game_fails(self):
         with tempfile.TemporaryDirectory() as t:

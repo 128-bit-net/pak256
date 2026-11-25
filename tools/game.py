@@ -526,6 +526,7 @@ class Game:
 # 作業フォルダの inbox/ に <番号>.cmd を置くと、見張っている側（--interactive）が流して <番号>.out に結果を書く。
 # .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@quit）。
 INBOX = "inbox"
+CMD_TIMEOUT = 300  # 1 つの Squirrel の待ち秒（AMI の game.sh の RUN と同じ。長い見本のため）
 IDLE_LIMIT = 3600  # 命令が来ないまま続いたら閉じる秒（閉じ忘れの保険）
 
 
@@ -537,7 +538,7 @@ def run_command(g, text):
     """命令 1 つを Game で実行して、結果の文字列を返す（@quit は呼び出し側で扱う）。"""
     text = text.strip()
     if not text.startswith("@"):
-        return g.sq(text)
+        return g.sq(text, timeout=CMD_TIMEOUT)
     name, _, arg = text[1:].partition(" ")
     arg = arg.strip()
     if name == "capture":
@@ -568,11 +569,13 @@ def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
                 return
             time.sleep(poll)
             continue
-        last = time.monotonic()
         cmd = os.path.join(inbox, pending[0])
-        with open(cmd, encoding="utf-8") as f:
-            text = f.read()
-        os.remove(cmd)
+        try:
+            with open(cmd, encoding="utf-8") as f:
+                text = f.read()
+            os.remove(cmd)
+        except OSError:  # 送る側が取り下げた（競合）。次へ
+            continue
         out = os.path.join(inbox, pending[0][:-4] + ".out")
         quit_ = text.strip() == "@quit"
         try:
@@ -582,6 +585,7 @@ def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
         with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
             f.write(body)
         os.replace(out + ".tmp", out)  # 送る側が書きかけを読まない
+        last = time.monotonic()  # 長い命令の後すぐに「無音」と見なさない
         if quit_:
             return
 
@@ -590,22 +594,26 @@ def send_command(inbox, text, timeout=120, poll=0.2):
     """見張っているゲームへ命令を 1 つ送り、(成功か, 結果) を返す。"""
     if not os.path.isdir(inbox):
         raise RuntimeError(f"見張っているゲームが無い（{inbox} が無い。--interactive で起動する）")
-    stamp = f"{time.time_ns()}"
+    stamp = f"{time.time_ns()}_{os.getpid()}"  # 同時の送りでも名前が重ならない
     tmp, cmd, out = (os.path.join(inbox, stamp + ext) for ext in (".tmp", ".cmd", ".out"))
     with open(tmp, "w", encoding="utf-8", newline="") as f:
         f.write(text)
     os.replace(tmp, cmd)
     end = time.monotonic() + timeout
     while time.monotonic() < end:
+        if not os.path.isdir(inbox):
+            raise RuntimeError("見張っているゲームが閉じた（inbox が消えた）")
         if os.path.isfile(out):
             with open(out, encoding="utf-8") as f:
                 head, _, body = f.read().partition("\n")
             os.remove(out)
             return head == "ok", body
         time.sleep(poll)
-    if os.path.isfile(cmd):
+    try:
         os.remove(cmd)  # 見張りが取らなかった命令は取り下げる
-    raise RuntimeError(f"{timeout} 秒、答えが無い（見張りが止まっている？）")
+    except OSError:
+        raise RuntimeError(f"{timeout} 秒、答えが無い。命令は見張りが取った後で、実行された可能性がある")
+    raise RuntimeError(f"{timeout} 秒、答えが無い（見張りが止まっている？命令は取り下げた）")
 
 
 def main():
@@ -627,6 +635,8 @@ def main():
     ap.add_argument("--send-file", help="--send の代わりに、Squirrel のファイルを流す")
     ap.add_argument("--timeout", type=int, default=120, help="--send の答えを待つ秒")
     args = ap.parse_args()
+    if (args.send is not None or args.send_file) and args.interactive:
+        sys.exit("--interactive（起動）と --send（流す）は別の呼び出しで使う")
     if args.send is not None or args.send_file:
         text = args.send
         if args.send_file:
