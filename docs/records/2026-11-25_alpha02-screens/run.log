@@ -1,0 +1,48 @@
+setup: road=[null]
+cityA=[null]
+cityB=[null]
+mine=[null]
+plant=[null]
+link=[null]
+stop_mine=[null]
+stop_plant=[null]
+stop 60: No through station here!
+stop 61: No through station here!
+bus stop 59,60
+bus stop 100,60
+depot_road=[null]
+depot=[null]
+depot desc=pak256_road_depot
+[convoy] pak256_bus
+[convoy] pak256_coal_truck
+ok
+t0: (1) バス pos=125,61 rev=0 profit=0 cap=0 / (2) 石炭トラック pos=125,61 rev=0 profit=0 cap=0 / year=1930 month=0
+poll 0: (1) バス pos=71,60 rev=13 profit=-69 cap=334 / (2) 石炭トラック pos=128,60 rev=128 profit=85 cap=60 / year=1930 month=3
+poll 1: (1) バス pos=78,60 rev=1 profit=-54 cap=278 / (2) 石炭トラック pos=127,60 rev=64 profit=37 cap=42 / year=1930 month=7
+poll 2: (1) バス pos=67,60 rev=1 profit=-33 cap=140 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=2 / year=1930 month=11
+poll 3: (1) バス pos=59,60 rev=0 profit=-5 cap=0 / (2) 石炭トラック pos=120,60 rev=0 profit=-1 cap=0 / year=1931 month=3
+poll 4: (1) バス pos=59,60 rev=1 profit=-81 cap=420 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1931 month=6
+poll 5: (1) バス pos=63,60 rev=4 profit=-52 cap=276 / (2) 石炭トラック pos=128,60 rev=0 profit=-1 cap=2 / year=1931 month=10
+poll 6: (1) バス pos=67,60 rev=1 profit=-29 cap=139 / (2) 石炭トラック pos=136,60 rev=51 profit=36 cap=24 / year=1932 month=2
+poll 7: (1) バス pos=74,60 rev=0 profit=-5 cap=0 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1932 month=6
+poll 8: (1) バス pos=82,60 rev=9 profit=-74 cap=336 / (2) 石炭トラック pos=139,60 rev=21 profit=17 cap=14 / year=1932 month=9
+poll 9: (1) バス pos=84,60 rev=2 profit=-55 cap=205 / (2) 石炭トラック pos=119,60 rev=77 profit=47 cap=36 / year=1933 month=1
+poll 10: (1) バス pos=88,60 rev=0 profit=-29 cap=140 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1933 month=5
+poll 11: (1) バス pos=96,60 rev=0 profit=-4 cap=0 / (2) 石炭トラック pos=128,60 rev=21 profit=19 cap=12 / year=1933 month=9
+poll 12: (1) バス pos=75,60 rev=0 profit=-77 cap=350 / (2) 石炭トラック pos=124,60 rev=102 profit=60 cap=48 / year=1934 month=0
+poll 13: (1) バス pos=63,60 rev=0 profit=-54 cap=278 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1934 month=4
+poll 14: (1) バス pos=59,60 rev=0 profit=-31 cap=140 / (2) 石炭トラック pos=120,60 rev=21 profit=11 cap=14 / year=1934 month=8
+poll 15: (1) バス pos=67,60 rev=0 profit=-6 cap=0 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1935 month=0
+poll 16: (1) バス pos=83,60 rev=7 profit=-74 cap=345 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1935 month=3
+poll 17: (1) バス pos=92,60 rev=0 profit=-56 cap=280 / (2) 石炭トラック pos=137,60 rev=21 profit=7 cap=14 / year=1935 month=7
+poll 18: (1) バス pos=99,60 rev=0 profit=-31 cap=140 / (2) 石炭トラック pos=119,60 rev=26 profit=15 cap=12 / year=1935 month=11
+poll 19: (1) バス pos=97,60 rev=0 profit=-8 cap=0 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1936 month=3
+poll 20: (1) バス pos=81,60 rev=4 profit=-80 cap=341 / (2) 石炭トラック pos=126,60 rev=47 profit=29 cap=26 / year=1936 month=6
+poll 21: (1) バス pos=68,60 rev=1 profit=-56 cap=273 / (2) 石炭トラック pos=119,60 rev=51 profit=30 cap=24 / year=1936 month=10
+poll 22: (1) バス pos=66,60 rev=3 profit=-31 cap=208 / (2) 石炭トラック pos=119,60 rev=0 profit=0 cap=0 / year=1937 month=2
+poll 23: (1) バス pos=62,60 rev=0 profit=-9 cap=0 / (2) 石炭トラック pos=126,60 rev=0 profit=-4 cap=0 / year=1937 month=6
+pos: 0:74,60,32;1:132,60,40;
+end: (1) バス pos=74,60 rev=1 profit=-15 cap=68 / (2) 石炭トラック pos=132,60 rev=26 profit=16 cap=12 / year=1937 month=6
+open finances: 1
+open convoys: 1
+open factories: 1
