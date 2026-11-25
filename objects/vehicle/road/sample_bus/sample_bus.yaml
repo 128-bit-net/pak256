@@ -1,0 +1,26 @@
+# 見本のバス（絵は仮）。この表と PNG は draw_bus.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 12m ÷ 1.65 = 7.27 → length 7（docs/vehicles.md）。
+obj: vehicle
+name: pak256_sample_bus
+copyright: pak256.LongScale チーム
+waytype: road
+freight: Passagiere
+payload: 40
+engine_type: diesel
+power: 90
+speed: 60
+gear: 100
+intro_year: 1930
+cost: 700000
+runningcost: 50
+weight: 9
+length: 7
+emptyimage:       # 向きごとの絵
+  s: sample_bus.0.0
+  w: sample_bus.0.1
+  sw: sample_bus.0.2
+  se: sample_bus.0.3
+  n: sample_bus.0.4
+  e: sample_bus.0.5
+  ne: sample_bus.0.6
+  nw: sample_bus.0.7

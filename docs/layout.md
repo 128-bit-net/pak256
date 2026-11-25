@@ -28,7 +28,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
-| `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける | |
+| `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [vehicles.md](vehicles.md) | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
@@ -102,6 +102,9 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
+| `vehicles.py` | 車両の長さと描画位置の決まり（[vehicles.md](vehicles.md)）の計算。車両を描くスクリプトと検査が使う |
+| `test_vehicles.py` | 車両の決まりの計算と、見本のバスの表の `length`・絵の位置（±2px）・特別な色の検査（Pillow が要る） |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
