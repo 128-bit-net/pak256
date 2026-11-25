@@ -5,7 +5,7 @@
 ## 手順
 
 1. `python -X utf8 tools/build.py --no-ami` で `gui.pak`・`ground.*.pak` を組む。makeobj のログに `Warning`・`ERROR` は無い。
-2. `F:\Simutrans\addon_check` の実行ファイル・`config/`・`themes/`・`font/`・`text/` などを写した作業フォルダ（`-set_workdir`）を作り、`pak/` に、`work/pak256poc`（2 倍にした pak128）から GUI（`base.misc_GUI*`）・地面（`ground.Outside`・`landscape.grounds`）・`symbol.BigLogo` を除いたものと、自前の pak（`gui.pak`・`ground.*.pak`）を入れ、`pak/config/` に `config/*.tab` を置いた。自前以外は借り物（#6 の範囲外）。`settings.xml` は `settings.xml.v64` を写し、送信用の記録（`registerOTRPUsage`）を空にした。
+2. 手元の検証環境（`addon_check`）の実行ファイル・`config/`・`themes/`・`font/`・`text/` などを写した作業フォルダ（`-set_workdir`）を作り、`pak/` に、`work/pak256poc`（2 倍にした pak128）から GUI（`base.misc_GUI*`）・地面（`ground.Outside`・`landscape.grounds`）・`symbol.BigLogo` を除いたものと、自前の pak（`gui.pak`・`ground.*.pak`）を入れ、`pak/config/` に `config/*.tab` を置いた。自前以外は借り物（#6 の範囲外）。`settings.xml` は `settings.xml.v64` を写し、送信用の記録（`registerOTRPUsage`）を空にした。
 3. 本体は `-objects pak/ -noaddons -load flat_512_left_v64.sve -freeplay -mute -mcp-port 47840 -screensize 1700x950` で起動した。`themes/` が無いと「No GUI themes found」で止まる。
 4. 画面は MCP の `run_squirrel`（`gui.jump`・`gui.set_zoom(3)`・`gui.click`・`gui.open_dialog_tool`）と `capture_screen`。ツールバーの項目とカーソルは、`gui.click` で道具を選び、地図を 1 回クリックして出した（道具は問い合わせで、地図は変わらない）。
 
