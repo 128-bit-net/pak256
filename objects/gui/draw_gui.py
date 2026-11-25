@@ -7,7 +7,7 @@
 書き出すもの（dat の Obj と Name ＝ 本体が探す名前）:
     menu    GeneralTools / SimpleTools / DialogeTools / BarTools   ツールバーのアイコン（128px）
     cursor  GeneralTools / Builder / Marked                        タイルの上のカーソル（256px）
-    symbol  Seasons / MessageOptions / ColorOptions / Logo / NewYear / NewWorld / Flags /
+    symbol  Seasons / MessageOptions / ColorOptions / Logo / BigLogo / NewYear / NewWorld / Flags /
             Message / Electricity / InTown / Passagiere / Post / Waren
     misc    RibiArrow / PowerSource / PowerDest / Construction / Sidewalk / TunnelTexture
 
@@ -33,7 +33,6 @@ import logo as logo_art  # noqa: E402  起動のロゴ（BigLogo・Logo）
 COPYRIGHT = dg.COPYRIGHT
 ICON = 128          # アイコンの元の絵
 TILE = 256
-GUI_BLUE = (36, 84, 140)
 # 本体は GeneralTools のカーソルを Z_PLAN（4/64 タイル = 16px）下げて描く。タイルの強調表示に重なるよう、絵を 16px 上に描く
 CURSOR_DY = -16
 
@@ -350,9 +349,6 @@ def glyph(kind, size):
     elif kind == "newyear":
         d.rectangle((0, 0, s, s), fill=c(30, 30, 80))
         d.text((s / 2, s / 2), "+1", font=font(max(8, size // 2)), fill=c(255, 220, 0), anchor="mm")
-    elif kind == "logo":
-        d.rectangle((0, 0, s, s), fill=c(*GUI_BLUE))
-        d.text((s / 2, s / 2), "pak256", font=font(max(8, size // 6)), fill=c(255, 255, 255), anchor="mm")
     return im
 
 

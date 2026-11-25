@@ -103,6 +103,20 @@ class GuiTest(unittest.TestCase):
                     if a:
                         self.assertNotIn((r, g, b), special)
 
+    def test_logo(self):
+        """BigLogo は 4 枚の同じ大きさの正方形で全面不透明（makeobj が縁を切っても継ぎ目がずれない）。Logo も不透明で特別な色なし。"""
+        special = {(v >> 16, (v >> 8) & 255, v & 255) for v in draw_gui.dg._SPECIAL}
+        cells = draw_gui.logo_art.big_cells()
+        self.assertEqual(len(cells), 4)
+        small = draw_gui.logo_art.small()
+        for im in cells + [small]:
+            self.assertEqual(im.size[0], im.size[1])
+            self.assertEqual({a for _, a in im.getchannel("A").getcolors()}, {255})
+            self.assertFalse({c[1][:3] for c in im.getcolors(1 << 20)} & special)
+        self.assertEqual({im.size for im in cells}, {(draw_gui.logo_art.BIG // 2,) * 2})
+        with open(os.path.join(GUI, "sym_biglogo.dat"), encoding="utf-8") as f:
+            self.assertIn(f"cell_size={draw_gui.logo_art.BIG // 2}", f.read())
+
 
 if __name__ == "__main__":
     unittest.main()

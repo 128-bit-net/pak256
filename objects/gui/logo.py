@@ -7,6 +7,7 @@ draw_gui.py から使う。自分で描いた絵（他の pak の絵は使わな
 本体は BigLogo を 4 枚（左上・右上・左下・右下）で 2×2 に並べる（simloadingscreen.cc）。
 絵は全面が不透明な四角（makeobj が透明な縁を切って 4 枚の位置がずれないように）。
 """
+import draw_ground as dg  # draw_gui.py が path に足す。特別な色を避ける rgba を借りる
 from PIL import Image, ImageDraw, ImageFont
 
 BIG = 384          # 4 枚を並べた全体の一辺
@@ -29,11 +30,8 @@ def _font(size):
 
 
 def _safe(c):
-    """makeobj の特別な色（プレイヤー色など）を避ける: 近い色へ 1 ずらす。"""
-    r, g, b = c
-    if (r, g, b) in ((0, 0, 255), (0, 255, 0)):
-        return (r, g, max(0, b - 1))
-    return c
+    """makeobj の特別な色（プレイヤー色など）を避ける（draw_ground の rgba と同じ決まり）。"""
+    return dg.rgba(*c)[:3]
 
 
 def _iso(cx, cy, k):
@@ -68,9 +66,8 @@ def _tile(d, p, u0, u1, v0, v1, fill, outline, width):
 
 
 def _train(d, p, u_start, u_end, v, cars, gap, height, colors):
-    n = cars
-    length = (u_end - u_start - gap * (n - 1)) / n
-    for i in range(n):
+    length = (u_end - u_start - gap * (cars - 1)) / cars
+    for i in range(cars):
         u0 = u_start + i * (length + gap)
         top, left, right = colors[i % len(colors)]
         _box(d, p, u0, u0 + length, v - 0.22, v + 0.22, 0.0, height, top, left, right)
@@ -91,8 +88,6 @@ def draw_big(variant=DEFAULT_VARIANT):
     if variant == "A":
         p = _iso(w / 2, 225 * s, k)
         _tile(d, p, -1, 1, -1, 1, (46, 110, 120), TEAL, 3 * s)
-        for t in (-0.5, 0, 0.5):                       # タイルの格子（128px 単位ではなく 1 タイル）
-            pass
         _train(d, p, -2.6, 2.6, 0.0, 5, 0.12, 0.5,
                [((250, 250, 245), (190, 195, 205), (225, 228, 232)),
                 ((250, 220, 130), (200, 150, 40), (240, 190, 60))])
@@ -107,7 +102,7 @@ def draw_big(variant=DEFAULT_VARIANT):
                [((250, 250, 245), (190, 195, 205), (225, 228, 232))])
         _text(d, (w / 2, 62 * s), "pak256", 78 * s, WHITE)
         _text(d, (w / 2, 345 * s), "LongScale", 34 * s, GOLD)
-    else:  # C
+    elif variant == "C":
         _text(d, (w / 2, 150 * s), "256", 190 * s, WHITE)
         d.rectangle((24 * s, 262 * s, 360 * s, 296 * s), fill=_safe(GOLD))
         for i in range(1, 7):
@@ -115,9 +110,9 @@ def draw_big(variant=DEFAULT_VARIANT):
             d.rectangle((x - 3 * s, 268 * s, x + 3 * s, 290 * s), fill=_safe(NAVY))
         _text(d, (w / 2, 335 * s), "pak256.LongScale", 36 * s, TEAL)
         _text(d, (w / 2, 40 * s), "pak", 34 * s, GOLD)
-    out = im.resize((BIG, BIG), Image.LANCZOS)
-    # 半透明を作らない（背景は全面不透明なので alpha は 255 のまま）
-    return out
+    else:
+        raise ValueError(f"ロゴの案は A・B・C: {variant}")
+    return im.resize((BIG, BIG), Image.LANCZOS)  # 背景が全面不透明なので alpha は 255 のまま
 
 
 def big_cells(variant=DEFAULT_VARIANT):
