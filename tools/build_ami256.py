@@ -5,7 +5,8 @@ AMI の描く道具には 256 の倍率（SHEET_PAK_SIZE=256。AMI #261・#266�
 （コミット・push・ブランチの切り替えをしない）。手元の clone に、組む間だけ detached の worktree を足し、終わったら消す。
 
 build: vendor/ami/build.env の AMI_COMMIT（--ref で一度だけ別のコミット）から組む。
-    1. git fetch origin → worktree を build/ami256/<SHA の頭 12 桁>/ に作る → vendor/ami/patches/*.patch を名前の順に当てる（256 だけの直し）
+    1. git fetch origin → worktree を build/ami256/<SHA の頭 12 桁>/ に作る（AMI の道具は直さずに使う。256 だけのための直しも
+       AMI の側で起票して直す。docs/layout.md の「AMI の側との分担」）
     2. dat    SHEET_PAK_SIZE=256 で blender/ami_dat.py（src256/ の dat。コミット済みの dat と違えば知らせる）
     3. render ../../tools/blender/render_parallel.py で catalog.SCALED_TARGETS を描く。先に描いた物の絵を読む物（踏切のシート・
               跨座式のトンネル）は、2 回目にまとめて描く（AMI README の「pak の大きさ」の描く順序）
@@ -28,7 +29,6 @@ AMI の clone は --ami-repo か環境変数 AMI_REPO（既定は pak256 の本�
 Blender は環境変数 SHEET_BLENDER か --blender（既定は AMI の sheet_settings と同じ D:\\bin\\blender\\blender.exe）。makeobj は PATH のもの。
 """
 import argparse
-import glob
 import hashlib
 import json
 import os
@@ -45,7 +45,6 @@ import fetch_ami  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VENDOR = os.path.join(ROOT, "vendor", "ami")
 BUILD_ENV = os.path.join(VENDOR, "build.env")
-PATCHES = os.path.join(VENDOR, "patches")
 WORK = os.path.join(ROOT, "build", "ami256")
 DIST = os.path.join(ROOT, "dist")
 RELEASE_REPO = "128-bit-net/pak256"
@@ -121,10 +120,6 @@ def check_version(version):
     return version
 
 
-def patch_files():
-    return sorted(glob.glob(os.path.join(PATCHES, "*.patch")))
-
-
 def child_env(blender):
     env = {k: v for k, v in os.environ.items() if k not in SCRUB}
     env["SHEET_PAK_SIZE"] = "256"
@@ -164,9 +159,6 @@ def prepare_worktree(repo, commit, wt, resume):
         die(f"--resume だが worktree が無い: {wt}")
     os.makedirs(os.path.dirname(wt), exist_ok=True)
     git(repo, "worktree", "add", "--detach", wt, commit, capture=False)
-    for p in patch_files():
-        log(f"直しを当てる: {os.path.relpath(p, ROOT)}")
-        git(wt, "apply", "--whitespace=nowarn", p, capture=False)
 
 
 def step_dat(ami, env):
@@ -177,7 +169,7 @@ def step_dat(ami, env):
     changed += git(ami, "ls-files", "--others", "--exclude-standard", "--", "src256").splitlines()
     changed = [c for c in changed if c.lower().endswith(".dat")]
     if changed:
-        log(f"コミット済みの 256 の dat と違う物が {len(changed)} 個（直しを当てたなら想定どおり。当てていないなら AMI の dat の書き忘れ）:")
+        log(f"コミット済みの 256 の dat と違う物が {len(changed)} 個（AMI の dat の書き忘れ。組んだ pak はこの dat で作る）:")
         for c in changed[:20]:
             print("   ", c)
 
@@ -256,7 +248,6 @@ def collect(ami, version, commit, partial):
     manifest = {
         "version": f"ami-256-{version}",
         "ami_commit": commit,
-        "patches": [{"name": os.path.basename(p), "sha256": sha256_file(p)} for p in patch_files()],
         "partial": partial,
         "zip_sha256": sha256_file(dst),
         "paks": paks,
@@ -419,10 +410,6 @@ def cmd_upload(a):
         die("試し（--only）で組んだ zip は上げない")
     if m.get("ami_commit") != build_commit():
         die(f"zip の元のコミット {m.get('ami_commit')} が build.env の AMI_COMMIT と違う（build.env を直す PR を先に入れる）")
-    patches = {p["name"]: p["sha256"] for p in m.get("patches", [])}
-    now = {os.path.basename(p): sha256_file(p) for p in patch_files()}
-    if patches != now:
-        die("zip を組んだときの直し（vendor/ami/patches）と今の直しが違う。組み直す")
     sha = sha256_file(zpath)
     if sha != m.get("zip_sha256"):
         die("zip の SHA-256 が .json と違う。組み直す")
@@ -431,7 +418,6 @@ def cmd_upload(a):
         die(f"Release {tag} は既にある。版の名前を変える（上書きしない）")
     notes = (f"同梱用の AMI の 256 版（配布物ではない）。tools/build_ami256.py で組んだ。\n\n"
              f"- AMI: 128na/simutrans-addon-dev@{m['ami_commit']}\n"
-             f"- 直し: {', '.join(patches) if patches else 'なし'}\n"
              f"- SHA-256: {sha}\n")
     values = {"AMI_VERSION": name, "AMI_ZIP_URL": release_url(tag, name + ".zip"), "AMI_ZIP_SHA256": sha,
               "AMI_COMMIT": m["ami_commit"]}
@@ -458,7 +444,7 @@ def main(argv=None):
     b.add_argument("--ami-repo", help="AMI の clone（既定は環境変数 AMI_REPO か、pak256 の隣の simutrans-addon-dev）")
     b.add_argument("--blender", default=os.environ.get("SHEET_BLENDER", DEFAULT_BLENDER))
     b.add_argument("--only", nargs="+", metavar="対象", help="試し: この対象だけを描いて、絵のある物だけを組む")
-    b.add_argument("--resume", action="store_true", help="残っている worktree で続ける（fetch・直しの当て直しをしない）")
+    b.add_argument("--resume", action="store_true", help="残っている worktree で続ける（fetch をしない）")
     b.add_argument("--from", dest="from_step", choices=STEPS, default=STEPS[0], help="この段から流す（--resume と使う）")
     b.add_argument("--keep", action="store_true", help="終わっても worktree を消さない")
     c = sub.add_parser("compare", help="2 つの zip の pak を比べる")

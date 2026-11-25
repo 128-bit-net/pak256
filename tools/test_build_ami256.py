@@ -111,14 +111,13 @@ class UploadTest(unittest.TestCase):
             for p in B.PAKS:
                 z.writestr(p + ".pak", b"x")
         self.commit = B.build_commit()
-        self.patches = [mock.patch.object(B, "DIST", self.dist), mock.patch.object(B, "PATCHES", os.path.join(d, "patches")),
-                        mock.patch.object(B.fetch_ami, "ENV_FILE", self.env_file)]
+        self.patches = [mock.patch.object(B, "DIST", self.dist), mock.patch.object(B.fetch_ami, "ENV_FILE", self.env_file)]
         for p in self.patches:
             p.start()
             self.addCleanup(p.stop)
 
     def manifest(self, **over):
-        m = {"version": "ami-256-alpha.9", "ami_commit": self.commit, "patches": [], "partial": False,
+        m = {"version": "ami-256-alpha.9", "ami_commit": self.commit, "partial": False,
              "zip_sha256": B.sha256_file(self.zip), "paks": {}}
         m.update(over)
         with open(os.path.join(self.dist, "ami-256-alpha.9.json"), "w", encoding="utf-8") as f:
@@ -165,14 +164,6 @@ class UploadTest(unittest.TestCase):
 
     def test_refuses_changed_zip(self):
         self.manifest(zip_sha256="0" * 64)
-        with self.assertRaises(SystemExit):
-            self.upload()
-
-    def test_refuses_new_patch(self):
-        self.manifest()
-        os.makedirs(B.PATCHES)
-        with open(os.path.join(B.PATCHES, "0001-x.patch"), "w", encoding="utf-8") as f:
-            f.write("x")
         with self.assertRaises(SystemExit):
             self.upload()
 
