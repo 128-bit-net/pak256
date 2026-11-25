@@ -72,7 +72,7 @@
 - バス: 旅客を運ぶ。郵便のトラック: 運転席は前の 3 割（低い）、荷台の箱は後ろの 7 割。石炭のトラック: 赤い運転席と、上が開いた灰色の荷台。貨物は `Kohle` だけで、炭鉱の出力と発電所の入力と同じ貨物（本体は貨物の名前で結ぶ）。
 - 積み荷の絵: 石炭のトラックだけが `freightimage`（シートの 2 行目。荷台に石炭の山）を持つ。バスと郵便のトラックは空の絵（`emptyimage`）だけ。連結（`constraint`）・煙・音・引退年も書いていない。
 - 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
-- 車庫は pak256 の仮の物（`pak256_road_depot`。[stations.md](stations.md)）を使う。
+- 車庫は AMI の 256 版の `ami_road_depot`（[stations.md](stations.md)）を使う。
 
 ## 試験
 
@@ -83,7 +83,7 @@
 - `run.py`: 検証環境を写した作業フォルダで本体を起動し、`course.nut` を流して、向きごとに撮る（夜は飛ばす）。ゲームは起動した PID で閉じる。使い方は `run.py` の先頭。
 - 試験の印: `draw_bus.py --marker --out <場所>` で、車体の地面の枠（桃色）・前の端（青の線）・基準点（青の点）・タイルの中心（桃色の十字）を重ねた絵を書く（git に入れない）。
 - 右側通行: 手元の右側通行の保存データは使えなかった（起動画面で止まる）。`draw_bus.py --emulate-right` で、左側通行のずれを先に引いた絵（名前に `_right_test`）を書き、左側通行の地図で走らせると、右側通行の地図での見え方と同じ所に出る（本体は左側通行で絵をずらすだけなので）。
-- 道路の停留所（#44）と車庫（#58）は pak256 の仮の物を使う（借りる pak は要らない）。AMI の車庫・停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
+- 道路の停留所（#44）は pak256 の仮の物、車庫（#64）は AMI の `ami_road_depot` を使う（借りる pak は要らない）。AMI の停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
 
 #40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。#41 のバスと郵便のトラックをゲームで走らせた記録は [records/2026-11-25_bus-mail.md](records/2026-11-25_bus-mail.md)。
 

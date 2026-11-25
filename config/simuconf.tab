@@ -59,8 +59,8 @@ drive_left = 0
 intercity_road_length = 6000
 
 # 街の外の道路（街どうしをつなぐ道路）。名前は AMI の道路の物（vendor/ami で同梱。
-# AMI の 256 版は 128na/simutrans-addon-dev#266。今入るのは ami_road_local だけで、ami_road_general
-# が無い間は本体がその行を飛ばし、生活道路で代わりにする。docs/config.md）。書き方は 名前,登場年,退役年。
+# AMI の 256 版は 128na/simutrans-addon-dev#266。ami-256-alpha.2 から ami_road_general も入る。
+# 無いときは本体がその行を飛ばし、生活道路で代わりにする。docs/config.md）。書き方は 名前,登場年,退役年。
 # 速さ・費用は AMI の dat のとおり: local 40km/h（1900〜）、general 120km/h（1930〜）。
 intercity_road[0] = ami_road_local,0,1930
 intercity_road[1] = ami_road_general,1930,2999

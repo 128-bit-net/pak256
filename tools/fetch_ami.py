@@ -3,7 +3,10 @@
 取り方は 2 つ。上が優先。
 1. 環境変数 AMI_DIST: 手元で組んだ AMI の pak のフォルダか、AMI の配る zip の場所。
    手元で組んだ pak を試すときに使う（ami.env より優先）。
-2. vendor/ami/ami.env の AMI_ZIP_URL: AMI の Release の zip。AMI_ZIP_SHA256 と合うときだけ使う。
+2. vendor/ami/ami.env の AMI_ZIP_URL: Release の zip。AMI_ZIP_SHA256 と合うときだけ使う。
+   GitHub の Release の URL（https://github.com/<owner>/<repo>/releases/download/<タグ>/<ファイル>）は
+   gh で取る（pak256 の非公開の Release に置いた zip も取れる。CI は GH_TOKEN に GITHUB_TOKEN、手元は gh のログイン）。
+   それ以外の URL は urllib で取る。
 
 どちらも無いときは何もしない（AMI 抜きで組む）。
 
@@ -16,8 +19,11 @@
 import hashlib
 import io
 import os
+import re
 import shutil
+import subprocess
 import sys
+import tempfile
 import urllib.request
 import zipfile
 
@@ -27,6 +33,7 @@ ENV_FILE = os.path.join(VENDOR, "ami.env")
 LICENSE_NAME = "ami_license.txt"
 LICENSE_FILE = os.path.join(VENDOR, LICENSE_NAME)
 CACHE = os.path.join(ROOT, "build", "cache")
+RELEASE_URL_RE = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+)/releases/download/([^/\s]+)/([^/\s]+)$")
 
 
 def read_env(path=None):
@@ -80,6 +87,33 @@ def _from_dir(src, out_dir):
     return paks
 
 
+def _gh_download(repo, tag, name):
+    """gh で Release の asset を取る（非公開のリポジトリでも、gh のログインか GH_TOKEN で取れる）。"""
+    with tempfile.TemporaryDirectory() as d:
+        cmd = ["gh", "release", "download", tag, "-R", repo, "-p", name, "-D", d]
+        try:
+            r = subprocess.run(cmd, capture_output=True, timeout=600)
+        except FileNotFoundError:
+            sys.exit("[fetch_ami] gh が無い（GitHub CLI を入れて gh auth login する。CI は GH_TOKEN を渡す）")
+        except subprocess.TimeoutExpired:
+            sys.exit(f"[fetch_ami] gh release download が 600 秒で終わらない: {repo} {tag}")
+        if r.returncode != 0:
+            sys.exit(f"[fetch_ami] gh release download が失敗（{repo} {tag} {name}）: {r.stderr.decode(errors='replace').strip()}")
+        path = os.path.join(d, name)
+        if not os.path.isfile(path):
+            sys.exit(f"[fetch_ami] gh release download の後に {name} が無い")
+        with open(path, "rb") as f:
+            return f.read()
+
+
+def _fetch_bytes(url):
+    m = RELEASE_URL_RE.match(url)
+    if m:
+        return _gh_download(*m.groups())
+    with urllib.request.urlopen(url, timeout=120) as r:
+        return r.read()
+
+
 def _download(url, sha256, version):
     os.makedirs(CACHE, exist_ok=True)
     cached = os.path.join(CACHE, f"{version or 'ami'}.zip")  # version は Release のタグ（ami-256-alpha.1 など）
@@ -87,8 +121,7 @@ def _download(url, sha256, version):
         with open(cached, "rb") as f:
             data = f.read()
     else:
-        with urllib.request.urlopen(url, timeout=120) as r:
-            data = r.read()
+        data = _fetch_bytes(url)
     got = hashlib.sha256(data).hexdigest()
     if got.lower() != sha256.lower():
         if os.path.isfile(cached):
