@@ -28,7 +28,7 @@
 - MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47899）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
-- pak を入れる処理は install_pak（#38 のテストプレイのフォルダへ入れる道具と共通）。
+- pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
 """
 import argparse
 import ctypes
@@ -40,6 +40,7 @@ import socket
 import subprocess
 import sys
 import time
+import zipfile
 
 if os.name == "nt":
     from ctypes import wintypes
@@ -83,23 +84,78 @@ def default_client():
 
 # --- 作業フォルダの用意（ゲームを使わない。検査できる） ---
 
-def install_pak(dest, root=ROOT, build=None, extra=()):
-    """手元で組んだ pak と config/・text/ を dest（本体の pak のフォルダ）に入れる。
+def _is_runtime(rel):
+    """配布の zip の pak256/ の中の相対パスのうち、ゲームが読む物（最上段の *.pak・config/・text/）か。"""
+    return (rel.endswith(".pak") and "/" not in rel) or rel.split("/", 1)[0] in ("config", "text")
 
-    dest の中身は配布の zip の pak256/ と同じ形（package.collect と同じ一覧から、pak・config・text だけを取る）。
-    extra は、足りない物を別の pak から借りるときのファイル（試験のときだけ。コミットしない）。
-    #38（テストプレイのフォルダへ入れる道具）も、この関数で入れる。入れた相対パスの一覧を返す。
-    """
-    build = build or os.path.join(root, "build")
-    placed = []
-    for arc, src in package.collect(root, build):
-        rel = arc.split("/", 1)[1]
-        if not (rel.endswith(".pak") and "/" not in rel) and rel.split("/", 1)[0] not in ("config", "text"):
+
+def clean_pak(dest):
+    """dest の中の、install_pak が入れる種類の物（最上段の *.pak・config/・text/）だけを消す。ほかの物は残す。"""
+    if not os.path.isdir(dest):
+        return
+    for name in os.listdir(dest):
+        path = os.path.join(dest, name)
+        if os.path.isfile(path) and name.endswith(".pak"):
+            os.remove(path)
+        elif os.path.isdir(path) and name in ("config", "text"):
+            shutil.rmtree(path)
+
+
+def _zip_members(zip_path):
+    """配布の zip（先頭のフォルダは pak256/）から、ゲームが読む物の (相対パス, 名前) を返す。危ない名前は止める。"""
+    with zipfile.ZipFile(zip_path) as z:
+        names = [n for n in z.namelist() if not n.endswith("/")]
+    out = []
+    for n in names:
+        if ".." in n.split("/") or n.startswith(("/", "\\")) or ":" in n or "\\" in n:
+            raise RuntimeError(f"zip の中の名前が危ない: {n}")
+        parts = n.split("/")
+        if parts[0] == package.TOP:
+            parts = parts[1:]
+        if not parts:
             continue
-        out = os.path.join(dest, *rel.split("/"))
-        os.makedirs(os.path.dirname(out), exist_ok=True)
-        shutil.copyfile(src, out)
-        placed.append(rel)
+        rel = "/".join(parts)
+        if _is_runtime(rel) and os.path.basename(rel) not in package.SKIP:
+            out.append((rel, n))
+    return out
+
+
+def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=False):
+    """pak と config/・text/ を dest（本体の pak のフォルダ）に入れる。
+
+    dest の中身は配布の zip の pak256/ と同じ形（*.pak・config・text だけ。許諾の文は入れない）。
+    zip_path があれば、その zip（Release の物を含む配布の zip）から取る。無ければ手元で組んだ build/pak/ と config/・text/ から取る
+    （配布用の許諾の検査は通さない。package.collect_runtime）。
+    clean は、入れる前に dest の古い *.pak・config/・text/ を消す（テストプレイのフォルダの入れ替え。ほかの物は残す）。
+    extra は、足りない物を別の pak から借りるときのファイル（試験のときだけ。コミットしない）。
+    ゲームの作業フォルダ（Game）も、テストプレイのフォルダに入れる道具（tools/install_local.py。#38）も、これで入れる。
+    入れた相対パスの一覧を返す。
+    """
+    if zip_path:
+        members = _zip_members(zip_path)
+        if not any(rel.endswith(".pak") and "/" not in rel for rel, _ in members):
+            raise RuntimeError(f"zip に pak が無い: {zip_path}")
+    else:
+        members = None
+        build = build or os.path.join(root, "build")
+        sources = [(arc.split("/", 1)[1], src) for arc, src in package.collect_runtime(root, build)]
+    if clean:
+        clean_pak(dest)
+    placed = []
+    if members is not None:
+        with zipfile.ZipFile(zip_path) as z:
+            for rel, name in members:
+                out = os.path.join(dest, *rel.split("/"))
+                os.makedirs(os.path.dirname(out), exist_ok=True)
+                with z.open(name) as fi, open(out, "wb") as fo:
+                    shutil.copyfileobj(fi, fo)
+                placed.append(rel)
+    else:
+        for rel, src in sources:
+            out = os.path.join(dest, *rel.split("/"))
+            os.makedirs(os.path.dirname(out), exist_ok=True)
+            shutil.copyfile(src, out)
+            placed.append(rel)
     for src in extra:
         if not os.path.isfile(src):
             raise RuntimeError(f"借りる pak が無い: {src}")
