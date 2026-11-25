@@ -39,6 +39,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -193,10 +194,50 @@ def step_render(ami, env, only, blender):
     else:
         targets = cat["targets"]
     stages = split_stages(targets, cat["later"])
+    failed = []
     for i, stage in enumerate(stages, 1):
         log(f"描く {i}/{len(stages)}: {len(stage)} 対象（ログは {os.path.join(ami, 'work', 'render_<対象>.log')}）")
-        run([sys.executable, "-X", "utf8", "../../tools/blender/render_parallel.py", "--blender", blender, *stage],
-            cwd=ami, env=env, timeout=TIMEOUT_RENDER)
+        failed += render_parallel(ami, env, blender, stage)
+    if failed:
+        # render.py が描いた後に書く自分のアイコン（--own）は、ほかのシートの絵（twin の壁の front など）を読む。
+        # 並べて描くと、そのシートがまだ無くて落ちることがある（シートは描けている）。全部を描いた後に 1 回だけ描き直す
+        log(f"描き直す: {len(failed)} 対象（{' '.join(failed)}）")
+        again = render_parallel(ami, env, blender, failed)
+        if again:
+            die(f"描き直しても失敗: {' '.join(again)}（ログは {os.path.join(ami, 'work', 'render_<対象>.log')}）")
+
+
+def parse_render_failed(text):
+    """render_parallel.py の最後の行（"[render] done in 12s, failed: a b"）から、失敗した対象を読む。"""
+    for line in reversed(text.splitlines()):
+        if line.startswith("[render] done in"):
+            _, _, rest = line.partition(", failed: ")
+            return rest.split()
+    return None
+
+
+def render_parallel(ami, env, blender, targets):
+    """AMI の render_parallel.py で描き、失敗した対象を返す。出力はそのまま流す。最後の行が読めなければ止まる。"""
+    cmd = [sys.executable, "-X", "utf8", "../../tools/blender/render_parallel.py", "--blender", blender, *targets]
+    try:
+        p = subprocess.Popen(cmd, cwd=ami, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    except FileNotFoundError:
+        die(f"コマンドが無い: {cmd[0]}")
+    timer = threading.Timer(TIMEOUT_RENDER, p.kill)  # 時間切れで止める（止めると最後の行が出ないので、下で止まる）
+    timer.start()
+    lines = []
+    try:
+        for raw in p.stdout:
+            line = raw.decode(errors="replace").rstrip("\r\n")
+            print(line, flush=True)
+            lines.append(line)
+        code = p.wait()
+    finally:
+        timer.cancel()
+    failed = parse_render_failed("\n".join(lines))
+    if failed is None or (code != 0 and not failed):
+        die(f"render_parallel.py が失敗（終了コード {code}。{TIMEOUT_RENDER} 秒で時間切れのときも同じ）")
+    return failed
 
 
 def step_icons(ami, env, blender):

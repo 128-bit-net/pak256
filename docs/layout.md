@@ -178,7 +178,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
 - **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:
   1. `dat`: `blender/ami_dat.py` で `src256/` の dat を書く。コミット済みの dat と（行末を除いて）違えば知らせる（AMI の書き忘れ。組む pak はこの dat で作る）。
-  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（8801a1e で 215 対象。`SCALED_SHEETS` の 252 名から、基盤の版と一緒に描かれる壁と絵を持たない dat を除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
+  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（8801a1e で 215 対象。`SCALED_SHEETS` の 252 名から、基盤の版と一緒に描かれる壁と絵を持たない dat を除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描いた対象が自分のアイコンを書くときに、まだ描いていないほかのシート（twin の壁の front など）を読んで落ちることがある（シートは描けている）ので、失敗した対象は全部を描いた後に 1 回だけ描き直し、それでも落ちたら止まる（#83 の試しで 2 対象が落ちた）。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
   3. `icons`: `blender/icons.py` を全部のシートに流す（`render.py` は描いたシートの分しか書かない）。Blender は例外でも終了コード 0 なので、ログ（`work/icons.log`）の `Traceback` でも止める。
   4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。`check_cells.py --self-test`、`dat_lint_extra.py`（`--self-test` と `src256`）、`dat_linter lint --tile-size 512`（`src256`）。AMI の `check.sh` の `CHECK_256_FULL=1` の 256 の分。`dat_linter` は環境変数 `DAT_LINTER_BIN`・`PATH`・`check.sh` の既定の置き場（`~/.cache/simutrans-addon-dev/ci-tools/dat_linter/`。AMI の clone で `check.sh` を一度流すと入る）の順に探し、無ければ止まる）。
   5. `build`: `build.py`（`dist256/` に pak。makeobj の警告で止まる。makeobj は `PATH` のもの）。

@@ -84,6 +84,11 @@ class StagesTest(unittest.TestCase):
         self.assertEqual(B.split_stages(targets, later),
                          [["road", "canal", "monorail", "rail"], ["ami_crossing_road", "monorail_tunnel"]])
 
+    def test_parse_render_failed(self):
+        self.assertEqual(B.parse_render_failed("[render] a: ok (1s)\n[render] done in 12s"), [])
+        self.assertEqual(B.parse_render_failed("[render] done in 1358s, failed: a b\n"), ["a", "b"])
+        self.assertIsNone(B.parse_render_failed("Traceback\n"))
+
     def test_no_empty_stage(self):
         self.assertEqual(B.split_stages(["road"], ["x"]), [["road"]])
 
