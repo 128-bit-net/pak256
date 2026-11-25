@@ -25,6 +25,8 @@ general_tool[5] = 5,4,11,
 general_tool[6] = 6,5,9,M
 general_tool[9] = 9,8,11,C
 general_tool[11] = 11,9,9,§
+general_tool[12] = ,12,11,
+general_tool[13] = ,14,11,
 general_tool[14] = ,,11,
 general_tool[17] = ,1,11,
 general_tool[28] = 28,7,,
@@ -34,7 +36,7 @@ general_tool[33] = 33,1,11,
 general_tool[35] = 35,13,11,K
 general_tool[36] = ,,11,
 general_tool[38] = ,,11,
-general_tool[39] = ,,11,
+general_tool[39] = ,11,11,
 
 # ---- 1 回押すだけの道具 ----
 simple_tool[0] = 0,p
