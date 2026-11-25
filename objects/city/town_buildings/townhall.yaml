@@ -1,0 +1,14 @@
+# 役場と住宅（絵は仮）。この表と PNG は draw_buildings.py が書き出す。直すときはスクリプトを直して流し直す。
+# 1 タイル = 26.4m の縮尺（docs/buildings.md）。
+obj: building
+name: pak256_townhall
+copyright: pak256.LongScale チーム
+# 役場。街が最初に建てる（住民 0 のとき）。3 階建て、屋上 13.2m、時計塔まで約 20m
+type: tow
+build_time: 0
+passengers: 12
+chance: 100
+dims: 1,1,1
+intro_year: 1900
+backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_buildings.py が描く
+  0: {0: {0: {0: {0: townhall.0.0}}}}
