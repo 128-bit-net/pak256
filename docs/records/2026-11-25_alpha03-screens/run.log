@@ -1,0 +1,53 @@
+setup: road=[null]
+cityA=[null]
+cityB=[null]
+mine=[null]
+plant=[null]
+link=[null]
+stop_mine=[null]
+stop_plant=[null]
+stop 60: No through station here!
+stop 61: No through station here!
+bus stop 59,60
+stop 100: No through station here!
+bus stop 101,60
+depot_road=[null]
+depot=[null]
+depot desc=ami_road_depot
+[convoy] pak256_bus
+[convoy] pak256_coal_truck
+track=[null]
+rcityA=[null]
+rcityB=[null]
+rdepot_way=[null]
+[convoy] rail
+ok
+t0: 0:(1) バス pos=90,60 rev=2 profit=-17 / 1:(2) 石炭トラック pos=138,60 rev=26 profit=16 / 2:(3) 気動車 pos=52,110 rev=5 profit=-208 / year=1930 month=3
+poll 0: 0:(1) バス pos=79,60 rev=2 profit=-87 / 1:(2) 石炭トラック pos=130,60 rev=107 profit=64 / 2:(3) 気動車 pos=49,110 rev=0 profit=-895 / year=1930 month=6
+poll 1: 0:(1) バス pos=84,60 rev=0 profit=-58 / 1:(2) 石炭トラック pos=125,60 rev=43 profit=24 / 2:(3) 気動車 pos=94,110 rev=5 profit=-586 / year=1930 month=10
+poll 2: 0:(1) バス pos=89,60 rev=0 profit=-27 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=89,110 rev=0 profit=-270 / year=1931 month=2
+poll 3: 0:(1) バス pos=59,60 rev=5 profit=-93 / 1:(2) 石炭トラック pos=131,60 rev=149 profit=97 / 2:(3) 気動車 pos=46,110 rev=0 profit=-1030 / year=1931 month=5
+poll 4: 0:(1) バス pos=101,60 rev=2 profit=-65 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=75,110 rev=3 profit=-698 / year=1931 month=9
+poll 5: 0:(1) バス pos=63,60 rev=0 profit=-38 / 1:(2) 石炭トラック pos=121,60 rev=0 profit=0 / 2:(3) 気動車 pos=72,110 rev=0 profit=-402 / year=1932 month=1
+poll 6: 0:(1) バス pos=100,60 rev=0 profit=-6 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=-3 / 2:(3) 気動車 pos=49,110 rev=0 profit=-49 / year=1932 month=5
+poll 7: 0:(1) バス pos=59,60 rev=2 profit=-77 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=94,110 rev=22 profit=-779 / year=1932 month=8
+poll 8: 0:(1) バス pos=101,60 rev=2 profit=-43 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=69,110 rev=0 profit=-457 / year=1933 month=0
+poll 9: 0:(1) バス pos=63,60 rev=0 profit=-13 / 1:(2) 石炭トラック pos=135,60 rev=0 profit=-7 / 2:(3) 気動車 pos=72,110 rev=0 profit=-163 / year=1933 month=4
+poll 10: 0:(1) バス pos=99,60 rev=3 profit=-79 / 1:(2) 石炭トラック pos=119,60 rev=26 profit=13 / 2:(3) 気動車 pos=92,110 rev=5 profit=-853 / year=1933 month=7
+poll 11: 0:(1) バス pos=60,60 rev=0 profit=-57 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=74,110 rev=0 profit=-544 / year=1933 month=11
+poll 12: 0:(1) バス pos=99,60 rev=0 profit=-25 / 1:(2) 石炭トラック pos=123,60 rev=51 profit=38 / 2:(3) 気動車 pos=64,110 rev=5 profit=-270 / year=1934 month=3
+poll 13: 0:(1) バス pos=70,60 rev=3 profit=-92 / 1:(2) 石炭トラック pos=119,60 rev=51 profit=29 / 2:(3) 気動車 pos=89,110 rev=0 profit=-973 / year=1934 month=6
+poll 14: 0:(1) バス pos=90,60 rev=0 profit=-65 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=46,110 rev=0 profit=-704 / year=1934 month=10
+poll 15: 0:(1) バス pos=75,60 rev=2 profit=-32 / 1:(2) 石炭トラック pos=139,60 rev=51 profit=32 / 2:(3) 気動車 pos=92,110 rev=0 profit=-368 / year=1935 month=2
+poll 16: 0:(1) バス pos=78,60 rev=0 profit=-4 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=72,110 rev=0 profit=-46 / year=1935 month=6
+poll 17: 0:(1) バス pos=91,60 rev=5 profit=-69 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=68,110 rev=0 profit=-773 / year=1935 month=9
+poll 18: 0:(1) バス pos=64,60 rev=2 profit=-43 / 1:(2) 石炭トラック pos=126,60 rev=73 profit=48 / 2:(3) 気動車 pos=92,110 rev=0 profit=-465 / year=1936 month=1
+poll 19: 0:(1) バス pos=90,60 rev=0 profit=-14 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=54,110 rev=0 profit=-158 / year=1936 month=5
+poll 20: 0:(1) バス pos=83,60 rev=0 profit=-82 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=60,110 rev=0 profit=-861 / year=1936 month=8
+poll 21: 0:(1) バス pos=89,60 rev=0 profit=-55 / 1:(2) 石炭トラック pos=125,60 rev=47 profit=26 / 2:(3) 気動車 pos=94,110 rev=0 profit=-569 / year=1937 month=0
+poll 22: 0:(1) バス pos=84,60 rev=0 profit=-23 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=62,110 rev=0 profit=-263 / year=1937 month=4
+poll 23: 0:(1) バス pos=82,60 rev=5 profit=-90 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=71,110 rev=0 profit=-1000 / year=1937 month=7
+pos: 0:94,60,40;1:119,60,0;2:94,110,0;
+end: 0:(1) バス pos=94,60 rev=5 profit=-95 / 1:(2) 石炭トラック pos=119,60 rev=0 profit=0 / 2:(3) 気動車 pos=94,110 rev=0 profit=-1057 / year=1937 month=7
+open finances: 1
+open convoys: 1
