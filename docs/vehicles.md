@@ -58,12 +58,12 @@
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。
 
-- 要る物: OTRP 本体（MCP のある版）と、OTRP 本体のリポジトリの `mcp_client.py`。Windows で動かす前提。
+- 要る物: OTRP 本体（MCP のある版）の検証環境と、OTRP 本体のリポジトリの `mcp_client.py`。Windows で動かす前提。ゲームの用意・起動・閉じ方は [game-check.md](game-check.md) の道具（`tools/game.py`）。
 - `course.nut`: 道路の輪（道路は名前で選ぶ。既定は AMI の `ami_road_local`）（直線の 4 方向・SE と SW の向きの斜め・直角の曲がり 2 つ）と、停留所・車庫を置き、時計回りの 1 両・2 両連結と反時計回りの 1 両を走らせる。
-- `run.py`: 用意したゲームの作業フォルダで本体を起動し、`course.nut` を流して、向きごとに撮る（夜は飛ばす）。ゲームは起動した PID で閉じる。使い方は `run.py` の先頭。
+- `run.py`: 検証環境を写した作業フォルダで本体を起動し、`course.nut` を流して、向きごとに撮る（夜は飛ばす）。ゲームは起動した PID で閉じる。使い方は `run.py` の先頭。
 - 試験の印: `draw_bus.py --marker --out <場所>` で、車体の地面の枠（桃色）・前の端（青の線）・基準点（青の点）・タイルの中心（桃色の十字）を重ねた絵を書く（git に入れない）。
 - 右側通行: 手元の右側通行の保存データは使えなかった（起動画面で止まる）。`draw_bus.py --emulate-right` で、左側通行のずれを先に引いた絵（名前に `_right_test`）を書き、左側通行の地図で走らせると、右側通行の地図での見え方と同じ所に出る（本体は左側通行で絵をずらすだけなので）。
-- 道路の車庫と停留所は、pak256 にも AMI の 256 版にもまだ無いので、試験のときだけ 2 倍にした pak128（`pak256poc`）から借りる（コミットしない）。AMI の車庫・停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
+- 道路の停留所は pak256 の仮の物（#44）を使う。車庫は pak256 にも AMI の 256 版にもまだ無いので、試験のときだけ 2 倍にした pak128（`pak256poc` の `infrastructure.depots_rail_road_tram.all.pak`）を `--extra-pak` で借りる（コミットしない）。AMI の車庫・停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
 
 #40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。
 
