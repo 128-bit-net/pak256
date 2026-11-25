@@ -20,4 +20,5 @@
 
 - 256px のセルを横に 5 つ並べたシート（1280x256）。根元はセルの (128, 192)（地面の菱形の中心。[ground.md](ground.md)）。
 - `draw_trees.py`（MIT）が PNG と表（`.yaml`）を書き出す。書き出した物もコミットしてある。作り直すとき: `python -X utf8 objects/scenery/temperate_trees/draw_trees.py`（Pillow だけで動く）。
+- `tools/test_trees.py` が、各 age の高さと成木の幅が上の表の ±5% に収まることと、特別な色が混じらないことを確かめる（絵を描き直したら流す）。
 - 色は特別な色（makeobj が別の意味に読む色）を避ける。縁は縮小でなめらかにしてから、半透明を切る。
