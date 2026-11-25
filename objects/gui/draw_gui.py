@@ -26,6 +26,9 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "objects", "ground", "temperate"))
 import draw_ground as dg  # noqa: E402  タイルの形（column_span など）を借りる
 
+sys.path.insert(0, HERE)
+import gui_icons  # noqa: E402  ツールバーのアイコンの絵
+
 COPYRIGHT = dg.COPYRIGHT
 ICON = 128          # アイコンの元の絵
 TILE = 256
@@ -128,14 +131,14 @@ def used_icons():
 # ---------------------------------------------------------------- アイコン
 
 def tool_icon(kind, n):
-    letter, col = TYPE_STYLE[kind]
-    im = Image.new("RGBA", (ICON, ICON), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, ICON - 1, ICON - 1), 18, fill=special_safe((*col, 255)))
-    d.rounded_rectangle((8, 8, ICON - 9, ICON - 9), 12, outline=special_safe((235, 235, 235, 255)), width=3)
-    f = font(64)
-    d.text((ICON / 2, ICON / 2 + 4), str(n), font=f, fill=special_safe((255, 255, 255, 255)), anchor="mm")
-    d.text((20, 18), letter, font=font(24), fill=special_safe((255, 255, 255, 255)))
+    """道具の絵（gui_icons.py。番号だけの絵は作らない）。makeobj の特別な色は避ける。"""
+    im = gui_icons.draw_icon(kind, n)
+    px = im.load()
+    for y in range(ICON):
+        for x in range(ICON):
+            r, g, b, a = px[x, y]
+            if a:
+                px[x, y] = special_safe((r, g, b, a))
     return im
 
 

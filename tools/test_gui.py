@@ -2,6 +2,7 @@
 
 - 本体（simskin.cc）が必ず求める cursor・symbol・misc の物と、駅・車庫の窓が NULL を確かめずに使う記号が、dat にあること。
 - menuconf.tab が使うアイコンの番号が、各一覧の Image の数に収まること（本体は範囲外の番号に警告を出して 0 番にする）。
+- 使うアイコンがすべて専用の絵を持ち、同じ種類の中で絵が重ならず、半透明・特別な色が無いこと（#66）。
 
 使い方: python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
@@ -15,6 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUI = os.path.join(ROOT, "objects", "gui")
 sys.path.insert(0, GUI)
 import draw_gui  # noqa: E402
+import gui_icons  # noqa: E402
 
 REQUIRED = {
     "cursor": ["Builder", "GeneralTools", "Marked"],
@@ -57,6 +59,33 @@ class GuiTest(unittest.TestCase):
         for kind, nums in draw_gui.used_icons().items():
             if nums:
                 self.assertGreater(found[("menu", draw_gui.MENU_NAME[kind])], max(nums), kind)
+
+    def test_every_used_icon_has_a_picture(self):
+        """使っているアイコンがすべて、番号でなく専用の絵を持つ（#66）。"""
+        for kind, nums in draw_gui.used_icons().items():
+            for n in nums:
+                self.assertIn((kind, n), gui_icons.ICONS, f"{kind} {n}")
+
+    def test_icons_are_distinguishable(self):
+        """同じ種類の中で、同じ絵のアイコンが無い。"""
+        for kind, nums in draw_gui.used_icons().items():
+            seen = {}
+            for n in sorted(nums):
+                key = draw_gui.tool_icon(kind, n).tobytes()
+                self.assertNotIn(key, seen, f"{kind} {n} は {seen.get(key)} と同じ絵")
+                seen[key] = n
+
+    def test_icon_pixels(self):
+        """128px の絵で、半透明が無く、特別な色を使わない。"""
+        special = {(v >> 16, (v >> 8) & 255, v & 255) for v in draw_gui.dg._SPECIAL}
+        for kind, nums in draw_gui.used_icons().items():
+            for n in nums:
+                im = draw_gui.tool_icon(kind, n)
+                self.assertEqual(im.size, (128, 128))
+                for r, g, b, a in im.getdata():
+                    self.assertIn(a, (0, 255))
+                    if a:
+                        self.assertNotIn((r, g, b), special)
 
 
 if __name__ == "__main__":
