@@ -68,16 +68,10 @@ class FetchTest(unittest.TestCase):
         env.start()
         self.addCleanup(env.stop)
         os.environ.pop("AMI_DIST", None)
-        # relpath が別のドライブで失敗しないよう、ROOT も一時の場所へ
-        for name, value in (("ROOT", self.tmp.name), ("LICENSE_FILE", self.license), ("CACHE", self.cache)):
+        for name, value in (("ENV_FILE", self.env_file), ("LICENSE_FILE", self.license), ("CACHE", self.cache)):
             p = mock.patch.object(fetch_ami, name, value)
             p.start()
             self.addCleanup(p.stop)
-        # read_env の既定の引数は定義のときに決まるので、ENV_FILE の差し替えでは効かない。呼び出しごと差し替える
-        real_read_env = fetch_ami.read_env
-        p = mock.patch.object(fetch_ami, "read_env", lambda path=None: real_read_env(self.env_file))
-        p.start()
-        self.addCleanup(p.stop)
         self.urlopen_calls = []
 
     def write_env(self, sha=None, url="https://example.invalid/ami.zip"):
@@ -154,6 +148,22 @@ class FetchTest(unittest.TestCase):
             with self.assertRaises(SystemExit) as cm:
                 fetch_ami.fetch(self.out)
         self.assertIn("pak が無い", str(cm.exception))
+
+    def test_missing_license_message_survives_other_drive(self):
+        os.remove(self.license)
+
+        def other_drive(path, start=None):
+            raise ValueError("path is on mount 'D:', start on mount 'C:'")
+        with mock.patch.object(fetch_ami.os.path, "relpath", other_drive), self.fake_urlopen(self.zip):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("許諾の文", str(cm.exception))
+        self.assertIn(self.license, str(cm.exception))
+
+    def test_rel_falls_back_to_path(self):
+        self.assertEqual(fetch_ami._rel(os.path.join(fetch_ami.ROOT, "a", "b")), os.path.join("a", "b"))
+        with mock.patch.object(fetch_ami.os.path, "relpath", side_effect=ValueError):
+            self.assertEqual(fetch_ami._rel("X:/y"), "X:/y")
 
     def test_missing_license_exits(self):
         os.remove(self.license)

@@ -29,7 +29,10 @@ LICENSE_FILE = os.path.join(VENDOR, LICENSE_NAME)
 CACHE = os.path.join(ROOT, "build", "cache")
 
 
-def read_env(path=ENV_FILE):
+def read_env(path=None):
+    """ami.env を読む。path を省くと、呼ぶ時点の ENV_FILE を読む。"""
+    if path is None:
+        path = ENV_FILE
     env = {}
     with open(path, encoding="utf-8") as f:
         for line in f:
@@ -39,6 +42,14 @@ def read_env(path=ENV_FILE):
             k, _, v = line.partition("=")
             env[k.strip()] = v.strip()
     return env
+
+
+def _rel(path):
+    """ROOT からの相対パス。別のドライブなどで出せないときは、そのパスのまま返す。"""
+    try:
+        return os.path.relpath(path, ROOT)
+    except ValueError:
+        return path
 
 
 def _is_pak(name):
@@ -116,7 +127,7 @@ def fetch(out_dir):
     if not paks:
         sys.exit(f"[fetch_ami] {where} に pak が無い")
     if not os.path.isfile(LICENSE_FILE):
-        sys.exit(f"[fetch_ami] AMI の許諾の文 {os.path.relpath(LICENSE_FILE, ROOT)} が無い")
+        sys.exit(f"[fetch_ami] AMI の許諾の文 {_rel(LICENSE_FILE)} が無い")
     shutil.copyfile(LICENSE_FILE, os.path.join(os.path.dirname(out_dir), LICENSE_NAME))
     return paks
 
