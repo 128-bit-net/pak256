@@ -30,7 +30,7 @@
   夜の灯りを見るときだけ --night。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
-- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47919）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
+- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
@@ -62,7 +62,7 @@ PAK_DIR = "pak"
 DAY_NIGHT_OFF = "day_night_shift = 0"
 MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
-PORT_MIN, PORT_MAX = 47800, 47919  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
+PORT_MIN, PORT_MAX = 47800, 47999  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
 # gui.open_dialog_tool(番号) の窓の番号（OTRP 本体の simmenu.h の DIALOG_*。順に 0 から）。使う物だけ。docs/game-check.md に表
 DIALOGS = {
     "help": 0, "options": 1, "minimap": 2, "lineoverview": 3, "messages": 4, "finances": 5, "players": 6,
