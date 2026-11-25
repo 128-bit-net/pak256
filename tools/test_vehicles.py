@@ -4,6 +4,7 @@
 - tools/vehicles.py の換算と横の位置が、docs/vehicles.md の数と合うこと。
 - 見本のバス（objects/vehicle/road/sample_bus/）の表の length が換算どおりで、絵の 8 方向が決まりの位置に描かれていること
   （車体の外接枠が、決まりから計算した枠と ±2px で合う）。特別な色が混じらないこと。
+- 石炭のトラック（objects/vehicle/road/coal_truck/）の表（length・貨物・freightimage）と、空・積んだ 2 行の絵が決まりの位置に描かれていること。
 Pillow と PyYAML が要る（tools/requirements.txt）。
 """
 import importlib.util
@@ -20,6 +21,7 @@ sys.path.insert(0, HERE)
 import vehicles as V  # noqa: E402
 
 BUS_DIR = os.path.join(ROOT, "objects", "vehicle", "road", "sample_bus")
+TRUCK_DIR = os.path.join(ROOT, "objects", "vehicle", "road", "coal_truck")
 TOL = 2
 SPECIAL = {
     0x244B67, 0x395E7C, 0x4C7191, 0x6084A7, 0x7497BD, 0x88ABD3, 0x9CBEE9, 0xB0D2FF,
@@ -124,6 +126,95 @@ class TestSampleBus(unittest.TestCase):
                 r, g, b, a = px[x, y]
                 if a and (r << 16 | g << 8 | b) in SPECIAL:
                     found.add(f"{r:02X}{g:02X}{b:02X}")
+        self.assertFalse(found, f"特別な色: {sorted(found)}")
+
+    def test_alpha_is_binary(self):
+        hist = self.img.getchannel("A").histogram()
+        self.assertEqual(sum(hist[1:255]), 0)
+
+
+def load_draw_truck():
+    spec = importlib.util.spec_from_file_location("draw_coal_truck", os.path.join(TRUCK_DIR, "draw_coal_truck.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+class TestCoalTruck(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.truck = load_draw_truck()
+        with open(os.path.join(TRUCK_DIR, "coal_truck.yaml"), encoding="utf-8") as f:
+            cls.table = yaml.safe_load(f)
+        cls.img = Image.open(os.path.join(TRUCK_DIR, "coal_truck.png")).convert("RGBA")
+
+    def test_table(self):
+        t = self.table
+        self.assertEqual(t["length"], V.length_units(self.truck.REAL_LENGTH_M))
+        self.assertEqual(t["name"], self.truck.NAME)
+        self.assertEqual(t["waytype"], "road")
+        self.assertEqual(t["freight"], "Kohle")  # 炭鉱が出し、発電所が受ける貨物（objects/goods）
+        self.assertEqual(list(t["emptyimage"]), list(V.DIRECTIONS))
+        self.assertEqual(list(t["freightimage"]), list(V.DIRECTIONS))
+        for i, d in enumerate(V.DIRECTIONS):  # 0 行 = 空、1 行 = 積んだ。列は向きの順
+            self.assertEqual(t["emptyimage"][d], f"coal_truck.0.{i}")
+            self.assertEqual(t["freightimage"][d], f"coal_truck.1.{i}")
+
+    def test_yaml_is_what_the_script_writes(self):
+        # 表は draw_coal_truck.py が書き出す物。スクリプトだけ直して流し直さないと落ちる
+        with open(os.path.join(TRUCK_DIR, "coal_truck.yaml"), encoding="utf-8", newline="") as f:
+            self.assertEqual(f.read(), self.truck.yaml_lines("coal_truck"))
+
+    def test_values_match_docs_table(self):
+        # docs/vehicles.md の「石炭のトラック」の表の値と、表（yaml）の値が同じ
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        head = next(l for l in text.splitlines() if l.startswith("| `name` |") and "`payload`" in l)
+        row = next(l for l in text.splitlines() if l.startswith(f"| `{self.truck.NAME}` |"))
+        keys = [c.strip().strip("`") for c in head.strip("|").split("|")]
+        vals = [c.strip() for c in row.strip("|").split("|")]
+        doc = dict(zip(keys, vals))
+        for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+            self.assertEqual(str(self.table[k]), doc[k], k)
+        self.assertEqual(doc["name"].strip("`"), self.table["name"])
+
+    def test_body_length_matches_length(self):
+        # 絵の車体の長さは length × 1.65m（運転席と荷台で全長）。前の端は基準点（0）
+        length_m = self.table["length"] * V.M_PER_UNIT
+        self.assertAlmostEqual(self.truck.CAB[0], 0.0)
+        self.assertAlmostEqual(self.truck.BED[1], -length_m, places=6)
+        self.assertAlmostEqual(self.truck.CAB[1], self.truck.BED[0])  # 運転席と荷台の間にすき間も重なりも無い
+
+    def test_sheet_size(self):
+        self.assertEqual(self.img.size, (V.CELL * len(V.DIRECTIONS), V.CELL * 2))
+
+    def test_cells_at_rule_position(self):
+        for row, parts in enumerate((self.truck.PARTS_EMPTY, self.truck.PARTS_LOADED)):
+            for i, d in enumerate(V.DIRECTIONS):
+                pts = []
+                for part in parts:
+                    z0, z1 = part[3], part[4]
+                    pts += [V.to_screen(x, y, z) for (x, y) in self.truck.corners(d, part) for z in (z0, z1)]
+                ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
+                cell = self.img.crop((i * V.CELL, row * V.CELL, (i + 1) * V.CELL, (row + 1) * V.CELL))
+                box = cell.getchannel("A").getbbox()
+                self.assertIsNotNone(box, (row, d))
+                for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
+                    self.assertLessEqual(abs(g - e), TOL, f"行{row} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_loaded_differs_from_empty(self):
+        # 積んだ絵は空の絵と違う（石炭の山が見える向きがある）
+        diff = 0
+        for i in range(len(V.DIRECTIONS)):
+            a = self.img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).tobytes()
+            b = self.img.crop((i * V.CELL, V.CELL, (i + 1) * V.CELL, 2 * V.CELL)).tobytes()
+            diff += a != b
+        self.assertGreaterEqual(diff, 6)
+
+    def test_no_special_colors(self):
+        px = self.img.load()
+        found = {f"{r:02X}{g:02X}{b:02X}" for y in range(self.img.height) for x in range(self.img.width)
+                 for (r, g, b, a) in [px[x, y]] if a and (r << 16 | g << 8 | b) in SPECIAL}
         self.assertFalse(found, f"特別な色: {sorted(found)}")
 
     def test_alpha_is_binary(self):

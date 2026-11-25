@@ -54,6 +54,20 @@
 
 見本のバス `objects/vehicle/road/sample_bus/`（`pak256_sample_bus`、実物 12m・幅 2.5m・高さ 3.2m、`length=7`）。絵は仮（箱を組んだ物）。`draw_bus.py`（MIT）が絵と表を書き出す。作り直すとき: `python -X utf8 objects/vehicle/road/sample_bus/draw_bus.py`（Pillow だけで動く）。新しい車両は、このスクリプトのように `tools/vehicles.py` の `footprint`・`to_screen` で車体の四隅を出して描く。
 
+## 石炭のトラック
+
+最初の産業の連鎖（炭鉱 → 発電所。[goods.md](goods.md)・[industry.md](industry.md)）で石炭（`Kohle`）を運ぶ道路の車両 1 種。[#42](https://github.com/128-bit-net/pak256/issues/42) で足した。絵は仮（箱を組んだ物。赤い運転席と、上が開いた灰色の荷台。積んだ絵は荷台に石炭の山）で、pak128 の絵は使っていない。置き場は `objects/vehicle/road/coal_truck/`。`draw_coal_truck.py`（MIT）が PNG と表を書き出す（`python -X utf8 objects/vehicle/road/coal_truck/draw_coal_truck.py`）。
+
+値は pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。[goods.md](goods.md) と同じ。法律の専門家には確かめていない）。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
+
+| `name` | 画面の名前（ja / en） | 貨物 | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` | 実物の長さ（仮。2 軸の貨物車の大きさ） → `length` |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_coal_truck` | 石炭トラック / Coal Truck | `Kohle` | 12 | 55 | 95 | 90 | 8 | 384000 | 24 | 1930 | 7m → 4 |
+
+- 貨物は `Kohle` だけ。炭鉱の出力と発電所の入力と同じ貨物（本体は貨物の名前で結ぶ）。`freightimage` を持つので、積んでいる間は石炭の山が見える。
+- 幅 2.5m・高さ 2.7m（運転席の上）。絵は上の「描画位置」の決まりのとおり（車体の前の端が基準点、右側の車線）。1 タイルに収まるので 256 のセル。
+- 車庫は AMI の 256 版にまだ無い（[試験](#試験)の借り物を参照）。積み降ろしは、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。
