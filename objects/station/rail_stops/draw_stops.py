@@ -1,4 +1,4 @@
-"""駅（線路）の絵と表を書き出す（docs/stations.md）。道路の停留所は AMI の物（ami_road_bus_stop・ami_road_truck_stop）に置き換えた（#72）。線路の駅は pak256 の物（#73）。MIT License。絵は簡単な物（箱を数式で描いた物）。
+"""駅（線路）の絵と表を書き出す（docs/stations.md）。道路の停留所は objects/station/road_stops/ にある（#94）。線路の駅は pak256 の物（#73）。MIT License。絵は簡単な物（箱を数式で描いた物）。
 
 - 縮尺・タイルの座標は objects/city/town_buildings/draw_buildings.py と同じ（1 タイル = 26.4m、高さ 1m = 5.94px）。
 - 駅は 1x1 タイル。線路の向きごとに 8 通り（本体の決まり。0 NS 中、1 EW 中、2 NS 南端、3 EW 東端、4 NS 北端、5 EW 西端、
