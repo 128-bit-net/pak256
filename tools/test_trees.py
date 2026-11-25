@@ -105,6 +105,15 @@ class TreeSheetTest(unittest.TestCase):
                 self.assertEqual(special_colors(img), [])
 
 
+class SpecialColorsTest(unittest.TestCase):
+    def test_same_as_draw_script(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("draw_trees", os.path.join(TREES, "draw_trees.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        self.assertEqual(SPECIAL, set(mod._SPECIAL) - {0xE7FFFF})
+
+
 class CheckerSelfTest(unittest.TestCase):
     """検査そのものが、誤った入力で失敗することの確かめ。"""
 

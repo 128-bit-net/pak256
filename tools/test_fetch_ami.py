@@ -30,7 +30,7 @@ class AmiEnvTest(unittest.TestCase):
         env = fetch_ami.read_env()
         keys = ("AMI_VERSION", "AMI_ZIP_URL", "AMI_ZIP_SHA256")
         if not any(env.get(k) for k in keys):
-            return  # AMI 抜きで組む（3 つとも空）
+            self.skipTest("ami.env が空（AMI 抜きで組む）")
         for k in keys:
             self.assertTrue(env.get(k), f"ami.env に {k} が無い")
         m = URL_RE.match(env["AMI_ZIP_URL"])
@@ -91,6 +91,7 @@ class FetchTest(unittest.TestCase):
 
     def fake_urlopen(self, data):
         def opener(url, timeout=None):
+            assert timeout, "urlopen に timeout を渡す"
             self.urlopen_calls.append(url)
             return io.BytesIO(data)
         return mock.patch.object(fetch_ami.urllib.request, "urlopen", opener)
@@ -176,9 +177,12 @@ class FetchTest(unittest.TestCase):
     def test_ami_dist_zip(self):
         p = os.path.join(self.tmp.name, "local.zip")
         with open(p, "wb") as f:
-            f.write(self.zip)
+            f.write(make_zip({"only.pak": b"L"}))  # ami.env 側の zip と中身を変える
         os.environ["AMI_DIST"] = p
-        self.assertEqual(len(fetch_ami.fetch(self.out)), 2)
+        with self.fake_urlopen(b"unused"):
+            paks = fetch_ami.fetch(self.out)
+        self.assertEqual(len(paks), 1)
+        self.assertEqual(self.urlopen_calls, [])
 
     def test_ami_dist_invalid_exits(self):
         os.environ["AMI_DIST"] = os.path.join(self.tmp.name, "nothing")
