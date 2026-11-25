@@ -14,7 +14,7 @@ from unittest import mock
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fetch_ami  # noqa: E402
 
-URL_RE = re.compile(r"^https://github\.com/128na/simutrans-addon-dev/releases/download/([^/\s]+)/[^/\s]+\.zip$")
+URL_RE = re.compile(r"^https://github\.com/128-bit-net/pak256/releases/download/([^/\s]+)/[^/\s]+\.zip$")
 
 
 def make_zip(files):
@@ -35,7 +35,7 @@ class AmiEnvTest(unittest.TestCase):
             self.assertTrue(env.get(k), f"ami.env に {k} が無い")
         m = URL_RE.match(env["AMI_ZIP_URL"])
         self.assertTrue(m, f"AMI_ZIP_URL の形が違う: {env['AMI_ZIP_URL']}")
-        self.assertEqual(m.group(1), env["AMI_VERSION"], "URL のタグと AMI_VERSION が違う")
+        self.assertEqual(m.group(1), "vendor-" + env["AMI_VERSION"], "URL のタグが vendor-<AMI_VERSION> でない")
         self.assertRegex(env["AMI_ZIP_SHA256"], r"^[0-9a-f]{64}$")
 
     def test_license_file_exists(self):
@@ -129,6 +129,64 @@ class FetchTest(unittest.TestCase):
             self.assertFalse(os.path.exists(cached))
             fetch_ami.fetch(self.out)  # 次は取り直す
         self.assertEqual(len(self.urlopen_calls), 2)
+
+    def fake_gh(self, data, returncode=0, stderr=b""):
+        def run(cmd, capture_output=None, timeout=None):
+            assert timeout, "gh に timeout を渡す"
+            self.gh_calls.append(cmd)
+            if returncode == 0:
+                with open(os.path.join(cmd[cmd.index("-D") + 1], cmd[cmd.index("-p") + 1]), "wb") as f:
+                    f.write(data)
+            return mock.Mock(returncode=returncode, stderr=stderr)
+        return mock.patch.object(fetch_ami.subprocess, "run", run)
+
+    def test_release_url_uses_gh(self):
+        url = "https://github.com/128-bit-net/pak256/releases/download/vendor-test.1/test.1.zip"
+        self.write_env(sha=self.sha, url=url)
+        self.gh_calls = []
+        with self.fake_gh(self.zip), self.fake_urlopen(b"must not be read"):
+            paks = fetch_ami.fetch(self.out)
+        self.assertEqual(len(paks), 2)
+        self.assertEqual(self.urlopen_calls, [])
+        self.assertEqual(len(self.gh_calls), 1)
+        cmd = self.gh_calls[0]
+        self.assertEqual(cmd[:3], ["gh", "release", "download"])
+        self.assertEqual(cmd[3], "vendor-test.1")
+        self.assertEqual(cmd[cmd.index("-R") + 1], "128-bit-net/pak256")
+        self.assertEqual(cmd[cmd.index("-p") + 1], "test.1.zip")
+
+    def test_gh_failure_exits(self):
+        url = "https://github.com/128-bit-net/pak256/releases/download/vendor-test.1/test.1.zip"
+        self.write_env(sha=self.sha, url=url)
+        self.gh_calls = []
+        with self.fake_gh(b"", returncode=1, stderr=b"release not found"):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("release not found", str(cm.exception))
+
+    def test_gh_missing_exits(self):
+        url = "https://github.com/128-bit-net/pak256/releases/download/vendor-test.1/test.1.zip"
+        self.write_env(sha=self.sha, url=url)
+        with mock.patch.object(fetch_ami.subprocess, "run", side_effect=FileNotFoundError):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("gh が無い", str(cm.exception))
+
+    def test_gh_sha_mismatch_exits(self):
+        url = "https://github.com/128-bit-net/pak256/releases/download/vendor-test.1/test.1.zip"
+        self.write_env(sha=self.sha, url=url)
+        self.gh_calls = []
+        with self.fake_gh(self.zip + b"tampered"):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("SHA-256 が合わない", str(cm.exception))
+
+    def test_non_release_url_uses_urllib(self):
+        self.gh_calls = []
+        with self.fake_gh(b"unused"), self.fake_urlopen(self.zip):
+            fetch_ami.fetch(self.out)
+        self.assertEqual(self.gh_calls, [])
+        self.assertEqual(len(self.urlopen_calls), 1)
 
     def test_missing_sha_exits(self):
         self.write_env(sha=None)
