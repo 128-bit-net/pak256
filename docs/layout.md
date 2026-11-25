@@ -25,7 +25,7 @@ ci.env                CI の道具の版（makeobj など）
 |---|---|---|
 | `objects/ground/` | 地面・水・坂・海岸・基礎・柵・印・境界・地図の外。描き方は [ground.md](ground.md)。`Outside/` だけは別のフォルダ（本体が `ground.Outside.pak` を先に探すため） | #5 |
 | `objects/gui/` | 記号・カーソル・ツールバーのアイコン | #6 |
-| `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む） | #4 |
+| `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
 | `objects/industry/` | 産業（工場・発電所） | |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける | |
@@ -155,7 +155,7 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 `text/` に置く。本体が pak のフォルダの `text/` から読む（`dataobj/translator.cc`）。
 
-- `ja.tab`・`en.tab`: 物の名前（dat の `name`）と訳の行が交互に並ぶ。先頭の `§` は UTF-8 の印。注釈は先頭の `#` の行にだけ書く（名前の位置の `#` 行だけが注釈で、訳の位置の `#` 行は訳として読まれる）。物を足した PR で、名前を足す。`tools/test_text.py` が、行の数・名前の抜け・ja と en のずれを検査する。
+- `ja.tab`・`en.tab`: 物の名前（dat の `name`）と訳の行が交互に並ぶ。本体が引く貨物の分類名（`CATEGORY_01`〜`07`）も入れる（貨物の窓に出る）。画面に出ない貨物 `None` は訳を置かない（`tools/test_text.py` の `UNTRANSLATED`）。先頭の `§` は UTF-8 の印。注釈は先頭の `#` の行にだけ書く（名前の位置の `#` 行だけが注釈で、訳の位置の `#` 行は訳として読まれる）。物を足した PR で、名前を足す。`tools/test_text.py` が、行の数・名前の抜け・ja と en のずれを検査する。
 - `citylist_ja.txt`・`citylist_en.txt`: 街の名前。1 行に 1 つ。本体は、新しい街ごとに一覧から名前を選ぶ。一覧が空の言語では、本体の既定の音節の組み合わせで名前を作る。一覧を使い切ると、街の名前が全部同じ既定の名前になるので、地図の大きさに合わせて数を足す（今は 104）。利用者が自分の一覧を置くと、本体はそちらを先に読む。
 - 名前が画面に出るのは、木のように選んで置く物。地面・GUI の物は画面に名前が出ないので、今は訳さない。
 - AMI の物の名前は AMI の側（`ja_ami.tab` など）で持つ。ここには書かない。

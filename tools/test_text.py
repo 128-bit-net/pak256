@@ -11,6 +11,8 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEXT = os.path.join(ROOT, "text")
 LANGS = ("ja", "en")
+# 画面に出ない物。本体が内部で使う「無し」の貨物で、訳を置かない
+UNTRANSLATED = {"None"}
 
 
 def read(path):
@@ -36,7 +38,7 @@ def object_names():
     names = set()
     for p in glob.glob(os.path.join(ROOT, "objects", "**", "*.yaml"), recursive=True):
         with open(p, encoding="utf-8") as f:
-            names.update(re.findall(r"^name:\s*(\S+)\s*$", f.read(), re.M))
+            names.update(re.findall(r"^\s*(?:- )?name:\s*(\S+)\s*$", f.read(), re.M))
     return names
 
 
@@ -56,7 +58,7 @@ class TextTest(unittest.TestCase):
 
     def test_object_names_translated(self):
         for lang in LANGS:
-            missing = object_names() - set(pairs(lang)[0])
+            missing = object_names() - UNTRANSLATED - set(pairs(lang)[0])
             self.assertFalse(missing, f"{lang}.tab に無い物の名前: {sorted(missing)}")
 
     def test_citylist(self):
