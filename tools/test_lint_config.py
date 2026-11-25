@@ -41,6 +41,16 @@ class LintConfigTest(unittest.TestCase):
         self.edit("menuconf.tab", lambda t: t + "simple_tool[40] = 40,\n")
         self.assertFails("番号が違う道具")
 
+    def test_tool_id_limits_boundary(self):
+        # 各種類で、上限の 1 つ手前は通り、上限は失敗する（本家 125.0.1 と OTRP で番号が同じ最後の番号）
+        for kind, limit in (("general_tool", 48), ("simple_tool", 36), ("dialog_tool", 36)):
+            with self.subTest(kind=kind):
+                self.assertEqual(lint_config.TOOL_ID_LIMITS[kind], limit)
+                ok = lint_config.check_menuconf([(1, f"{kind}[{limit - 1}] = 1,"), (2, "toolbar[0][0]=-")])
+                self.assertEqual([e for e in ok if "番号が違う" in e], [])
+                ng = lint_config.check_menuconf([(1, f"{kind}[{limit}] = 1,"), (2, "toolbar[0][0]=-")])
+                self.assertTrue(any("番号が違う" in e for e in ng), ng)
+
     def test_mismatched_tool_id_in_toolbar(self):
         self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2]=general_tool[48],1"))
         self.assertFails("general_tool[48] は本家")
