@@ -18,8 +18,7 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/city/town_buildings`（役場と住宅 5 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_buildings.py` は MIT） |
 | `objects/industry/coal_chain`（炭鉱と石炭火力の発電所。絵は仮。値は pak128 に合わせた） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_industry.py` は MIT） |
 | `objects/vehicle/road/sample_bus`（見本のバス。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_bus.py` は MIT） |
-| `objects/vehicle/road/bus`・`objects/vehicle/road/mail_truck`（バスと郵便のトラック。絵は仮。値は pak128 を目安にした） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_vehicles.py` は MIT） |
-| `objects/vehicle/road/coal_truck`（石炭のトラック。絵は仮。値は pak128 に合わせた） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_coal_truck.py` は MIT） |
+| `objects/vehicle/road/bus`・`objects/vehicle/road/mail_truck`・`objects/vehicle/road/coal_truck`（バス・郵便のトラック・石炭のトラック。絵は仮。値は pak128 を目安にした。石炭のトラックは pak128 の機能上の数値と同じ） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_vehicles.py` は MIT） |
 | `objects/station/road_stops`（仮のバス停と荷役所。絵は仮。AMI の物が出たら消す） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_stops.py` は MIT） |
 | `objects/depot/road_depot`（仮の道路の車庫。絵は仮。AMI の物が出たら消す） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_depot.py` は MIT） |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |

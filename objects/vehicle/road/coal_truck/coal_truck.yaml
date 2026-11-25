@@ -1,4 +1,4 @@
-# 石炭のトラック（絵は仮）。この表と PNG は draw_coal_truck.py が書き出す。直すときはスクリプトを直して流し直す。
+# 石炭のトラック（絵は仮）。この表と PNG は draw_vehicles.py が書き出す。直すときはスクリプトを直して流し直す。
 # 実物 7m ÷ 1.65 = 4.24 → length 4（docs/vehicles.md）。
 # 値は pak128 の石炭のトラック（Bulk_Truck_2）に合わせた（docs/vehicles.md の表）。登場年だけ見本のバスと同じ 1930。
 obj: vehicle
@@ -25,7 +25,7 @@ emptyimage:       # 向きごとの絵（0 行 = 空）
   e: coal_truck.0.5
   ne: coal_truck.0.6
   nw: coal_truck.0.7
-freightimage:     # 石炭を積んだ絵（1 行）
+freightimage:     # 積み荷を積んだ絵（1 行）
   s: coal_truck.1.0
   w: coal_truck.1.1
   sw: coal_truck.1.2
