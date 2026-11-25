@@ -157,6 +157,105 @@ class LintConfigTest(unittest.TestCase):
         self.edit("cityrules.tab", lambda t: t.replace("house_5", "house_7"))
         self.assertFails("連番")
 
+    # ---- #21: 大文字・小文字、範囲の書き方、.chance の値 ----
+
+    def test_normalize_keeps_current_config_lines(self):
+        # 今の config/ は範囲の書き方も大文字も使わないので、直しても行は変わらない
+        for name in ("menuconf.tab", "cityrules.tab"):
+            lines = lint_config.read_lines(os.path.join(CONFIG, name))
+            norm, errs = lint_config.normalize(lines)
+            self.assertEqual(errs, [])
+            self.assertEqual(norm, lines)
+
+    def test_key_case_is_ignored_like_engine(self):
+        # 本体はキーを小文字にして読むので、大文字のキーの menuconf も同じ検査を受け、通る
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "Toolbar[0][2]=general_tool[0]"))
+        self.assertEqual(lint_config.lint(self.dir), [])
+
+    def test_key_uppercase_still_checked(self):
+        # 大文字のキーでも、位置の重なりは見つかる（小文字にする前は検査をすり抜けた）
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "TOOLBAR[0][1]=general_tool[0]"))
+        self.assertFails("重なり")
+
+    def test_uppercase_house_key_counted(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_5 = ", "House_5 = ").replace("house_5.chance", "House_5.chance"))
+        self.assertEqual(lint_config.lint(self.dir), [])
+        self.edit("cityrules.tab", lambda t: t.replace("House_5.chance = -2\n", ""))
+        self.assertFails("house_5.chance が無い")
+
+    def test_tool_name_value_must_be_lowercase(self):
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[0][2]=general_tool[0]", "toolbar[0][2]=General_Tool[0]"))
+        self.assertFails("道具の名前は小文字")
+
+    def test_range_expansion_position(self):
+        # toolbar[2] には位置 9・10 が既にある。範囲 [9-10] は両方に重なる（終端の 10 も展開される）
+        self.edit("menuconf.tab", lambda t: t + "toolbar[2][9-10]=general_tool[2]" + chr(10))
+        self.assertFails("重なり [9, 10]")
+
+    def test_range_expansion_fills_positions(self):
+        # 範囲で書いた位置が、連番を埋める（展開しないと「抜け」になる）
+        def fn(t):
+            t = t.replace("toolbar[2][0]=general_tool[2]\n", "toolbar[2][0-1]=general_tool[2]\n")
+            return t.replace("toolbar[2][1]=general_tool[3]\n", "")
+        self.edit("menuconf.tab", fn)
+        self.assertEqual(lint_config.lint(self.dir), [])
+
+    def test_range_expansion_overlap(self):
+        # 範囲が既にある位置と重なると、展開した後で重なりが見つかる
+        self.edit("menuconf.tab", lambda t: t.replace("toolbar[2][0]=general_tool[2]", "toolbar[2][0-1]=general_tool[2]"))
+        self.assertFails("重なり [1]")
+
+    def test_range_expansion_list_and_unit(self):
+        keys, err = lint_config.expand_key("Toolbar[6][10-11]")
+        self.assertEqual((keys, err), (["toolbar[6][10]", "toolbar[6][11]"], None))
+        self.assertEqual(lint_config.expand_key("a[1,3]")[0], ["a[1]", "a[3]"])
+        self.assertEqual(lint_config.expand_key("a[2-4,7]")[0], ["a[2]", "a[3]", "a[4]", "a[7]"])
+        self.assertEqual(sorted(lint_config.expand_key("a[0-1][0,1]")[0]), ["a[0][0]", "a[0][1]", "a[1][0]", "a[1][1]"])
+        self.assertEqual(lint_config.expand_key("a[ 3 - 4 ]")[0], ["a[3]", "a[4]"])
+        self.assertEqual(lint_config.expand_key("a[5]")[0], ["a[5]"])
+
+    def test_range_limit_boundary(self):
+        # 本体は 1 つの範囲で値が 256 個以上になると止まる（255 個までは通る）
+        self.assertEqual(lint_config.expand_key("a[0-254]")[1], None)
+        self.assertIn("256", lint_config.expand_key("a[0-255]")[1])
+
+    def test_ribi_names_not_expanded(self):
+        self.assertEqual(lint_config.expand_key("a[n,s]")[0], ["a[n,s]"])
+
+    def test_chance_sint16_bounds(self):
+        for v, ok in (("-32768", True), ("32767", True), ("-32769", False), ("32768", False)):
+            with self.subTest(v=v):
+                errors = lint_config.check_cityrules([(1, "house_1 = ... .n. sss"), (2, "house_1.chance = " + v)])
+                self.assertEqual(not any("chance の値" in e for e in errors), ok)
+
+    def test_range_too_large(self):
+        self.edit("menuconf.tab", lambda t: t + "toolbar[2][0-300]=general_tool[2]\n")
+        self.assertFails("256 個以上になる")
+
+    def test_chance_not_integer(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1.chance = -2", "house_1.chance = abc"))
+        self.assertFails("house_1.chance の値が")
+
+    def test_chance_decimal_point(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1.chance = -2", "house_1.chance = 1.5"))
+        self.assertFails("house_1.chance の値が")
+
+    def test_chance_empty(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1.chance = -2", "house_1.chance ="))
+        self.assertFails("house_1.chance の値が")
+
+    def test_chance_octal_like(self):
+        self.edit("cityrules.tab", lambda t: t.replace("house_1.chance = -2", "house_1.chance = 08"))
+        self.assertFails("house_1.chance の値が")
+
+    def test_chance_out_of_sint16(self):
+        self.edit("cityrules.tab", lambda t: t.replace("road_1.chance = -4", "road_1.chance = 40000"))
+        self.assertFails("road_1.chance の値が")
+
+    def test_chance_hex_and_positive_ok(self):
+        self.edit("cityrules.tab", lambda t: t.replace("road_1.chance = -4", "road_1.chance = 0x10").replace("house_1.chance = -2", "house_1.chance = +3"))
+        self.assertEqual(lint_config.lint(self.dir), [])
+
     def test_missing_cityrules(self):
         os.remove(os.path.join(self.dir, "cityrules.tab"))
         self.assertFails("cityrules.tab: ファイルが無い")
