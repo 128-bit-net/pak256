@@ -168,6 +168,9 @@ class TestRoadVehicles(unittest.TestCase):
             for key in ("payload", "speed", "power", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
         self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})
+        # docs/vehicles.md の表の length（12m → 7、7m → 4）
+        self.assertEqual({s["name"]: V.length_units(s["real_length_m"]) for s in self.mod.VEHICLES},
+                         {"pak256_bus": 7, "pak256_mail_truck": 4})
 
     def test_cells_at_rule_position(self):
         for spec, table, img in self.each():

@@ -9,7 +9,6 @@ r("road", command_x(tool_build_way).work(pl, coord3d(ax - 10, ay, 0), coord3d(bx
 r("cityA", command_x(tool_add_city).work(pl, coord3d(ax, ay - 3, 0)));
 r("cityB", command_x(tool_add_city).work(pl, coord3d(bx, by - 3, 0)));
 foreach (c in city_list_x()) c.change_size(300);
-// バス停: 各街の中心の真南の道の上
 // バス停: 各街の中心の真南の道の上（置けなければ隣のタイル。T は置けた所）
 local T = [];
 foreach (cx in [ax, bx]) {

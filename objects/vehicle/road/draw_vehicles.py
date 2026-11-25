@@ -39,14 +39,14 @@ VEHICLES = [
     {
         "name": "pak256_bus", "dir": "bus", "stem": "bus",
         "real_length_m": 12.0, "width_m": 2.5,
-        "freight": "Passagiere", "payload": 70, "power": 205, "speed": 60, "gear": 100,
+        "freight": "Passagiere", "payload": 70, "power": 205, "speed": 60, "gear": 80,
         "weight": 11, "cost": 661000, "runningcost": 39, "intro_year": 1930,
         "parts": [(0.0, 1.0, 3.2, (214, 196, 150), (52, 112, 84), "bus")],
     },
     {
         "name": "pak256_mail_truck", "dir": "mail_truck", "stem": "mail_truck",
         "real_length_m": 7.0, "width_m": 2.2,
-        "freight": "Post", "payload": 44, "power": 77, "speed": 60, "gear": 100,
+        "freight": "Post", "payload": 44, "power": 77, "speed": 60, "gear": 80,
         "weight": 5, "cost": 863000, "runningcost": 38, "intro_year": 1930,
         "parts": [
             (0.0, 0.3, 2.3, (190, 52, 44), None, "cab"),  # 運転席
