@@ -49,7 +49,10 @@ def main():
     with Game(args.env, args.save, args.port, client=args.mcp_client) as game:
         head = f'OX <- {ox}; OY <- {oy}; WAY <- "{args.way}"; TRAILER <- {args.trailer};\n'
         with open(os.path.join(HERE, "rail_curve.nut"), encoding="utf-8") as f:
-            print("[rail_curve]", game.sq(head + f.read(), timeout=90), flush=True)
+            result = game.sq(head + f.read(), timeout=90)
+            print("[rail_curve]", result, flush=True)
+        if not result.rstrip().endswith("ok"):
+            sys.exit(f"rail_curve.nut が最後まで通らなかった: {result}")
         game.settle(25)  # 駅・車庫の建設中の絵が終わるまで
         game.sq("debug.set_game_speed(1); gui.set_zoom(3); return 1")
         query = ('local s=""; foreach (c in world.get_convoy_list()) { local p = c.get_pos();'

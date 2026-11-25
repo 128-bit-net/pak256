@@ -151,7 +151,7 @@ def sheet(stop):
     for row in (0, 1):
         part = out.crop((0, row * CELL, CELL, row * CELL + CELL))
         art.paste(part, (0, 0), _mask(part))
-    out.paste(tool_icon(art, stop.get("icon_bg", ICON_BG)), (0, CELL * 2))
+    out.paste(tool_icon(art, ICON_BG), (0, CELL * 2))
     return out
 
 
@@ -166,12 +166,12 @@ def tool_icon(art, bg):
     四角を左上の角（0, 0）から置き、見える範囲の始まりを 0 にする。四角の外と角は透明色。
     """
     box = Image.new("RGB", (CELL, CELL), CLEAR)
-    mask = Image.new("L", (CELL, CELL), 0)
+    mask = Image.new("L", (ICON_SIZE, ICON_SIZE), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, ICON_SIZE - 1, ICON_SIZE - 1), 24, fill=255)
     dark = db.safe(tuple(int(v * 0.65) for v in bg))
     plate = Image.new("RGB", (ICON_SIZE, ICON_SIZE), db.safe(bg))
     ImageDraw.Draw(plate).rounded_rectangle((0, 0, ICON_SIZE - 1, ICON_SIZE - 1), 24, outline=dark, width=4)
-    box.paste(plate, (0, 0), mask.crop((0, 0, ICON_SIZE, ICON_SIZE)))
+    box.paste(plate, (0, 0), mask)
     bbox = _mask(art).getbbox()
     if bbox:
         part = art.crop(bbox)
