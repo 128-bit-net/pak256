@@ -54,6 +54,22 @@
 
 見本のバス `objects/vehicle/road/sample_bus/`（`pak256_sample_bus`、実物 12m・幅 2.5m・高さ 3.2m、`length=7`）。絵は仮（箱を組んだ物）。`draw_bus.py`（MIT）が絵と表を書き出す。作り直すとき: `python -X utf8 objects/vehicle/road/sample_bus/draw_bus.py`（Pillow だけで動く）。新しい車両は、このスクリプトのように `tools/vehicles.py` の `footprint`・`to_screen` で車体の四隅を出して描く。
 
+## 道路の車両（バスと郵便のトラック）
+
+[#41](https://github.com/128-bit-net/pak256/issues/41)。道路で旅客と郵便を運ぶ最初の 2 種。絵は仮（箱を組んだ物）。置き場は `objects/vehicle/road/bus/`・`objects/vehicle/road/mail_truck/`。`objects/vehicle/road/draw_vehicles.py`（MIT）が絵と表（`.yaml`）を書き出す。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/road/draw_vehicles.py`。Pillow だけで動く）。検査は `tools/test_vehicles.py`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_bus` | バス / Bus | `Passagiere` | 12m・2.5m・3.2m | 7 | 70 | 60 | 205 | 80 | 11 | 661000 | 39 | 1930 |
+| `pak256_mail_truck` | 郵便のトラック / Mail Truck | `Post` | 7m・2.2m・3.0m（運転席 2.3m） | 4 | 44 | 60 | 77 | 80 | 5 | 863000 | 38 | 1930 |
+
+- 単位: `speed` は km/h、`weight` は t、`cost`・`runningcost` は 1/100 単位。
+- **値の目安**: バスは pak128 の `NovaBus_RTS-06_WFD`（定員 70・速さ 60・出力 205・重さ 11・費用 661000・`RunningCost` 39）、郵便のトラックは pak128 の `Mail_Truck_2`（定員 44・出力 77・費用 863000・維持費 38）。速さは pak128 の郵便のトラック（74）より落として 60 にそろえた（AMI の道路 `ami_road_local` は 40km/h、`ami_road_general` は 120km/h。道路の上限で決まる）。重さは pak128 の郵便のトラックが 2t と軽すぎるので、7m の箱型のトラックとして 5t にした（根拠のある計算ではなく、仮の値）。`gear` は pak128 の 80（どちらも）。絵は使っていない。
+- **登場年は 1930**。pak256 の開始年（`config/simuconf.tab` の `starting_year`）に合わせた仮の値。pak128 の元の車は 1979 年（郵便のトラック）と 1992 年（バス）なので、時代の幅（初期の車・新しい車）は [roadmap.md](roadmap.md) の「車両の顔ぶれと時代」で決める。引退年は書かない。
+- 長さの決まりは上の「長さ」のとおり（12m → `length=7`、7m → `length=4`）。絵の車体は `length` × 1.65m に描く（バス 11.55m・トラック 6.6m）。トラックの運転席は前の 3 割、荷台の箱は後ろの 7 割（運転席が低い）。
+- 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。
+- 空の絵（`emptyimage`）だけで、積み荷の絵（`freightimage`）は無い。連結（`constraint`）・煙・音・引退年も書いていない。
+
 ## 石炭のトラック
 
 最初の産業の連鎖（炭鉱 → 発電所。[goods.md](goods.md)・[industry.md](industry.md)）で石炭（`Kohle`）を運ぶ道路の車両 1 種。[#42](https://github.com/128-bit-net/pak256/issues/42) で足した。絵は仮（箱を組んだ物。赤い運転席と、上が開いた灰色の荷台。積んだ絵は荷台に石炭の山）で、pak128 の絵は使っていない。置き場は `objects/vehicle/road/coal_truck/`。`draw_coal_truck.py`（MIT）が PNG と表を書き出す（`python -X utf8 objects/vehicle/road/coal_truck/draw_coal_truck.py`）。
@@ -79,7 +95,7 @@
 - 右側通行: 手元の右側通行の保存データは使えなかった（起動画面で止まる）。`draw_bus.py --emulate-right` で、左側通行のずれを先に引いた絵（名前に `_right_test`）を書き、左側通行の地図で走らせると、右側通行の地図での見え方と同じ所に出る（本体は左側通行で絵をずらすだけなので）。
 - 道路の停留所は pak256 の仮の物（#44）を使う。車庫は pak256 にも AMI の 256 版にもまだ無いので、試験のときだけ 2 倍にした pak128（`pak256poc` の `infrastructure.depots_rail_road_tram.all.pak`）を `--extra-pak` で借りる（コミットしない）。AMI の車庫・停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
 
-#40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。
+#40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。#41 のバスと郵便のトラックをゲームで走らせた記録は [records/2026-11-25_bus-mail.md](records/2026-11-25_bus-mail.md)。
 
 ## 決めていないこと
 

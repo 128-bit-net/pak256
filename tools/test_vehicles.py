@@ -133,8 +133,28 @@ class TestSampleBus(unittest.TestCase):
         self.assertEqual(sum(hist[1:255]), 0)
 
 
+def docs_row(text, name):
+    """docs/vehicles.md の表の、name の行を、その表の見出し（直前の `name` で始まる行）の列名で引いた辞書にする。"""
+    lines = text.splitlines()
+    i = next(n for n, l in enumerate(lines) if l.startswith(f"| `{name}` |"))
+    j = max(n for n in range(i) if lines[n].startswith("| `name` |"))
+    keys = [c.strip().strip("`") for c in lines[j].strip("|").split("|")]
+    vals = [c.strip() for c in lines[i].strip("|").split("|")]
+    return dict(zip(keys, vals))
+
+
 def load_draw_truck():
     spec = importlib.util.spec_from_file_location("draw_coal_truck", os.path.join(TRUCK_DIR, "draw_coal_truck.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+ROAD_DIR = os.path.join(ROOT, "objects", "vehicle", "road")
+
+
+def load_draw_vehicles():
+    spec = importlib.util.spec_from_file_location("draw_vehicles", os.path.join(ROAD_DIR, "draw_vehicles.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -169,11 +189,7 @@ class TestCoalTruck(unittest.TestCase):
         # docs/vehicles.md の「石炭のトラック」の表の値と、表（yaml）の値が同じ
         with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
             text = f.read()
-        head = next(l for l in text.splitlines() if l.startswith("| `name` |") and "`payload`" in l)
-        row = next(l for l in text.splitlines() if l.startswith(f"| `{self.truck.NAME}` |"))
-        keys = [c.strip().strip("`") for c in head.strip("|").split("|")]
-        vals = [c.strip() for c in row.strip("|").split("|")]
-        doc = dict(zip(keys, vals))
+        doc = docs_row(text, self.truck.NAME)
         for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
             self.assertEqual(str(self.table[k]), doc[k], k)
         self.assertEqual(doc["name"].strip("`"), self.table["name"])
@@ -220,6 +236,84 @@ class TestCoalTruck(unittest.TestCase):
     def test_alpha_is_binary(self):
         hist = self.img.getchannel("A").histogram()
         self.assertEqual(sum(hist[1:255]), 0)
+
+
+class TestRoadVehicles(unittest.TestCase):
+    """バス・郵便のトラック（#41）。表の length・貨物・絵の位置（部分ごとの高さを含む）・特別な色。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = load_draw_vehicles()
+
+    def each(self):
+        for spec in self.mod.VEHICLES:
+            d = os.path.join(ROAD_DIR, spec["dir"])
+            with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8") as f:
+                table = yaml.safe_load(f)
+            img = Image.open(os.path.join(d, spec["stem"] + ".png")).convert("RGBA")
+            yield spec, table, img
+
+    def test_tables(self):
+        names = set()
+        for spec, table, _ in self.each():
+            names.add(table["name"])
+            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]), spec["name"])
+            self.assertEqual(table["name"], spec["name"])
+            self.assertEqual(table["freight"], spec["freight"])
+            self.assertEqual(table["waytype"], "road")
+            self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
+            for key in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
+        self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})
+        # docs/vehicles.md の表の length（12m → 7、7m → 4）
+        self.assertEqual({s["name"]: V.length_units(s["real_length_m"]) for s in self.mod.VEHICLES},
+                         {"pak256_bus": 7, "pak256_mail_truck": 4})
+
+    def test_cells_at_rule_position(self):
+        for spec, table, img in self.each():
+            self.assertEqual(img.size, (V.CELL * len(V.DIRECTIONS), V.CELL))
+            length = V.length_units(spec["real_length_m"])
+            for i, d in enumerate(V.DIRECTIONS):
+                whole = V.footprint(d, length, spec["width_m"], V.FRONT_UNITS)
+                pts = []
+                for t0, t1, height, *_ in spec["parts"]:
+                    for (x, y) in self.mod.part_corners(whole, t0, t1):
+                        pts += [V.to_screen(x, y, 0.0), V.to_screen(x, y, height)]
+                ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
+                box = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).getchannel("A").getbbox()
+                self.assertIsNotNone(box, d)
+                for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
+                    self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_no_special_colors_and_binary_alpha(self):
+        for spec, _, img in self.each():
+            found = set()
+            px = img.load()
+            for y in range(img.height):
+                for x in range(img.width):
+                    r, g, b, a = px[x, y]
+                    if a and (r << 16 | g << 8 | b) in SPECIAL:
+                        found.add(f"{r:02X}{g:02X}{b:02X}")
+            self.assertFalse(found, f"{spec['name']} 特別な色: {sorted(found)}")
+            self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_values_match_docs_table(self):
+        # docs/vehicles.md の「道路の車両」の表の値と、VEHICLES の値が同じ
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        for spec in self.mod.VEHICLES:
+            doc = docs_row(text, spec["name"])
+            self.assertEqual(int(doc["length"]), V.length_units(spec["real_length_m"]), spec["name"])
+            self.assertEqual(doc["freight"].strip("`"), spec["freight"], spec["name"])
+            for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
+
+    def test_translations(self):
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", lang + ".tab"), encoding="utf-8") as f:
+                lines = [ln.rstrip("\r\n") for ln in f]
+            for spec in self.mod.VEHICLES:
+                self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
 
 
 if __name__ == "__main__":
