@@ -33,4 +33,4 @@ pak256.LongScale は、チームで共同管理する pak セットです。作�
 
 ## 規格
 
-縮尺・線路の描画位置・貨物などの規格は [docs/concept.md](docs/concept.md) で決めています。規格が固まったら、別の文書に分けます。
+縮尺・線路の描画位置・貨物などの規格は [docs/concept.md](docs/concept.md) で決めています。車両の長さと描画位置は [docs/vehicles.md](docs/vehicles.md) にあります。規格が固まったら、別の文書に分けます。
