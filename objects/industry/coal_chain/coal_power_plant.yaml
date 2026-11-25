@@ -1,7 +1,7 @@
 # 産業（絵は仮）。この表と PNG は draw_industry.py が書き出す。直すときはスクリプトを直して流し直す。
 # 1 タイル = 26.4m の縮尺（docs/industry.md）。
 obj: factory
-name: pak256_coal_power_plant
+name: pak256_coal_kraftwerk
 copyright: pak256.LongScale チーム
 # 石炭火力の発電所。ボイラー棟（20m）・タービン棟・煙突（28m）・石炭置き場。3x3 タイル。値は pak128 の old_powerplant_kraftwerk に合わせた
 location: Land

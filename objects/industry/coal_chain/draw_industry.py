@@ -95,10 +95,10 @@ COAL = (74, 70, 72)
 
 def scene_mine(t):
     t.box(0, 52.8, 0, 52.8, 0, 0.2, CONCRETE, (150, 148, 142))  # 舗装
-    t.box(22, 36, 8, 20, 0.2, 7.0, (150, 96, 76), (96, 92, 90))  # 巻上げ小屋（煉瓦）
-    t.box(5, 31, 31, 47, 0.2, 6.0, (150, 160, 170), (112, 118, 124))  # 積込み小屋（トタン）
     t.box(12.5, 18.5, 11, 17, 0.2, 14.0, STEEL, (80, 86, 92))  # 櫓の脚
     t.box(11.5, 19.5, 10, 18, 14.0, 17.0, (84, 90, 98), (70, 74, 80))  # 櫓の上の覆い（巻上げ車の小屋）
+    t.box(22, 36, 8, 20, 0.2, 7.0, (150, 96, 76), (96, 92, 90))  # 巻上げ小屋（煉瓦）
+    t.box(5, 31, 31, 47, 0.2, 6.0, (150, 160, 170), (112, 118, 124))  # 積込み小屋（トタン）
     t.pile(34, 50, 30, 46, 6.5, COAL)  # 石炭の山
 
 
@@ -116,6 +116,7 @@ MINE = dict(
 )
 
 
+# 本体は、名前が「kraftwerk」で終わる産業を発電所と見なす（descriptor/reader/factory_reader.cc）。名前を変えない。
 # ---- 石炭火力の発電所（3x3 タイル = 79.2m 四方）。ボイラー棟・タービン棟・煙突・石炭置き場・開閉所 ----
 
 def scene_plant(t):
@@ -130,7 +131,7 @@ def scene_plant(t):
 
 
 PLANT = dict(
-    key="coal_power_plant", name="pak256_coal_power_plant", w=3, h=3, scene=scene_plant,
+    key="coal_power_plant", name="pak256_coal_kraftwerk", w=3, h=3, scene=scene_plant,
     dat={
         "location": "Land", "mapcolor": 131, "distributionweight": 2,
         "productivity": 600, "range": 40,
