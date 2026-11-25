@@ -193,18 +193,27 @@ def step_render(ami, env, only, blender):
         targets = list(only)
     else:
         targets = cat["targets"]
-    stages = split_stages(targets, cat["later"])
+    return render_stages(ami, env, blender, targets, cat["later"], render_parallel)
+
+
+def render_stages(ami, env, blender, targets, later, render):
+    """段に分けて描き、落ちた対象を全部を描いた後に段の順で 1 回だけ描き直す。描き直した対象を返す（render は差し替えられる）。
+    render.py が描いた後に書く自分のアイコン（--own）は、ほかのシートの絵（twin の壁の front など）を読むので、
+    並べて描くと、そのシートがまだ無くて落ちることがある（シートは描けている。#83 の試しで 2 対象）。"""
+    stages = split_stages(targets, later)
     failed = []
     for i, stage in enumerate(stages, 1):
         log(f"描く {i}/{len(stages)}: {len(stage)} 対象（ログは {os.path.join(ami, 'work', 'render_<対象>.log')}）")
-        failed += render_parallel(ami, env, blender, stage)
-    if failed:
-        # render.py が描いた後に書く自分のアイコン（--own）は、ほかのシートの絵（twin の壁の front など）を読む。
-        # 並べて描くと、そのシートがまだ無くて落ちることがある（シートは描けている）。全部を描いた後に 1 回だけ描き直す
-        log(f"描き直す: {len(failed)} 対象（{' '.join(failed)}）")
-        again = render_parallel(ami, env, blender, failed)
-        if again:
-            die(f"描き直しても失敗: {' '.join(again)}（ログは {os.path.join(ami, 'work', 'render_<対象>.log')}）")
+        failed += render(ami, env, blender, stage)
+    if not failed:
+        return []
+    log(f"描き直す: {len(failed)} 対象（{' '.join(failed)}。1 回目のログは work/render_<対象>.log を上書きする）")
+    again = []
+    for stage in split_stages(failed, later):  # 2 回目の段の物は、1 回目の段の物を描き直した後に描く
+        again += render(ami, env, blender, stage)
+    if again:
+        die(f"描き直しても失敗: {' '.join(again)}（ログは {os.path.join(ami, 'work', 'render_<対象>.log')}）")
+    return failed
 
 
 def parse_render_failed(text):
@@ -234,6 +243,8 @@ def render_parallel(ami, env, blender, targets):
         code = p.wait()
     finally:
         timer.cancel()
+        if p.poll() is None:  # 出力の途中で止まった（Ctrl+C など）ときに子を残さない
+            p.kill()
     failed = parse_render_failed("\n".join(lines))
     if failed is None or (code != 0 and not failed):
         die(f"render_parallel.py が失敗（終了コード {code}。{TIMEOUT_RENDER} 秒で時間切れのときも同じ）")
@@ -302,12 +313,25 @@ def steps_file(wt):
     return wt + ".steps.json"
 
 
-def read_steps(wt):
+def read_json(path, default):
     try:
-        with open(steps_file(wt), encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        return []
+        return default
+
+
+def read_steps(wt):
+    return read_json(steps_file(wt), [])
+
+
+def resume_steps(done, from_step):
+    """from_step から続けるときの、済んだ段の控え。前の段が済んでいなければ止まる。from_step から後は流し直すので外す。"""
+    start = STEPS.index(from_step)
+    missing = [s for s in STEPS[:start] if s not in done]
+    if missing:
+        die(f"--from {from_step} の前の段が済んでいない: {' '.join(missing)}（その段から続ける）")
+    return [s for s in done if s in STEPS and STEPS.index(s) < start]
 
 
 def write_steps(wt, steps):
@@ -315,11 +339,19 @@ def write_steps(wt, steps):
         json.dump(steps, f)
 
 
+def retried_file(wt):
+    """描き直した対象の控え（マニフェストに写す）。"""
+    return wt + ".retried.json"
+
+
 def tree_changes(wt):
-    """AMI の追跡しているファイルのうち、組む途中で変わってよい src256/ 以外の変更（手で直した道具など）。行末の違いは数えない。"""
+    """AMI のコミットからの変更のうち、組むと変わる物（src256/ の絵とその控え）以外。手で直した道具・dat、
+    ami_dat.py の出力とコミット済みの dat の違い（AMI の書き忘れ）など。行末の違いは数えない。"""
     out = git(wt, "diff", "--ignore-cr-at-eol", "--numstat", "HEAD").splitlines()
     names = [line.split("\t")[-1] for line in out if not line.startswith("0\t0\t")]
-    return [n for n in names if not n.startswith("addons/ami/src256/")]
+    names += [n for n in git(wt, "ls-files", "--others", "--exclude-standard", "--", "addons/ami/src256").splitlines()
+              if n.lower().endswith(".dat")]
+    return [n for n in names if not (n.startswith("addons/ami/src256/") and not n.lower().endswith(".dat"))]
 
 
 def tool_versions(blender):
@@ -354,6 +386,7 @@ def collect(ami, wt, version, commit, partial, blender):
         "partial": partial,
         "steps": read_steps(wt),
         "tree_changes": changes,
+        "retried": read_json(retried_file(wt), []),
         "tools": tool_versions(blender),
         "zip_sha256": sha256_file(dst),
         "paks": paks,
@@ -375,6 +408,8 @@ def cmd_build(a):
         die(f"AMI の clone でない: {repo}（--ami-repo か AMI_REPO で渡す）")
     if not os.path.isfile(a.blender):
         die(f"Blender が無い: {a.blender}（--blender か SHEET_BLENDER で渡す）")
+    if not partial:
+        find_dat_linter()  # 描いた後の検査の段で無いと分かるのを避ける
     if not a.resume:
         git(repo, "fetch", "origin", capture=False)
     ref = a.ref or build_commit()
@@ -387,18 +422,17 @@ def cmd_build(a):
     ami = os.path.join(wt, "addons", "ami")
     env = child_env(a.blender)
     start = STEPS.index(a.from_step)
-    done = read_steps(wt) if a.resume else []
-    missing = [s for s in STEPS[:start] if s not in done]
-    if missing:
-        die(f"--from {a.from_step} の前の段が済んでいない: {' '.join(missing)}（その段から続ける）")
-    done = [s for s in done if STEPS.index(s) < start]  # この段から後は流し直す
+    done = resume_steps(read_steps(wt) if a.resume else [], a.from_step)
     write_steps(wt, done)
+    if not a.resume and os.path.isfile(retried_file(wt)):
+        os.remove(retried_file(wt))
     for step in STEPS[start:]:
         log(f"== {step}")
         if step == "dat":
             step_dat(ami, env)
         elif step == "render":
-            step_render(ami, env, a.only, a.blender)
+            with open(retried_file(wt), "w", encoding="utf-8") as f:
+                json.dump(step_render(ami, env, a.only, a.blender), f)
         elif step == "icons":
             if partial:  # ほかのシートの絵から作る物（トンネルなど）が、描いていないシートを読んで落ちる
                 log("試しなので飛ばす（描いたシートの分は render.py が書いた）")
@@ -418,8 +452,9 @@ def cmd_build(a):
     else:
         r = subprocess.run(["git", "-C", repo, "worktree", "remove", "--force", wt], timeout=TIMEOUT_GIT)
         if r.returncode == 0:
-            if os.path.isfile(steps_file(wt)):
-                os.remove(steps_file(wt))
+            for path in (steps_file(wt), retried_file(wt)):
+                if os.path.isfile(path):
+                    os.remove(path)
             log("worktree を消した")
         else:  # zip はできているので止めない（中のファイルを開いているプロセスがあると消せない）
             log(f"worktree を消せなかった。後でフォルダ {wt} を消し、git -C {repo} worktree prune を流す")
@@ -528,6 +563,9 @@ def cmd_upload(a):
         die(f"zip の元のコミット {m.get('ami_commit')} が build.env の AMI_COMMIT と違う（build.env を直す PR を先に入れる）")
     if m.get("steps") != list(STEPS):
         die(f"全部の段を通して組んだ zip でない（済んだ段: {m.get('steps')}）。組み直す")
+    tools = m.get("tools") or {}
+    if not (tools.get("blender") and tools.get("makeobj")):
+        die(f"組んだ道具の版が記録されていない（{tools}）。組み直す")
     if m.get("tree_changes") != []:
         die(f"AMI の道具などを変えて組んだ zip は上げない（{m.get('tree_changes')}）。AMI の側で直してもらう")
     sha = sha256_file(zpath)

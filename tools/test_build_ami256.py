@@ -3,6 +3,7 @@
 """
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -69,6 +70,68 @@ class StepTest(unittest.TestCase):
     def test_icons_exit_code(self):
         with self.assertRaises(SystemExit):
             self.icons("", code=1)
+
+    def test_resume_steps(self):
+        self.assertEqual(B.resume_steps([], "dat"), [])
+        self.assertEqual(B.resume_steps(["dat", "render", "icons", "check"], "icons"), ["dat", "render"])
+        with self.assertRaises(SystemExit):
+            B.resume_steps([], "icons")  # 控えが無いのに途中から
+        with self.assertRaises(SystemExit):
+            B.resume_steps(["dat"], "icons")
+
+    def render_fake(self, results):
+        calls = []
+
+        def fake(ami, env, blender, stage):
+            calls.append(list(stage))
+            return results.pop(0)
+        return calls, fake
+
+    def test_render_stages_ok(self):
+        calls, fake = self.render_fake([[], []])
+        self.assertEqual(B.render_stages("ami", {}, "b", ["a", "x", "c"], ["x"], fake), [])
+        self.assertEqual(calls, [["a", "c"], ["x"]])
+
+    def test_render_stages_retry_keeps_stage_order(self):
+        calls, fake = self.render_fake([["c"], ["x"], [], []])
+        self.assertEqual(B.render_stages("ami", {}, "b", ["a", "x", "c"], ["x"], fake), ["c", "x"])
+        self.assertEqual(calls, [["a", "c"], ["x"], ["c"], ["x"]])
+
+    def test_render_stages_fails_twice(self):
+        calls, fake = self.render_fake([["a"], [], ["a"]])
+        with self.assertRaises(SystemExit):
+            B.render_stages("ami", {}, "b", ["a", "x"], ["x"], fake)
+
+    def test_tree_changes(self):
+        repo = os.path.join(self.tmp.name, "repo")
+        src = os.path.join(repo, "addons", "ami", "src256")
+        os.makedirs(src)
+
+        def git(*args):
+            subprocess.run(["git", "-C", repo, *args], check=True, capture_output=True)
+        git("init", "-q")
+        git("config", "core.autocrlf", "false")
+        files = {"addons/ami/src256/a.dat": "x\n", "addons/ami/src256/a.png": "p", "addons/ami/src256/b.dat": "y\n",
+                 "tools/t.py": "t\n"}
+        for name, text in files.items():
+            os.makedirs(os.path.dirname(os.path.join(repo, name)), exist_ok=True)
+            with open(os.path.join(repo, name), "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+        git("add", "-A")
+        git("-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "x")
+        self.assertEqual(B.tree_changes(repo), [])
+
+        def write(name, text):
+            with open(os.path.join(repo, name), "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+        write("addons/ami/src256/a.png", "q")       # 描き直した絵: 数えない
+        write("addons/ami/src256/b.dat", "y\r\n")   # 行末だけ: 数えない
+        self.assertEqual(B.tree_changes(repo), [])
+        write("addons/ami/src256/a.dat", "z\n")     # dat の中身: 数える
+        write("addons/ami/src256/new.dat", "n\n")   # 新しい dat: 数える
+        write("tools/t.py", "u\n")                  # 道具: 数える
+        self.assertEqual(sorted(B.tree_changes(repo)),
+                         ["addons/ami/src256/a.dat", "addons/ami/src256/new.dat", "tools/t.py"])
 
     def test_steps_roundtrip(self):
         wt = os.path.join(self.tmp.name, "wt")
@@ -208,6 +271,11 @@ class UploadTest(unittest.TestCase):
 
     def test_refuses_old_manifest_without_steps(self):
         self.manifest(steps=None)
+        with self.assertRaises(SystemExit):
+            self.upload()
+
+    def test_refuses_missing_tool_versions(self):
+        self.manifest(tools={"blender": "", "makeobj": "Makeobj version 60"})
         with self.assertRaises(SystemExit):
             self.upload()
 
