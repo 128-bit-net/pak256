@@ -1,7 +1,9 @@
 """game.py の検査（ゲームは起動しない）。python -X utf8 -m unittest discover -s tools -p "test_*.py" """
 import os
 import sys
+import subprocess
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -158,6 +160,13 @@ class LifecycleTest(Base):
         self.assertFalse(os.path.exists(self.work))
         self.assertFalse(g.left_over)
 
+    @unittest.skipUnless(os.name == "nt", "Job Object は Windows だけ")
+    def test_game_process_is_in_job_and_job_closed_on_stop(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1")
+        with g:
+            self.assertIsNotNone(g.job.handle)
+        self.assertIsNone(g.job)
+
     def test_keep_leaves_workdir(self):
         g = self.run_with(lambda self_, code, timeout=30: "1", keep=True)
         with g:
@@ -255,6 +264,126 @@ class LifecycleTest(Base):
         with self.assertRaises(RuntimeError):
             game.check_work(self.work, self.env, self.root)
         game.check_work(os.path.join(self.tmp.name, "fresh"), self.env, self.root)
+
+
+class SquirrelCheckTest(unittest.TestCase):
+    """run_squirrel に渡す文字列の検査（#59）。"""
+
+    def test_newline_in_string_literal_is_rejected(self):
+        with self.assertRaises(ValueError):
+            game.check_squirrel('return "a\nb"')  # Python の "\n" は本物の改行になる
+        with self.assertRaises(ValueError):
+            game.check_squirrel('return "a\r\nb"')
+
+    def test_error_names_the_line(self):
+        with self.assertRaises(ValueError) as cm:
+            game.check_squirrel('local a = 1;\nlocal b = "x\ny";')
+        self.assertIn("2 行目", str(cm.exception))
+
+    def test_multiline_code_and_escapes_are_fine(self):
+        game.check_squirrel("local a = 1;\nlocal b = 2;\nreturn a + b")
+        game.check_squirrel(r'return "a\nb"')  # 書いた通りの \n（Squirrel の改行の記号）は通る
+        game.check_squirrel(r'return "a\"" + "b"')  # 引用符のエスケープ
+        game.check_squirrel('// "コメントの引用符\nreturn 1')
+        game.check_squirrel('/* " \n " */ return 1')
+        game.check_squirrel('return @"a\nb"')  # 逐語の文字列は改行を許す
+
+    def test_sq_stops_before_sending(self):
+        g = game.Game("e", "m", 47880, work="w", client=__file__)
+        with mock.patch.object(game.Game, "_client", side_effect=AssertionError("送ってはいけない")):
+            with self.assertRaises(ValueError):
+                g.sq('return "a\nb"')
+
+    def test_sq_file_is_checked_too(self):
+        with tempfile.TemporaryDirectory() as t:
+            p = os.path.join(t, "a.nut")
+            put(p, 'return "x\ny"')
+            g = game.Game("e", "m", 47880, work="w", client=__file__)
+            with self.assertRaises(ValueError):
+                g.sq_file(p)
+
+
+class DialogSettleTest(unittest.TestCase):
+    def game(self):
+        g = game.Game("e", "m", 47880, work="w", client=__file__)
+        g.sent = []
+        patch = mock.patch.object(game.Game, "sq", lambda self_, code, timeout=30: g.sent.append(code) or "1")
+        patch.start()
+        self.addCleanup(patch.stop)
+        return g
+
+    def test_dialog_by_name_and_number(self):
+        g = self.game()
+        g.dialog("finances")
+        g.dialog(15)
+        g.dialog("list_factory")
+        self.assertEqual(g.sent, ["return gui.open_dialog_tool(5)", "return gui.open_dialog_tool(15)",
+                                  "return gui.open_dialog_tool(18)"])
+
+    def test_dialog_numbers_match_docs(self):
+        # 収入・編成一覧・産業一覧・貨物の窓（#41・#42・#59 で使った番号）
+        self.assertEqual((game.DIALOGS["finances"], game.DIALOGS["list_convoi"], game.DIALOGS["list_goods"],
+                          game.DIALOGS["list_factory"]), (5, 15, 17, 18))
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "game-check.md"), encoding="utf-8") as f:
+            text = f.read()
+        for name, nr in game.DIALOGS.items():
+            self.assertIn(f"| {nr} | `{name}` |", text, name)
+
+    def test_dialog_rejects_unknown(self):
+        g = self.game()
+        for bad in ("nothing", -1, None, True, 1.5):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                g.dialog(bad)
+        self.assertEqual(g.sent, [])
+
+    def test_settle_speeds_up_then_restores(self):
+        g = self.game()
+        with mock.patch.object(game.time, "sleep") as sl:
+            g.settle(7)
+        sl.assert_called_once_with(7)
+        self.assertEqual(g.sent, ["debug.set_game_speed(64); return 1", "debug.set_game_speed(1); return 1"])
+
+    def test_settle_restores_speed_when_interrupted(self):
+        g = self.game()
+        with mock.patch.object(game.time, "sleep", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                g.settle(7)
+        self.assertEqual(g.sent[-1], "debug.set_game_speed(1); return 1")
+
+
+PARENT = """
+import os, subprocess, sys, time
+sys.path.insert(0, {tools!r})
+import game
+job = game.JobObject()
+child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
+print(child.pid, job.assign(child), flush=True)
+time.sleep(120)
+"""
+
+
+@unittest.skipUnless(os.name == "nt", "Job Object は Windows だけ")
+class JobObjectTest(unittest.TestCase):
+    def test_child_dies_when_parent_is_force_killed(self):
+        tools = os.path.dirname(os.path.abspath(__file__))
+        parent = subprocess.Popen([sys.executable, "-X", "utf8", "-c", PARENT.format(tools=tools)], stdout=subprocess.PIPE, text=True)
+        try:
+            pid, assigned = parent.stdout.readline().split()
+            pid = int(pid)
+            self.assertEqual(assigned, "True")
+            self.assertTrue(game.alive(pid))
+            parent.kill()  # TaskStop と同じ強制終了（with も finally も走らない）
+            parent.wait(timeout=10)
+            for _ in range(50):
+                if not game.alive(pid):
+                    break
+                time.sleep(0.1)
+            self.assertFalse(game.alive(pid), "親の強制終了の後も子が残った")
+        finally:
+            parent.kill()
+            parent.stdout.close()
+            if "pid" in locals() and game.alive(pid):
+                subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
 
 
 if __name__ == "__main__":

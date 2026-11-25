@@ -40,12 +40,47 @@ with Game(env, "flat_512_left_v64", 47880) as g:
     g.sq_file("course.nut", head="OX <- 40;\n")
     g.road(40, 40, 48, 40, "ami_road_local")   # 道路を敷く（command_x(tool_build_way)）
     g.station(44, 40, "<停留所の name>")         # 停留所を置く（command_x(tool_build_station)）
+    g.settle(10)                           # 建物を置いた後、建設中の絵が終わるまで進める（速さ 64 → 1 に戻す）
+    g.dialog("finances")                   # 窓を開く（名前か番号。下の表）
     g.capture("out/shot.png")              # capture_screen
 ```
 
+- 建物（車庫・停留所など）は、置いた直後は建設中の絵（黄と黒の縞）で、速さ 1 のままだと終わらない（#58）。撮る前に `g.settle(秒)` を呼ぶ（既定は実時間 10 秒、速さ 64。途中で止まっても速さ 1 に戻す）。
+- Squirrel の文字列の中に改行を入れると、本体でコンパイルが通らない。Python の `"
+"` は本物の改行になるので、`sq`・`sq_file` は流す前に `ValueError` で止める（文字列の外の改行・注釈の中・`@"…"` は構わない）。区切りに改行を使わないか、raw 文字列で渡す。
+- 親が強制終了されても閉じる: ゲームは起動のとき Windows の Job Object（`KILL_ON_JOB_CLOSE`）に入れる。`tools/game.py` を動かす Python を `TaskStop` などで強制終了しても、OS がゲームを終わらせ、ポートを握ったまま残らない（#30 で 47810 が残った）。それでも、長い確かめは強制終了せず待つ。入れられなかったときは `[game] Job Object に入れられなかった` と出る（Python が別の Job の中で、入れ子にできない環境）。
 - `tools/vehicle_check/run.py`（[vehicles.md](vehicles.md) の「試験」）はこの上で動く。
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
+
+## 窓の番号（`Game.dialog`）
+
+`gui.open_dialog_tool(番号)` で開く窓。番号は本体の `simmenu.h` の `DIALOG_*` を 0 から数えた物（OTRP v64）。`Game.dialog` は名前か番号を取る。名前は `game.DIALOGS`。収入・編成・産業の窓を撮るときは 5・15・18。
+
+| 番号 | 名前 | 窓 |
+|---|---|---|
+| 0 | `help` | ヘルプ |
+| 1 | `options` | 設定 |
+| 2 | `minimap` | ミニマップ |
+| 3 | `lineoverview` | 路線一覧 |
+| 4 | `messages` | メッセージ |
+| 5 | `finances` | 財務（収入・支出） |
+| 6 | `players` | プレイヤー一覧 |
+| 7 | `displayoptions` | 表示の設定 |
+| 8 | `sound` | 音 |
+| 9 | `language` | 言語 |
+| 10 | `playercolor` | プレイヤーの色 |
+| 11 | `jump` | 座標へ移動 |
+| 12 | `load` | 読み込み |
+| 13 | `save` | 保存 |
+| 14 | `list_halt` | 停留所一覧 |
+| 15 | `list_convoi` | 編成一覧 |
+| 16 | `list_town` | 街一覧 |
+| 17 | `list_goods` | 貨物一覧 |
+| 18 | `list_factory` | 産業一覧 |
+| 19 | `list_curiosity` | 名所一覧 |
+
+20 番より先（編集用の窓・車庫一覧など）は、必要になったときに `DIALOGS` と、この表へ足す。
 
 ## テストプレイのフォルダに入れる道具（#38）との共通部分
 
@@ -53,4 +88,4 @@ pak を入れる処理は `game.install_pak(dest)`。`dest` に、配布の zip 
 
 ## 検査
 
-`tools/test_game.py`（ゲームは起動しない）: 写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。
+`tools/test_game.py`（ゲームは起動しない）: 窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。

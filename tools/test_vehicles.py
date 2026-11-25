@@ -143,13 +143,6 @@ def docs_row(text, name):
     return dict(zip(keys, vals))
 
 
-def load_draw_truck():
-    spec = importlib.util.spec_from_file_location("draw_coal_truck", os.path.join(TRUCK_DIR, "draw_coal_truck.py"))
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 ROAD_DIR = os.path.join(ROOT, "objects", "vehicle", "road")
 
 
@@ -163,15 +156,16 @@ def load_draw_vehicles():
 class TestCoalTruck(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.truck = load_draw_truck()
+        cls.truck = load_draw_vehicles()
+        cls.spec = next(v for v in cls.truck.VEHICLES if v["name"] == "pak256_coal_truck")
         with open(os.path.join(TRUCK_DIR, "coal_truck.yaml"), encoding="utf-8") as f:
             cls.table = yaml.safe_load(f)
         cls.img = Image.open(os.path.join(TRUCK_DIR, "coal_truck.png")).convert("RGBA")
 
     def test_table(self):
         t = self.table
-        self.assertEqual(t["length"], V.length_units(self.truck.REAL_LENGTH_M))
-        self.assertEqual(t["name"], self.truck.NAME)
+        self.assertEqual(t["length"], V.length_units(self.spec["real_length_m"]))
+        self.assertEqual(t["name"], self.spec["name"])
         self.assertEqual(t["waytype"], "road")
         self.assertEqual(t["freight"], "Kohle")  # 炭鉱が出し、発電所が受ける貨物（objects/goods）
         self.assertEqual(list(t["emptyimage"]), list(V.DIRECTIONS))
@@ -181,15 +175,15 @@ class TestCoalTruck(unittest.TestCase):
             self.assertEqual(t["freightimage"][d], f"coal_truck.1.{i}")
 
     def test_yaml_is_what_the_script_writes(self):
-        # 表は draw_coal_truck.py が書き出す物。スクリプトだけ直して流し直さないと落ちる
+        # 表は draw_vehicles.py が書き出す物。スクリプトだけ直して流し直さないと落ちる
         with open(os.path.join(TRUCK_DIR, "coal_truck.yaml"), encoding="utf-8", newline="") as f:
-            self.assertEqual(f.read(), self.truck.yaml_lines("coal_truck"))
+            self.assertEqual(f.read(), self.truck.yaml_lines(self.spec))
 
     def test_values_match_docs_table(self):
         # docs/vehicles.md の「石炭のトラック」の表の値と、表（yaml）の値が同じ
         with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
             text = f.read()
-        doc = docs_row(text, self.truck.NAME)
+        doc = docs_row(text, self.spec["name"])
         for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
             self.assertEqual(str(self.table[k]), doc[k], k)
         self.assertEqual(doc["name"].strip("`"), self.table["name"])
@@ -247,6 +241,8 @@ class TestRoadVehicles(unittest.TestCase):
 
     def each(self):
         for spec in self.mod.VEHICLES:
+            if spec["style"] != "panel":
+                continue
             d = os.path.join(ROAD_DIR, spec["dir"])
             with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8") as f:
                 table = yaml.safe_load(f)
@@ -264,10 +260,20 @@ class TestRoadVehicles(unittest.TestCase):
             self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
             for key in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
-        self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})
+        self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})  # panel の 2 種（石炭のトラックは TestCoalTruck）
         # docs/vehicles.md の表の length（12m → 7、7m → 4）
-        self.assertEqual({s["name"]: V.length_units(s["real_length_m"]) for s in self.mod.VEHICLES},
+        self.assertEqual({s["name"]: V.length_units(s["real_length_m"]) for s in self.mod.VEHICLES if s["style"] == "panel"},
                          {"pak256_bus": 7, "pak256_mail_truck": 4})
+
+    def test_all_vehicles_are_in_one_table(self):
+        # 道路の車両は 1 つの表・1 本の道具（#59）。表の name の行が全部あり、yaml は道具が書く物と同じ
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        self.assertEqual({s["name"] for s in self.mod.VEHICLES}, {"pak256_bus", "pak256_mail_truck", "pak256_coal_truck"})
+        for spec in self.mod.VEHICLES:
+            docs_row(text, spec["name"])
+            with open(os.path.join(ROAD_DIR, spec["dir"], spec["stem"] + ".yaml"), encoding="utf-8", newline="") as f:
+                self.assertEqual(f.read(), self.mod.yaml_lines(spec), spec["name"])
 
     def test_cells_at_rule_position(self):
         for spec, table, img in self.each():

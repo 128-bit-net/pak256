@@ -14,6 +14,8 @@
     from game import Game, prepare_workdir
     with Game(env, save, port) as g:
         g.sq("return 1")
+        g.dialog("finances")   # 財務の窓（番号の表は DIALOGS・docs/game-check.md）
+        g.settle(10)           # 建設中の絵が終わるまで進める
         g.capture("a.png")
 
 決まり:
@@ -24,9 +26,12 @@
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
 - MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47899）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
+- この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
+- Squirrel の文字列リテラルの中に改行を入れない（Python の "\n" が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（#38 のテストプレイのフォルダへ入れる道具と共通）。
 """
 import argparse
+import ctypes
 import glob
 import json
 import os
@@ -35,6 +40,9 @@ import socket
 import subprocess
 import sys
 import time
+
+if os.name == "nt":
+    from ctypes import wintypes
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -49,6 +57,13 @@ DAY_NIGHT_OFF = "day_night_shift = 0"
 MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
 PORT_MIN, PORT_MAX = 47800, 47899  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
+# gui.open_dialog_tool(番号) の窓の番号（OTRP 本体の simmenu.h の DIALOG_*。順に 0 から）。使う物だけ。docs/game-check.md に表
+DIALOGS = {
+    "help": 0, "options": 1, "minimap": 2, "lineoverview": 3, "messages": 4, "finances": 5, "players": 6,
+    "displayoptions": 7, "sound": 8, "language": 9, "playercolor": 10, "jump": 11, "load": 12, "save": 13,
+    "list_halt": 14, "list_convoi": 15, "list_town": 16, "list_goods": 17, "list_factory": 18, "list_curiosity": 19,
+}
+SETTLE_SPEED = 64  # 建設中の絵が終わるまで進めるときの速さ（本体の set_game_speed）
 
 
 def default_client():
@@ -175,10 +190,116 @@ def check_work(work, env, root):
         raise RuntimeError(f"作業フォルダが空でなく、この道具の物でもない: {work}")
 
 
+def check_squirrel(code):
+    """Squirrel の文字列リテラル（"…"）の中に改行があれば、流す前に止める（#59）。
+
+    Python の "\\n" は本物の改行になり、本体の run_squirrel でコンパイルが通らない（"…" の中の改行は Squirrel の誤り）。
+    文字列の外の改行（複数行のコード・// と /* */ の注釈）は構わない。@"…" の逐語の文字列は改行を許すので見ない。
+    """
+    i, n, line = 0, len(code), 1
+    while i < n:
+        c = code[i]
+        if c == "\n":
+            line += 1
+        elif code.startswith("//", i):
+            while i < n and code[i] != "\n":
+                i += 1
+            continue
+        elif code.startswith("/*", i):
+            end = code.find("*/", i + 2)
+            end = n if end < 0 else end + 2
+            line += code.count("\n", i, end)
+            i = end
+            continue
+        elif code.startswith('@"', i):  # 逐語の文字列。"" で引用符、改行は可
+            i += 2
+            while i < n:
+                if code[i] == '"':
+                    if code.startswith('""', i):
+                        i += 2
+                        continue
+                    break
+                line += code[i] == "\n"
+                i += 1
+        elif c == '"':
+            start = line
+            i += 1
+            while i < n and code[i] != '"':
+                if code[i] == "\\":
+                    i += 1
+                elif code[i] in "\r\n":
+                    raise ValueError(
+                        f"Squirrel の文字列の中に改行がある（{start} 行目の文字列）。Python の通常の文字列に \\n と書くと本物の改行になる。"
+                        "区切りに改行を使わないか、raw 文字列で渡す")
+                i += 1
+        i += 1
+
+
 def alive(pid):
     """tasklist で PID のプロセスが残っているか。"""
     out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"], capture_output=True)
     return f'"{pid}"' in out.stdout.decode("utf-8", errors="replace")  # 日本語の Windows は cp932 で出す。PID の数字だけ見る
+
+
+class JobObject:
+    """親が終わったら子も終わらせる Windows の Job Object（JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE。#59）。
+
+    この道具を動かす Python を TaskStop などで強制終了すると、with を抜けず、ゲームが閉じられずにポートを握ったまま残った（#30）。
+    ゲームのプロセスをこの Job に入れておくと、Python が終わってハンドルが閉じた時に、OS がゲームも終わらせる。
+    Windows 以外では何もしない（assign は False を返す）。
+    """
+
+    KILL_ON_JOB_CLOSE = 0x2000
+    EXTENDED_LIMIT_INFORMATION = 9  # JobObjectExtendedLimitInformation
+
+    def __init__(self):
+        self.handle = None
+        if os.name != "nt":
+            return
+        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        k32.CreateJobObjectW.restype = wintypes.HANDLE
+        k32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+        k32.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+        k32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+        k32.CloseHandle.argtypes = [wintypes.HANDLE]
+        self.k32 = k32
+
+        class BasicLimits(ctypes.Structure):
+            _fields_ = [("PerProcessUserTimeLimit", ctypes.c_int64), ("PerJobUserTimeLimit", ctypes.c_int64),
+                        ("LimitFlags", wintypes.DWORD), ("MinimumWorkingSetSize", ctypes.c_size_t),
+                        ("MaximumWorkingSetSize", ctypes.c_size_t), ("ActiveProcessLimit", wintypes.DWORD),
+                        ("Affinity", ctypes.c_size_t), ("PriorityClass", wintypes.DWORD), ("SchedulingClass", wintypes.DWORD)]
+
+        class IoCounters(ctypes.Structure):
+            _fields_ = [(n, ctypes.c_uint64) for n in ("ReadOps", "WriteOps", "OtherOps", "ReadBytes", "WriteBytes", "OtherBytes")]
+
+        class ExtendedLimits(ctypes.Structure):
+            _fields_ = [("Basic", BasicLimits), ("Io", IoCounters), ("ProcessMemoryLimit", ctypes.c_size_t),
+                        ("JobMemoryLimit", ctypes.c_size_t), ("PeakProcessMemoryUsed", ctypes.c_size_t),
+                        ("PeakJobMemoryUsed", ctypes.c_size_t)]
+
+        handle = k32.CreateJobObjectW(None, None)
+        if not handle:
+            raise ctypes.WinError(ctypes.get_last_error())
+        info = ExtendedLimits()
+        info.Basic.LimitFlags = self.KILL_ON_JOB_CLOSE
+        if not k32.SetInformationJobObject(handle, self.EXTENDED_LIMIT_INFORMATION, ctypes.byref(info), ctypes.sizeof(info)):
+            err = ctypes.get_last_error()
+            k32.CloseHandle(handle)
+            raise ctypes.WinError(err)
+        self.handle = handle
+
+    def assign(self, proc):
+        """subprocess.Popen のプロセスを Job に入れる。入れられたら True（既に別の Job にいて入れられないときは False）。"""
+        if self.handle is None:
+            return False
+        return bool(self.k32.AssignProcessToJobObject(self.handle, wintypes.HANDLE(int(proc._handle))))
+
+    def close(self):
+        """ハンドルを閉じる。Job に残っているプロセスは OS が終わらせる。"""
+        if self.handle is not None:
+            self.k32.CloseHandle(self.handle)
+            self.handle = None
 
 
 # --- ゲームの起動と操作 ---
@@ -195,6 +316,7 @@ class Game:
         self.client = client or os.environ.get("MCP_CLIENT") or default_client()
         self.keep, self.root, self.build = keep, root, build
         self.proc = None
+        self.job = None  # 親が強制終了されてもゲームを閉じる Job Object（Windows）
         self.prepared = False  # この Game が作業フォルダを用意した（他人の物を消さない）
         self.left_over = False  # 閉じた後も PID が残ったか
 
@@ -219,7 +341,10 @@ class Game:
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
+            self.job = JobObject()
             self.proc = subprocess.Popen(cmd, cwd=self.work, stdout=log, stderr=subprocess.STDOUT)
+        if os.name == "nt" and not self.job.assign(self.proc):
+            print("[game] Job Object に入れられなかった（この Python を強制終了するとゲームが残る）", flush=True)
         print(f"[game] pid={self.proc.pid} port={self.port} work={self.work}", flush=True)
         end, last = time.monotonic() + limit, None
         while time.monotonic() < end:
@@ -253,6 +378,7 @@ class Game:
 
     def sq(self, code, timeout=30):
         """Squirrel を流して、戻り値の文字列を返す。"""
+        check_squirrel(code)
         out = self._client("--run-squirrel", code, timeout=timeout)
         line = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else "{}"
         data = json.loads(line)
@@ -282,6 +408,24 @@ class Game:
         """停留所を置く（command_x(tool_build_station)。名前は物の name だけ。"1,<name>" の形は失敗する）。"""
         return self.sq(f'return command_x(tool_build_station).work(player_x(0), coord3d({x},{y},{z}), "{name}")')
 
+    def dialog(self, which):
+        """窓を開く（gui.open_dialog_tool）。which は番号か DIALOGS の名前（"finances" など。表は docs/game-check.md）。"""
+        nr = DIALOGS.get(which) if isinstance(which, str) else which
+        if not isinstance(nr, int) or isinstance(nr, bool) or nr < 0:
+            raise ValueError(f"窓の番号か名前を渡す: {which!r}（名前: {', '.join(DIALOGS)}）")
+        return self.sq(f"return gui.open_dialog_tool({nr})")
+
+    def settle(self, seconds=10, speed=SETTLE_SPEED):
+        """建設中の絵（黄と黒の縞）が終わるまでゲームを進めて、速さを 1 に戻す（速さ 1 のままだと終わらない。#58）。
+
+        建物（車庫・停留所など）を置いた後、撮る前に呼ぶ。seconds は実時間の秒。
+        """
+        self.sq(f"debug.set_game_speed({int(speed)}); return 1")
+        try:
+            time.sleep(seconds)
+        finally:
+            self.sq("debug.set_game_speed(1); return 1")
+
     def stop(self):
         """起動した PID で閉じ、残りを確かめ、作業フォルダを消す（keep なら残す）。残ったら知らせる。"""
         if self.proc is not None:
@@ -296,6 +440,9 @@ class Game:
             print(f"[game] stopped pid={pid}" if not self.left_over else
                   f"[game] pid={pid} が残っている（Windows を再起動するまで消えないことがある。{self.work} は消せない）", flush=True)
             self.proc = None
+        if self.job is not None:
+            self.job.close()
+            self.job = None
         if self.prepared and not self.keep and not self.left_over:
             shutil.rmtree(self.work, onerror=lambda f, p, e: print(f"[game] 消せなかった: {p}", flush=True))
             self.prepared = False

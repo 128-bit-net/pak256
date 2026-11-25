@@ -54,35 +54,25 @@
 
 見本のバス `objects/vehicle/road/sample_bus/`（`pak256_sample_bus`、実物 12m・幅 2.5m・高さ 3.2m、`length=7`）。絵は仮（箱を組んだ物）。`draw_bus.py`（MIT）が絵と表を書き出す。作り直すとき: `python -X utf8 objects/vehicle/road/sample_bus/draw_bus.py`（Pillow だけで動く）。新しい車両は、このスクリプトのように `tools/vehicles.py` の `footprint`・`to_screen` で車体の四隅を出して描く。
 
-## 道路の車両（バスと郵便のトラック）
+## 道路の車両
 
-[#41](https://github.com/128-bit-net/pak256/issues/41)。道路で旅客と郵便を運ぶ最初の 2 種。絵は仮（箱を組んだ物）。置き場は `objects/vehicle/road/bus/`・`objects/vehicle/road/mail_truck/`。`objects/vehicle/road/draw_vehicles.py`（MIT）が絵と表（`.yaml`）を書き出す。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/road/draw_vehicles.py`。Pillow だけで動く）。検査は `tools/test_vehicles.py`。
+[#41](https://github.com/128-bit-net/pak256/issues/41)（バスと郵便のトラック）・[#42](https://github.com/128-bit-net/pak256/issues/42)（石炭のトラック）・[#59](https://github.com/128-bit-net/pak256/issues/59)（表と描く道具を 1 つにそろえた）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/road/<種類>/`（`bus`・`mail_truck`・`coal_truck`）。描く道具は `objects/vehicle/road/draw_vehicles.py`（MIT）の 1 本で、絵（PNG）と表（`.yaml`）を車両ごとに書き出す。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/road/draw_vehicles.py`。Pillow だけで動く。1 台だけなら `--only pak256_coal_truck`）。車両を足すときは `VEHICLES` に 1 件足し、この表に 1 行足す。検査は `tools/test_vehicles.py`（表の値と、この表の値が同じこと・絵が決まりの位置にあること）。
 
 | `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `pak256_bus` | バス / Bus | `Passagiere` | 12m・2.5m・3.2m | 7 | 70 | 60 | 205 | 80 | 11 | 661000 | 39 | 1930 |
 | `pak256_mail_truck` | 郵便のトラック / Mail Truck | `Post` | 7m・2.2m・3.0m（運転席 2.3m） | 4 | 44 | 60 | 77 | 80 | 5 | 863000 | 38 | 1930 |
+| `pak256_coal_truck` | 石炭トラック / Coal Truck | `Kohle` | 7m（仮。2 軸の貨物車の大きさ）・2.5m・2.7m（運転席の上） | 4 | 12 | 55 | 95 | 90 | 8 | 384000 | 24 | 1930 |
 
 - 単位: `speed` は km/h、`weight` は t、`cost`・`runningcost` は 1/100 単位。
-- **値の目安**: バスは pak128 の `NovaBus_RTS-06_WFD`（定員 70・速さ 60・出力 205・重さ 11・費用 661000・`RunningCost` 39）、郵便のトラックは pak128 の `Mail_Truck_2`（定員 44・出力 77・費用 863000・維持費 38）。速さは pak128 の郵便のトラック（74）より落として 60 にそろえた（AMI の道路 `ami_road_local` は 40km/h、`ami_road_general` は 120km/h。道路の上限で決まる）。重さは pak128 の郵便のトラックが 2t と軽すぎるので、7m の箱型のトラックとして 5t にした（根拠のある計算ではなく、仮の値）。`gear` は pak128 の 80（どちらも）。絵は使っていない。
+- 長さの決まりは上の「長さ」のとおり（12m → `length=7`、7m → `length=4`）。絵の車体は `length` × 1.65m に描く（バス 11.55m・トラック 6.6m）。絵は上の「描画位置」の決まりのとおり（車体の前の端が基準点、右側の車線）。どれも 1 タイルに収まるので 256 のセル。
+- **値の目安**（バスと郵便のトラック）: バスは pak128 の `NovaBus_RTS-06_WFD`（定員 70・速さ 60・出力 205・重さ 11・費用 661000・`RunningCost` 39）、郵便のトラックは pak128 の `Mail_Truck_2`（定員 44・出力 77・費用 863000・維持費 38）。速さは pak128 の郵便のトラック（74）より落として 60 にそろえた（AMI の道路 `ami_road_local` は 40km/h、`ami_road_general` は 120km/h。道路の上限で決まる）。重さは pak128 の郵便のトラックが 2t と軽すぎるので、7m の箱型のトラックとして 5t にした（根拠のある計算ではなく、仮の値）。`gear` は pak128 の 80（どちらも）。絵は使っていない。
+- **値の目安**（石炭のトラック）: pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。[goods.md](goods.md) と同じ。法律の専門家には確かめていない）。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
 - **登場年は 1930**。pak256 の開始年（`config/simuconf.tab` の `starting_year`）に合わせた仮の値。pak128 の元の車は 1979 年（郵便のトラック）と 1992 年（バス）なので、時代の幅（初期の車・新しい車）は [roadmap.md](roadmap.md) の「車両の顔ぶれと時代」で決める。引退年は書かない。
-- 長さの決まりは上の「長さ」のとおり（12m → `length=7`、7m → `length=4`）。絵の車体は `length` × 1.65m に描く（バス 11.55m・トラック 6.6m）。トラックの運転席は前の 3 割、荷台の箱は後ろの 7 割（運転席が低い）。
-- 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。
-- 空の絵（`emptyimage`）だけで、積み荷の絵（`freightimage`）は無い。連結（`constraint`）・煙・音・引退年も書いていない。
-
-## 石炭のトラック
-
-最初の産業の連鎖（炭鉱 → 発電所。[goods.md](goods.md)・[industry.md](industry.md)）で石炭（`Kohle`）を運ぶ道路の車両 1 種。[#42](https://github.com/128-bit-net/pak256/issues/42) で足した。絵は仮（箱を組んだ物。赤い運転席と、上が開いた灰色の荷台。積んだ絵は荷台に石炭の山）で、pak128 の絵は使っていない。置き場は `objects/vehicle/road/coal_truck/`。`draw_coal_truck.py`（MIT）が PNG と表を書き出す（`python -X utf8 objects/vehicle/road/coal_truck/draw_coal_truck.py`）。
-
-値は pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。[goods.md](goods.md) と同じ。法律の専門家には確かめていない）。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
-
-| `name` | 画面の名前（ja / en） | 貨物 | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` | 実物の長さ（仮。2 軸の貨物車の大きさ） → `length` |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| `pak256_coal_truck` | 石炭トラック / Coal Truck | `Kohle` | 12 | 55 | 95 | 90 | 8 | 384000 | 24 | 1930 | 7m → 4 |
-
-- 貨物は `Kohle` だけ。炭鉱の出力と発電所の入力と同じ貨物（本体は貨物の名前で結ぶ）。`freightimage` を持つので、積んでいる間は石炭の山が見える。
-- 幅 2.5m・高さ 2.7m（運転席の上）。絵は上の「描画位置」の決まりのとおり（車体の前の端が基準点、右側の車線）。1 タイルに収まるので 256 のセル。
-- 車庫は pak256 の仮の物（`pak256_road_depot`。[stations.md](stations.md)）を使う。積み降ろしは、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う。
+- バス: 旅客を運ぶ。郵便のトラック: 運転席は前の 3 割（低い）、荷台の箱は後ろの 7 割。石炭のトラック: 赤い運転席と、上が開いた灰色の荷台。貨物は `Kohle` だけで、炭鉱の出力と発電所の入力と同じ貨物（本体は貨物の名前で結ぶ）。
+- 積み荷の絵: 石炭のトラックだけが `freightimage`（シートの 2 行目。荷台に石炭の山）を持つ。バスと郵便のトラックは空の絵（`emptyimage`）だけ。連結（`constraint`）・煙・音・引退年も書いていない。
+- 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
+- 車庫は pak256 の仮の物（`pak256_road_depot`。[stations.md](stations.md)）を使う。
 
 ## 試験
 
