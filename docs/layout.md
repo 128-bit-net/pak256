@@ -30,12 +30,12 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 線路の駅（pak256 の物。AMI は駅を作らない）。[stations.md](stations.md) | #46・#73 |
+| `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、線路の駅（`objects/station/`。#46・#73）と線路の信号（`objects/signal/`。#73）。AMI は駅と信号を作らないので、pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64、道路の停留所（バス停・荷役所）は #72 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 
@@ -103,7 +103,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
-| `test_stations.py` | 線路の駅の表の検査: `type: stop`・`waytype`（`rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
+| `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
@@ -113,7 +113,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
@@ -151,14 +151,14 @@ CI は `.github/workflows/ci.yml`。
 - CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.4`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.5`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
 
 ## AMI の 256 版を同梱する
 
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- 版は `ami.env` で固定してある（`ami-256-alpha.4`。AMI の cc01310 から組んだ。路面・歩道の粒を 256 で細かくした直し（#81）と、線路の信号 `ami_rail_signal`（AMI #278）が入っている。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
+- 版は `ami.env` で固定してある（`ami-256-alpha.5`。路面・歩道の粒を 256 で細かくした直し（#81。AMI #288）を含む。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、下の「AMI の 256 版を組む」の手順で zip を組んで上げ、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
@@ -175,7 +175,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
 - **どこで動かすか**: AMI の手元の clone（`--ami-repo`・環境変数 `AMI_REPO`。既定は pak256 の本体の checkout の隣の `simutrans-addon-dev`）に、組む間だけ detached の worktree を `build/ami256/<SHA の頭 12 桁>/` に足し、終わったら消す。AMI のリポジトリにはコミット・push をせず、共有の checkout のブランチも切り替えない（`git fetch origin` と worktree の出し入れだけ）。
 - **AMI の側との分担**（2026-11-25、pak256 と AMI の進捗管理で決めた）:
   - 大きさを選ぶ道具（`SHEET_PAK_SIZE`・`sheet_settings.SCALE`・256 の検査）は AMI のリポジトリに残る。AMI が守るのは、道具を壊さないことまで（AMI の今の CI の範囲）。道具の使い方を変えるときは、AMI から知らせが来る。
-  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3 は pak256 の置き場の Release にだけある）。
+  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3・alpha.5 は pak256 の置き場の Release にだけある）。
   - 256 の組み立て（このツール）と、ゲームでの見た目の確かめは pak256 が受け持つ。
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
 - **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:

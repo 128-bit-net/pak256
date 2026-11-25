@@ -18,6 +18,8 @@ AMI の道具を、`SCALE`（pak128 で 1、256 で 2）を掛ける形に直し
 
 pak256 は、AMI の cc01310 から 256 版を組み直し（`ami-256-alpha.4`。`tools/build_ami256.py`）、`vendor/ami/build.env` と `ami.env` を上げた。
 
+この PR を出した後に #76 の `ami-256-alpha.5`（AMI の 0b69844 から組んだ）が先に入ったので、マージのときは `ami.env`・`build.env` を alpha.5 に合わせた（alpha.5 も #81 の直しを含む）。画像は alpha.4 で撮った（alpha.3 → alpha.4 の比べ）。
+
 ## 確かめたこと
 
 - 128 が変わらない: AMI の側で確かめた（AMI の PR #289・#290）。pak256 の側でも、手元の AMI の一時 worktree（試しの直しを当てた版と、cc01310）で、道路 4 種（local・general・trunk・expressway）と歩道・路面表示の 128 のシートを描き直し、コミット済みの PNG とバイト単位で同じだった。

@@ -65,7 +65,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 python -X utf8 tools/game.py --port 47900 --send "return world.get_time().year"
 python -X utf8 tools/game.py --port 47900 --send "@dialog finances"
 python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"
-python -X utf8 tools/game.py --port 47900 --send-file course.nut
+python -X utf8 tools/game.py --port 47900 --send-file tools/vehicle_check/signal.nut   # 変数を .nut の先頭に直に書いてあるファイルだけ（下の注意）
 # 3) 終わったら閉じる
 python -X utf8 tools/game.py --port 47900 --send "@quit"
 ```
@@ -83,6 +83,8 @@ python -X utf8 tools/game.py --port 47900 --send "@quit"
 - **必ず閉じる**: 終わったら `@quit` を送る。見張りの Ctrl+C、命令が `--idle-limit` 秒（既定 3600）来ないとき、ゲームが落ちたときも、起動した PID で閉じて作業フォルダを消す（`--keep` なら残す）。見張りの Python が強制終了されても、Job Object で閉じる。起動は `-load` と写した作業フォルダなので、自動保存は失わない。
 - 同じポートで 2 台は起動できない。ポートは割り当てられた範囲の中。
 - 複数の `--send` を同時に流さない（順に流す）。
+- **`--send-file` では、変数を先頭に足せない**（`Game.sq_file` の `head=` に当たる物が無い）。流す `.nut` に、変数の定義を直に書く（例: 先頭に `OX <- 40; OY <- 60; CARS <- 4;`）。値を変えて流すときは、`sed` で写しを作って流す（`sed 's/OY <- 60/OY <- 110/' a.nut > work/b.nut`）。同じ `.nut` を `Game.sq_file(path, head=…)` から流すなら、先頭に同じ名前の変数を足し、`.nut` の定義の行を消す（二重に定義すると後の値が勝つ）。`tools/vehicle_check/signal.nut`・`road_stop_coal.nut` がこの形（`road_stop_bus.nut` は変数が `WAY`・`DEPOT` だけで、座標は中に書いてある）。
+- **信号を置き直したときの向き**（本体の `simtool.cc` の `place_sign_intern` を読んで決めた。OTRP v64 で 2 回目までは画面で確かめた）: `command_x.build_sign_at` を同じ所に重ねて呼ぶと、1 回目は両方向、2 回目は片方向、3 回目は反対の片方向、4 回目は両方向に戻る。2 回目の列車が進む向きは、東西の線路なら西、南北の線路なら南（本体の中の向きは通れない向きの ribi で、東・北）。両方向の信号だけの 1 本の線路（周回）に、逆向きの編成が入ると、止まったまま動かなくなった（向き合ったのが原因と見ている）。周回させるときは、上の辺（東西）と左の辺（南北）だけに 2 回ずつ置くと、反時計回りにそろう。詳しくは [signals.md](signals.md) の「置いたときの動き」と `tools/vehicle_check/signal.nut`。
 - 1 つの Squirrel は最大 300 秒（`CMD_TIMEOUT`）待つ。`--send` の `--timeout`（既定 120）は送る側の待ちで、超えると命令を取り下げる（見張りが取った後なら「実行された可能性がある」と出る）。見張りやゲームが閉じると、送る側はすぐ失敗する。
 
 ## 窓の番号（`Game.dialog`）

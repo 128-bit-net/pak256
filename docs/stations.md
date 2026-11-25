@@ -1,16 +1,33 @@
-# 道路の停留所（AMI の物）と線路の駅（pak256 の物）
+# 道路の停留所・線路の駅（pak256 の物）
 
-道路の停留所（バス停・荷役所）は、仮の物（`pak256_bus_stop`・`pak256_truck_stop`。[#44](https://github.com/128-bit-net/pak256/issues/44)）を [#72](https://github.com/128-bit-net/pak256/issues/72) で消し、AMI の 256 版の `ami_road_bus_stop`・`ami_road_truck_stop`（`ami-256-alpha.3` の `ami_road.pak`。128na/simutrans-addon-dev#277。[layout.md](layout.md) の「AMI の 256 版を同梱する」）に置き換えた。pak256 には道路の停留所を置かない。ゲームでの確かめは [記録](records/2026-11-25_ami-road-stops.md)。
+## 道路の停留所（pak256 の物）
 
-| AMI の物の `name` | 扱う貨物 | 置き換えた仮の物 |
-|---|---|---|
-| `ami_road_bus_stop` | 旅客（`enables_pax`）・郵便（`enables_post`） | `pak256_bus_stop`（バス停） |
-| `ami_road_truck_stop` | 貨物（`enables_ware`。旅客・郵便は扱わない） | `pak256_truck_stop`（トラックの荷役所） |
+道路の停留所（バス停・荷役所）は、pak256 の物（`pak256_bus_stop`・`pak256_truck_stop`）を使う（[#94](https://github.com/128-bit-net/pak256/issues/94)。2026-11-26、ユーザー: pak256 は基本のアドオンを自分で作り、当面は絵より動くことを優先する。[roadmap.md](roadmap.md) の「進め方」）。[#44](https://github.com/128-bit-net/pak256/issues/44) で仮に作った物を [#72](https://github.com/128-bit-net/pak256/issues/72) で AMI の 256 版（`ami_road_bus_stop`・`ami_road_truck_stop`）に置き換えていたが、#94 で pak256 の物に戻した（絵は #44 の物。`draw_stops.py` の整理のほかは変えていない）。AMI の停留所には頼らない。
 
-- どちらも `type=stop`・`waytype=road`・`level=2`（仮の物と同じ）。AMI の物は建設費（`cost=80000`）と維持費（`maintenance=3600`）を持つ（仮の物は値を書いていなかった）ので、費用の面は変わる。画面の名前は AMI の側（`ja_ami.tab`）が持つ（日本語のみ。英語の画面では物の名前のまま出る見込みで、ゲームでは未確認。pak256 の `text/` には書かない）。
-- カーソル: AMI の停留所の `cursor=` には位置の指定が付いておらず、置くときにカーソルの絵がずれる。既知で、[#76](https://github.com/128-bit-net/pak256/issues/76)・AMI の 128na/simutrans-addon-dev#282 で直す。
-- **保存データへの影響**: 保存データは物の名前で引くので、仮の停留所（`pak256_bus_stop`・`pak256_truck_stop`）を置いた保存データを今の pak256 で読むと、その名前の物が無い。α0.2（v0.2.0）・α0.3（v0.3.0）の保存データは、仮の停留所を置いてあれば、その停留所が消える見込み（建物の名前が見つからないと外される、というコードの読み。OTRP 系のソース `gebaeude_t::rdwr` で読んだもので、125.0.1 そのものではなく、置いて確かめてはいない）。停留所の枠（`haltestelle_t`）と、ダイヤが指す停留所がどうなるかは未確認。Release の説明に「保存データの停留所は置き直し」と書く。
-- 線路の駅（下）は pak256 の物。AMI は駅を作らない（2026-11-26、ユーザー。128na/simutrans-addon-dev#279 は作らずに閉じた）。
+置き場は `objects/station/road_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す（`python -X utf8 objects/station/road_stops/draw_stops.py`。Pillow が要る）。向きの絵・シートの並びは、線路の駅と同じ（下の「向きの絵」）。
+
+| `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
+|---|---|---|---|---|---|
+| `pak256_bus_stop` | `building` | `stop` | `road` | 旅客（`enables_pax`）・郵便（`enables_post`） | バス停 / Bus Stop |
+| `pak256_truck_stop` | `building` | `stop` | `road` | 貨物（`enables_ware`。旅客・郵便は扱わない） | トラックの荷役所 / Truck Loading Bay |
+
+- 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
+- バス停: 道路の脇の低い歩道（高さ 0.15m）に、屋根つきの待合（高さ 2.9m）、ベンチ、標識。荷役所: 道路の脇の高さ 1m の積み降ろし場に、小屋と木箱。道路はタイルの中央の幅 約 9m（c = 0.33〜0.67）を通ると見て、近い側（c = 0.74〜0.98）に置いた。
+- カーソル（`cursor`）は書いていない。置くときのカーソルが出るかは未確認（#44 のときから。スクリプトの `tool_build_station` で置いただけで、ツールバーから置く操作は見ていない）。
+- ゲームでの確かめは [記録](records/2026-11-26_road-stops.md)（バスと郵便のトラック、石炭のトラックが、この停留所で積み降ろした）。
+
+### AMI の停留所の扱い
+
+AMI の `ami_road_bus_stop`・`ami_road_truck_stop` は、AMI の `ami_road.pak`（`ami-256-alpha.3` 以降の 256 版の zip）に入っていて、pak256 の側からは外せない（pak は makeobj が束ねた 1 つのファイルで、中の物を 1 つだけ除けない。停留所の無い古い版 `ami-256-alpha.2` に戻す手もあるが、alpha.3 以降の道路の直しを失うので採らない。alpha.2 に停留所が無いことは #72 の記述からの推測）。そこで、**外すのは AMI の側**とした（2026-11-26）。流れは [layout.md](layout.md) の「AMI の 256 版を同梱する」のとおり: AMI のコミットで停留所を外す → `vendor/ami/build.env` の `AMI_COMMIT` をそのコミットに上げる PR → `tools/build_ami256.py` で 256 版の zip を組んで上げ、`ami.env` を更新する。AMI の進捗管理への「自前を用意した」の知らせは、pak256 の進捗管理が出す（この PR の worker-report に書いた。AMI 側の対応は未確認）。
+
+それまでは、道路のツールバー（`toolbar[4]`。`buildings(33,1)` は種類で絞るだけで名前で絞れない）に、pak256 の停留所と AMI の停留所が両方並ぶ（[記録](records/2026-11-26_road-stops.md)の画像 4）。pak256 の `menuconf.tab` は変えない。**公開の順序**: AMI の停留所を外した版を取り込んでから、次の版（Release）を出す（先に出すと、並びが 2 組のまま配られる）。
+
+### 保存データへの影響
+
+保存データは物の名前で引く。
+- α0.2（v0.2.0）・α0.3（v0.3.0）の保存データで、仮の停留所（`pak256_bus_stop`・`pak256_truck_stop`）を置いてあれば、名前が再び見つかるので、停留所は戻る見込み（#72 の版で読み込んで保存し直した保存データは、仮の停留所が消えた後なので戻らない。名前の引きは本体のコードの読み。`gebaeude_t::rdwr`。OTRP 系のソースで読んだもので、125.0.1 そのものではなく、置いて確かめてはいない）。
+- #72 以降の main（Release にはまだ入っていない。v0.3.0 は #72 を含まない）で AMI の停留所（`ami_road_bus_stop`・`ami_road_truck_stop`）を置いた保存データは、AMI の停留所を外した版を入れた後、その停留所が消える見込み（上と同じ読み。停留所の枠（`haltestelle_t`）と、ダイヤが指す停留所がどうなるかは未確認）。AMI の停留所を外す版を取り込む PR で、Release の説明に「道路の停留所は置き直し」と書く。
+
 
 ## 線路の駅（pak256 の物）
 
