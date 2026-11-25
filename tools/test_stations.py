@@ -1,4 +1,4 @@
-"""仮の停留所の表の検査（docs/stations.md）。
+"""仮の駅の表の検査（docs/stations.md）。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
@@ -38,8 +38,8 @@ class StationTest(unittest.TestCase):
         for p, d in stops():
             self.assertEqual(d["type"], "stop", p)
             self.assertEqual(d["obj"], "building", p)
-            self.assertIn(d["waytype"], ("road", "track"), p)
-            self.assertEqual(d["waytype"] == "track", "rail_stops" in p.replace(os.sep, "/"), f"{p}: 置き場と waytype が合わない")
+            self.assertEqual(d["waytype"], "track", p)
+            self.assertIn("rail_stops", p.replace(os.sep, "/"), f"{p}: 道路の停留所は AMI の物（#72）。ここは線路の駅だけ")
             self.assertEqual(str(d["dims"]), f"1,1,{LAYOUTS}", p)
             self.assertTrue(d.get("enables_pax") or d.get("enables_post") or d.get("enables_ware"), f"{p}: 何も扱わない")
             sheet = os.path.join(os.path.dirname(p), os.path.basename(p)[:-5] + ".png")

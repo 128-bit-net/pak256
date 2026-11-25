@@ -56,7 +56,7 @@
 - **登場年は 1930**。pak256 の開始年（`config/simuconf.tab` の `starting_year`）に合わせた仮の値。pak128 の元の車は 1979 年（郵便のトラック）と 1992 年（バス）なので、時代の幅（初期の車・新しい車）は [roadmap.md](roadmap.md) の「車両の顔ぶれと時代」で決める。引退年は書かない。
 - バス: 旅客を運ぶ。郵便のトラック: 運転席は前の 3 割（低い）、荷台の箱は後ろの 7 割。石炭のトラック: 赤い運転席と、上が開いた灰色の荷台。貨物は `Kohle` だけで、炭鉱の出力と発電所の入力と同じ貨物（本体は貨物の名前で結ぶ）。
 - 積み荷の絵: 石炭のトラックだけが `freightimage`（シートの 2 行目。荷台に石炭の山）を持つ。バスと郵便のトラックは空の絵（`emptyimage`）だけ。連結（`constraint`）・煙・音・引退年も書いていない。
-- 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
+- 旅客と郵便は、バス停（AMI の `ami_road_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（AMI の `ami_road_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
 - 車庫は AMI の 256 版の `ami_road_depot`（[stations.md](stations.md)）を使う。
 
 ## 線路の車両

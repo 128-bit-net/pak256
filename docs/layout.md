@@ -30,11 +30,11 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 仮の停留所（バス停・荷役所）と駅。AMI の物が出たら消す。[stations.md](stations.md) | #44・#46 |
+| `objects/station/` | 仮の駅（線路）。AMI の物が出たら消す。[stations.md](stations.md) | #46 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、仮のバス停・荷役所・駅（`objects/station/`。#44・#46）だけ。AMI の 256 版が出たら置き換えて消す（[stations.md](stations.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、仮の駅（`objects/station/`。#46）だけ。AMI の 256 版が出たら置き換えて消す（[stations.md](stations.md)）。道路の車庫は #64、道路の停留所（バス停・荷役所）は #72 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 
@@ -102,7 +102,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
-| `test_stations.py` | 仮の停留所・駅の表の検査: `type: stop`・`waytype`（道路は `road_stops/`、線路は `rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
+| `test_stations.py` | 仮の駅の表の検査: `type: stop`・`waytype`（`rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
 | `vehicles.py` | 車両の長さと描画位置の決まり（[standards.md](standards.md) の 4 章）の計算。車両を描くスクリプトと検査が使う |
@@ -147,14 +147,14 @@ CI は `.github/workflows/ci.yml`。
 - CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.2`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.3`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
 
 ## AMI の 256 版を同梱する
 
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- 版は `ami.env` で固定してある（`ami-256-alpha.2`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）を書き換える。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
+- 版は `ami.env` で固定してある（`ami-256-alpha.3`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）を書き換える。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、新しいタグの Release を作って zip を置き（`gh release create vendor-<版> <zip> -R 128-bit-net/pak256 --prerelease --latest=false`）、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
