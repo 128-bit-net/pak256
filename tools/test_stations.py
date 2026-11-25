@@ -51,6 +51,15 @@ class StationTest(unittest.TestCase):
                     cell = im.crop((col * 256, row * 256, col * 256 + 256, row * 256 + 256))
                     return len(set(cell.getdata())) > 1  # 透明色だけでない
 
+                # 道具の絵は、192px の四角を左上の角から隙間なく置く（隙間があると、本体が見える範囲だけを縮めて置き、枠がずれて灰色に見える。#71）
+                icon = im.crop((0, 512, 256, 768))
+                px = icon.load()
+                for y in range(192):
+                    for x in range(192):
+                        corner = (x < 24 or x > 167) and (y < 24 or y > 167)  # 角丸の角は透明色でよい
+                        self.assertTrue(corner or px[x, y] != (231, 255, 255), f"{sheet}: 道具の絵の四角に透明色 ({x}, {y})")
+                self.assertEqual(icon.crop((192, 0, 256, 256)).getcolors(), [(64 * 256, (231, 255, 255))], f"{sheet}: 道具の絵が 192px の外にはみ出す")
+                self.assertEqual(icon.crop((0, 192, 192, 256)).getcolors(), [(192 * 64, (231, 255, 255))], f"{sheet}: 道具の絵が 192px の外にはみ出す")
                 # 後ろの絵は 0 行、前の絵は 1 行、道具の絵は 2 行 0 列
                 for key, row in (("backimage", 0), ("frontimage", 1)):
                     self.assertEqual(sorted(d[key]), list(range(LAYOUTS)), f"{p}: {key} の向きが 8 通りにならない")
