@@ -39,7 +39,7 @@
 
 - **道具の既定のアイコン**（`menuconf.tab` の `general_tool[N] = 番号,…`）は、道具の種類ごとの表（`GeneralTools`・`SimpleTools`・`DialogeTools`）の番号。
 - **ツールバーの行**（`toolbar[段][位置] = 道具,番号,…`）で書いた番号は、道具の種類に関わらず **`BarTools`** の番号。表より大きい番号を書くと、本体は起動のログに警告（`wrong icon`）を出して 0 番にする。
-- カーソルは、`general_tool[N] = アイコン,カーソル,…` の 2 つめが `cursor` の `GeneralTools` の番号。道具の行が無い、またはカーソルの番号が空だと、本体はカーソルを出さない（ダイヤの編集の「駅を追加」・「駅を挿入」は `general_tool[12]`・`[13]`、気候は `[39]` の行が要る。[#77](https://github.com/128-bit-net/pak256/issues/77)、[記録](records/2026-11-25_schedule-cursor.md)）。道の建設・水位の道具は本体が別のカーソルを使う。
+- カーソルは、`general_tool[N] = アイコン,カーソル,…` の 2 つめが `cursor` の `GeneralTools` の番号。道具の行が無い、またはカーソルの番号が空だと、本体はカーソルを出さない（ダイヤの編集の「駅を追加」・「駅を挿入」は `general_tool[12]`・`[13]`、気候は `[39]` の行が要る。[#77](https://github.com/128-bit-net/pak256/issues/77)、[記録](records/2026-11-25_schedule-cursor.md)）。道の建設は道の dat の `cursor=`、水位・街の大きさの道具は本体が入れ替えるカーソルを使う。
 - `GeneralTools` のカーソルは、本体が Z_PLAN（4/64 タイル = 256 のタイルで 16px）だけ下げて描く（`simconst.h`）。タイルの強調表示は下げない。そこで絵は菱形を 16px 上（行 112〜239）に描いた。`Builder`・`Marked` は地面と同じ寸法（行 128〜255）。
 
 ### 坂の番号（`Sidewalk`・`TunnelTexture`）
