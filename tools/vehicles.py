@@ -1,7 +1,7 @@
-"""車両の長さと描画位置の決まり（docs/vehicles.md）を計算にした物。MIT License。
+"""車両の長さと描画位置の決まり（docs/standards.md の 4 章）を計算にした物。MIT License。
 
 車両を描くスクリプト（objects/vehicle/ の draw_*.py）と検査（tools/test_vehicles.py）が使う。
-数はすべて docs/vehicles.md の決まりと同じにする。決まりを変えるときは、両方を一緒に直す。
+数はすべて docs/standards.md の決まりと同じにする。決まりを変えるときは、両方を一緒に直す。
 
 座標: 地面はタイルの単位（1 タイル = 1）。x は東（画面の右下）、y は南（画面の左下）、原点はタイルの中心。
 画面はセルの画素。256px のタイルで、タイルの中心はセルの (128, 192)（docs/ground.md）。
@@ -36,7 +36,7 @@ DIRECTIONS = ("s", "w", "sw", "se", "n", "e", "ne", "nw")  # 本体の ribi_t::g
 
 # 基準点（本体の車両の位置。セルではタイルの中心 ORIGIN に当たる）から車体の前の端までの距離（単位。前が正）。
 # 0 = 前の端を基準点に置き、車体は後ろへ length 伸ばす。止まると先頭の基準点がタイルの出口の辺の近くに来るので、
-# 車体がタイルに収まる（docs/vehicles.md の「前後の位置」）
+# 車体がタイルに収まる（docs/standards.md の 4 章「描画位置」と docs/vehicles.md の「前後の位置（細目）」）
 FRONT_UNITS = 0
 
 
