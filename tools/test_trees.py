@@ -55,6 +55,18 @@ def doc_species():
     return {k: (h, w) for k, (h, w, _) in doc_table().items()}
 
 
+def doc_weights():
+    """docs/trees.md の「種類」の表の「重み」の列。{ファイル名: 重み}"""
+    with open(DOC, encoding="utf-8") as f:
+        text = f.read()
+    found = {}
+    for line in text.splitlines():
+        m = re.match(r"\|\s*`pak256_(\w+)`\s*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|\s*(\d+)\s*\|\s*$", line)
+        if m:
+            found[m.group(1)] = int(m.group(2))
+    return found
+
+
 def read_yaml(name):
     with open(os.path.join(TREES, f"{name}.yaml"), encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -138,8 +150,48 @@ class TreeSheetTest(unittest.TestCase):
                 self.assertEqual(special_colors(img), [])
 
 
+def season_rows(name, t):
+    """表（.yaml）の image から {season: 行} を返す。年齢ごとに行が違う・形が合わないときは AssertionError。"""
+    n = t["seasons"]
+    rows = {}
+    for age in range(AGES):
+        assert sorted(t["image"][age]) == list(range(n)), f"{name}: age {age} の season が 0〜{n - 1} でない"
+        for season in range(n):
+            m = re.fullmatch(rf"{name}\.(\d+)\.(\d+)", str(t["image"][age][season]))
+            assert m, f"{name}: image[{age}][{season}] = {t['image'][age][season]!r}"
+            assert int(m.group(2)) == age, f"{name}: image[{age}][{season}] の列が age と違う"
+            row = int(m.group(1))
+            assert rows.setdefault(season, row) == row, f"{name}: season {season} の行が年齢で変わる"
+    return rows
+
+
+def cell_pixels(img, row, age):
+    return list(img.convert("RGB").crop((age * CELL, row * CELL, (age + 1) * CELL, (row + 1) * CELL)).getdata())
+
+
+def differing_pixels(img, row_a, row_b, age):
+    return sum(1 for p, q in zip(cell_pixels(img, row_a, age), cell_pixels(img, row_b, age)) if p != q)
+
+
+def climate_problems(covered, tree_bits, no_tree_bits):
+    """各気候に木があること（水・岩を除く）と、simuconf.tab の 2 つの値が木と食い違わないことを、文字列の一覧で返す。"""
+    problems = []
+    for cl in sorted(set(CLIMATE_BIT) - covered - NO_TREE_OK):
+        problems.append(f"{cl} に木が無い")
+    for cl, bit in CLIMATE_BIT.items():
+        if cl in covered and no_tree_bits & bit:
+            problems.append(f"{cl} は木があるのに no_tree_climates に入っている")
+        if cl not in covered and not no_tree_bits & bit:
+            problems.append(f"{cl} は木が無いのに no_tree_climates に入っていない")
+        if tree_bits & bit and cl not in covered:
+            problems.append(f"{cl} は木が無いのに tree_climates に入っている")
+    if tree_bits & no_tree_bits:
+        problems.append("tree_climates と no_tree_climates が重なる")
+    return problems
+
+
 class TreeTableTest(unittest.TestCase):
-    """表（.yaml）の気候・季節・画像の参照。"""
+    """表（.yaml）の気候・季節・画像の参照・名前・重み・訳。"""
 
     def test_climates_match_doc(self):
         for name, (_, _, climates) in doc_table().items():
@@ -148,48 +200,61 @@ class TreeTableTest(unittest.TestCase):
                 self.assertEqual(got, climates)
                 self.assertTrue(got <= set(CLIMATE_BIT))
 
+    def test_name_weight_and_translations(self):
+        """dat の name は pak256_<ファイル名>、重みは docs/trees.md の表と同じ、日本語・英語の訳がある。"""
+        weights = doc_weights()
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", f"{lang}.tab"), encoding="utf-8") as f:
+                lines = [ln.strip() for ln in f if ln.strip() and not ln.startswith(("#", "§"))]
+            keys = set(lines[0::2])
+            for name in doc_species():
+                with self.subTest(name=name, lang=lang):
+                    self.assertIn(f"pak256_{name}", keys)
+        for name in doc_species():
+            with self.subTest(name=name):
+                t = read_yaml(name)
+                self.assertEqual(t["name"], f"pak256_{name}")
+                self.assertEqual(t["distributionweight"], weights[name])
+
     def test_seasons_and_images(self):
-        """seasons は 5（夏・秋・冬・春・雪）か 2（夏・雪）。全部の年齢・季節の画像が、シートの行に収まる。
-        温帯の 3 種は 5 で、冬（season 2）と雪（season 4）が夏と違う絵（葉を落とす・雪が載る）。"""
+        """seasons は 5（夏・秋・冬・春・雪）か 2（夏・雪）。画像の参照が、年齢によらず season ごとに 1 つの行を指し、
+        その行がシートに収まる。温帯の 3 種は 5 で、冬（season 2）と雪（season 4）が夏と別の行。"""
         for name in doc_species():
             with self.subTest(name=name):
                 t = read_yaml(name)
                 img = Image.open(os.path.join(TREES, f"{name}.png"))
-                rows = img.height // CELL
+                rows = season_rows(name, t)
                 n = t["seasons"]
                 self.assertIn(n, (2, 5))
+                self.assertLess(max(rows.values()), img.height // CELL)
+                self.assertEqual(sorted(rows), list(range(n)))
+                self.assertNotEqual(rows[n - 1], rows[0], "雪は夏と別の行")
                 if name in TEMPERATE_TRIO:
                     self.assertEqual(n, 5)
-                seen = set()
-                for age in range(AGES):
-                    self.assertEqual(sorted(t["image"][age]), list(range(n)))
-                    for season in range(n):
-                        m = re.fullmatch(rf"{name}\.(\d+)\.(\d+)", t["image"][age][season])
-                        self.assertIsNotNone(m, t["image"][age][season])
-                        row, col = int(m.group(1)), int(m.group(2))
-                        self.assertEqual(col, age)
-                        self.assertLess(row, rows)
-                        seen.add((season, row))
-                # 雪（最後の season）は夏（season 0）と別の行
-                snow_row = {s: r for s, r in seen}[n - 1]
-                self.assertNotEqual(snow_row, {s: r for s, r in seen}[0])
-                if n == 5:
-                    winter_row = {s: r for s, r in seen}[2]
-                    self.assertNotEqual(winter_row, {s: r for s, r in seen}[0])
+                    self.assertNotEqual(rows[2], rows[0], "冬は夏と別の行")
 
-    def test_snow_row_differs_from_summer(self):
-        """雪の行の絵が、夏の行の絵と実際に違う（同じ絵を指しているだけでない）。"""
+    def test_distinct_rows_look_different(self):
+        """別の行を指す season の絵が、実際に違う（夏のコピーを置いただけでない）。全年齢で見る。
+        落葉樹の冬・雪は葉が無いので夏とかなり違い、針葉樹・常緑樹の雪も夏と違う。"""
         for name in doc_species():
             with self.subTest(name=name):
                 t = read_yaml(name)
-                n = t["seasons"]
-                img = Image.open(os.path.join(TREES, f"{name}.png")).convert("RGB")
-                last = AGES - 1
-                row = lambda s: int(t["image"][last][s].split(".")[1])
-                a = img.crop((last * CELL, row(0) * CELL, (last + 1) * CELL, (row(0) + 1) * CELL))
-                b = img.crop((last * CELL, row(n - 1) * CELL, (last + 1) * CELL, (row(n - 1) + 1) * CELL))
-                diff = sum(1 for p, q in zip(a.getdata(), b.getdata()) if p != q)
-                self.assertGreater(diff, 300)
+                img = Image.open(os.path.join(TREES, f"{name}.png"))
+                rows = season_rows(name, t)
+                for season, row in rows.items():
+                    if row == rows[0]:
+                        continue
+                    for age in range(AGES):
+                        self.assertGreater(differing_pixels(img, rows[0], row, age), 20,
+                                           f"season {season} の絵が夏と同じ（age {age}）")
+                # 落葉樹: 冬・雪は、夏よりずっと画素が少ない（葉が無い）
+                if name in ("zelkova", "birch"):
+                    for season in (2, 4):
+                        a = sum(1 for p in cell_pixels(img, rows[season], AGES - 1) if p != CLEAR)
+                        b = sum(1 for p in cell_pixels(img, rows[0], AGES - 1) if p != CLEAR)
+                        self.assertLess(a, b * 0.5, f"{name} season {season} が葉を落としていない")
+                    for season in (1, 3):  # 秋・春は葉があって、夏と色が違う
+                        self.assertGreater(differing_pixels(img, rows[0], rows[season], AGES - 1), 500)
 
 
 class ClimateCoverageTest(unittest.TestCase):
@@ -205,23 +270,20 @@ class ClimateCoverageTest(unittest.TestCase):
     def test_every_climate_has_a_tree_except_water_and_rock(self):
         self.assertEqual(set(CLIMATE_BIT) - self.covered(), NO_TREE_OK)
 
-    def test_simuconf_no_tree_climates_match(self):
-        """木のある気候が no_tree_climates に入っていない。木の無い気候（水・岩）は入っている。"""
-        no_tree = simuconf_int("no_tree_climates")
-        for cl, bit in CLIMATE_BIT.items():
-            with self.subTest(climate=cl):
-                if cl in self.covered():
-                    self.assertEqual(no_tree & bit, 0)
-                else:
-                    self.assertNotEqual(no_tree & bit, 0)
+    def test_simuconf_matches_trees(self):
+        self.assertEqual(
+            climate_problems(self.covered(), simuconf_int("tree_climates"), simuconf_int("no_tree_climates")), [])
 
-    def test_simuconf_tree_climates_have_trees(self):
-        """tree_climates（全面に木を生やす）に入る気候には、木がある。"""
-        tree = simuconf_int("tree_climates")
-        for cl, bit in CLIMATE_BIT.items():
-            if tree & bit:
-                self.assertIn(cl, self.covered())
-        self.assertEqual(tree & simuconf_int("no_tree_climates"), 0)
+    def test_checker_finds_mistakes(self):
+        """検査そのものが、誤った入力で落ちることの確かめ。"""
+        covered = set(CLIMATE_BIT) - NO_TREE_OK
+        good_no = CLIMATE_BIT["water"] | CLIMATE_BIT["rocky"]
+        tropic = CLIMATE_BIT["tropic"]
+        self.assertEqual(climate_problems(covered, tropic, good_no), [])
+        self.assertTrue(climate_problems(covered - {"desert"}, tropic, good_no))  # 砂漠の木が無い
+        self.assertTrue(climate_problems(covered, tropic, good_no | CLIMATE_BIT["desert"]))  # 木のある砂漠が no_tree
+        self.assertTrue(climate_problems(covered, tropic, CLIMATE_BIT["water"]))  # 木の無い岩が no_tree に無い
+        self.assertTrue(climate_problems(covered, tropic | CLIMATE_BIT["rocky"], good_no))  # 木の無い岩が tree_climates
 
 
 class SpecialColorsTest(unittest.TestCase):

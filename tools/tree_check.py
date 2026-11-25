@@ -2,7 +2,7 @@
 
 平らな保存データに、気候ごとの区画（tropic・desert・mediterran・temperate・tundra・arctic と、雪線の上の温帯）を作り、
 `tool_forest` で林を置き、ゲームの月を進めて、同じ場所の夏・秋・冬・春を撮る。本体の季節は月で決まる
-（OTRP の `simworld.cc` の `month_to_season`: 12〜2 月 冬、3〜4 月 春、5〜8 月 夏、9〜10 月 秋）ので、月が目的になるまで
+（OTRP の `simworld.cc` の `month_to_season`: 1 始まりの月で 12〜3 月 冬、4〜5 月 春、6〜9 月 夏、10〜11 月 秋）ので、月が目的になるまで
 `debug.set_game_speed` で進める。
 
     python -X utf8 tools/tree_check.py --env <検証環境> --port 47841 --out work/tree_check
@@ -120,7 +120,6 @@ def main():
             wait_month(g, month)
             time.sleep(8)  # 木の絵が季節に合わせて入れ替わるのを待つ
             for name, (cx, cy) in centers.items():
-                lift = dict((p[0], p[2]) for p in PLOTS)[name]
                 g.sq(f"gui.jump(coord({cx}, {cy})); return 1")
                 time.sleep(1.5)
                 g.capture(os.path.join(out, f"{name}_{season}.png"))
