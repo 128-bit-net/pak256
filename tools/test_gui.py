@@ -114,6 +114,10 @@ class GuiTest(unittest.TestCase):
             self.assertEqual({a for _, a in im.getchannel("A").getcolors()}, {255})
             self.assertFalse({c[1][:3] for c in im.getcolors(1 << 20)} & special)
         self.assertEqual({im.size for im in cells}, {(draw_gui.logo_art.BIG // 2,) * 2})
+        # ロゴの気動車は、ゲームの気動車と同じ長さの比（length ÷ 16 タイル）
+        with open(os.path.join(ROOT, "objects", "vehicle", "rail", "railcar", "railcar.yaml"), encoding="utf-8") as f:
+            length = int(re.search(r"^length:\s*(\d+)", f.read(), re.M).group(1))
+        self.assertEqual(length, draw_gui.logo_art.RAILCAR_LENGTH)
         with open(os.path.join(GUI, "sym_biglogo.dat"), encoding="utf-8") as f:
             self.assertIn(f"cell_size={draw_gui.logo_art.BIG // 2}", f.read())
 

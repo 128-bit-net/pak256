@@ -1,7 +1,7 @@
 """pak256.LongScale のロゴの絵（BigLogo・Logo）。MIT License。
 
 draw_gui.py から使う。自分で描いた絵（他の pak の絵は使わない）。
-意匠: 1 タイルの菱形（256px のタイル）から、はみ出して長く伸びる先頭車 1 両（長さを実物に比例させる = LongScale）。
+意匠: 1 タイルの菱形（256px のタイル）から、はみ出して長く伸びる先頭車 1 両（大きさはゲームと同じ比。長さを実物に比例させる = LongScale）。
 下に「LongScale」を大きく。
 本体は BigLogo を 4 枚（左上・右上・左下・右下）で 2×2 に並べる（simloadingscreen.cc）。
 絵は全面が不透明な四角（makeobj が透明な縁を切って 4 枚の位置がずれないように）。
@@ -61,22 +61,37 @@ def _tile(d, p, u0, u1, v0, v1, fill, outline, width):
     d.line(pts + [pts[0]], fill=outline, width=width, joint="curve")
 
 
-def _long_car(d, p, u0, u1, v, height):
-    """車両長の長い先頭車 1 両。側面に窓を並べ、先頭（+u 側）に運転席の窓を付ける。"""
-    w = 0.26
+# 大きさの比はゲームと同じ（docs/standards.md）: 1 タイル = 16 単位（26.4m）。気動車（vehicle.rail.railcar）は length=12
+# ＝ 0.75 タイル。絵の菱形は 1 辺が 2 単位なので、車体の長さは 2 × 12 / 16 = 1.5 単位。tools/test_gui.py が dat と照らす。
+TILE_LENGTH_UNITS = 16
+RAILCAR_LENGTH = 12
+TILE_EDGE = 2.0                                   # 絵の菱形の 1 辺（u・v の単位）
+CAR_U = TILE_EDGE * RAILCAR_LENGTH / TILE_LENGTH_UNITS
+
+
+def _track(d, p, u0, u1):
+    """菱形の上の線路（まくらぎとレール 2 本）。"""
+    n = 9
+    for i in range(n + 1):
+        u = u0 + (u1 - u0) * i / n
+        d.line([p(u, -0.2), p(u, 0.2)], fill=_safe((120, 90, 60)), width=3 * SS)
+    for v in (-0.12, 0.12):
+        d.line([p(u0, v), p(u1, v)], fill=_safe((200, 205, 210)), width=2 * SS)
+
+
+def _railcar(d, p, u0, u1, v, height):
+    """気動車 1 両。側面に窓を並べ、先頭（+u 側）に運転席の窓を付ける。"""
+    w = 0.14
     _box(d, p, u0, u1, v - w, v + w, 0.0, height, (250, 250, 245), (190, 195, 205), (225, 228, 232))
     length = u1 - u0
-    # 帯（金）
     d.polygon([p(u0, v + w, height * .18), p(u1, v + w, height * .18), p(u1, v + w, height * .3), p(u0, v + w, height * .3)],
               fill=_safe(GOLD))
-    # 側面の窓
-    n = 9
+    n = 5
     for i in range(n):
-        a = u0 + length * (0.04 + 0.86 * i / n)
-        b = a + length * 0.86 / n * 0.62
+        a = u0 + length * (0.05 + 0.82 * i / n)
+        b = a + length * 0.82 / n * 0.62
         d.polygon([p(a, v + w, height * .5), p(b, v + w, height * .5), p(b, v + w, height * .85), p(a, v + w, height * .85)],
                   fill=_safe((30, 50, 80)))
-    # 先頭の面（+u 側）の窓
     d.polygon([p(u1, v - w * .75, height * .5), p(u1, v + w * .75, height * .5),
                p(u1, v + w * .75, height * .88), p(u1, v - w * .75, height * .88)], fill=_safe((30, 50, 80)))
 
@@ -88,9 +103,10 @@ def draw_big():
     im = Image.new("RGBA", (w, w), NAVY + (255,))
     d = ImageDraw.Draw(im)
     _background(d, w)
-    p = _iso(w / 2, 205 * s, 60 * s)
+    p = _iso(w / 2, 195 * s, 78 * s)
     _tile(d, p, -1, 1, -1, 1, (46, 110, 120), TEAL, 3 * s)
-    _long_car(d, p, -2.6, 2.6, 0.0, 0.5)
+    _track(d, p, -1.0, 1.0)
+    _railcar(d, p, -CAR_U / 2, CAR_U / 2, 0.0, 0.3)
     _text(d, (w / 2, 50 * s), "pak256", 64 * s, WHITE)
     # LongScale は大きく、太く（縁取りで太らせる）、明るい金で
     d.text((w / 2, 335 * s), "LongScale", font=_font(60 * s), fill=_safe(GOLD), anchor="mm",
