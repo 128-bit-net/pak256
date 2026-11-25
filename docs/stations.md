@@ -8,7 +8,7 @@
 | `ami_road_truck_stop` | 貨物（`enables_ware`。旅客・郵便は扱わない） | `pak256_truck_stop`（トラックの荷役所） |
 
 - どちらも `type=stop`・`waytype=road`・`level=2`（仮の物と同じ）。AMI の物は建設費（`cost=80000`）と維持費（`maintenance=3600`）を持つ（仮の物は値を書いていなかった）ので、費用の面は変わる。画面の名前は AMI の側（`ja_ami.tab`）が持つ（日本語のみ。英語の画面では物の名前のまま出る見込みで、ゲームでは未確認。pak256 の `text/` には書かない）。
-- カーソル: AMI の停留所の `cursor=` には位置の指定が付いておらず、置くときにカーソルの絵がずれる。既知で、[#76](https://github.com/128-bit-net/pak256/issues/76)・AMI の 128na/simutrans-addon-dev#282 で直す。
+- カーソル: AMI の停留所の `cursor=` に絵と同じ位置の指定（offset）が付いた（AMI の 128na/simutrans-addon-dev#282。ami-256-alpha.5 で取り込み、[#76](https://github.com/128-bit-net/pak256/issues/76)）。置くときのカーソルが、置いた停留所の絵と同じ場所に出る（記録は [records/2026-11-26_ami-cursor.md](records/2026-11-26_ami-cursor.md)）。
 - **保存データへの影響**: 保存データは物の名前で引くので、仮の停留所（`pak256_bus_stop`・`pak256_truck_stop`）を置いた保存データを今の pak256 で読むと、その名前の物が無い。α0.2（v0.2.0）・α0.3（v0.3.0）の保存データは、仮の停留所を置いてあれば、その停留所が消える見込み（建物の名前が見つからないと外される、というコードの読み。OTRP 系のソース `gebaeude_t::rdwr` で読んだもので、125.0.1 そのものではなく、置いて確かめてはいない）。停留所の枠（`haltestelle_t`）と、ダイヤが指す停留所がどうなるかは未確認。Release の説明に「保存データの停留所は置き直し」と書く。
 - 仮の線路の駅（下）は、AMI の物がまだ無いので残してある。
 
