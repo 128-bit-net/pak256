@@ -158,7 +158,7 @@ CI は `.github/workflows/ci.yml`。
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- 版は `ami.env` で固定してある（`ami-256-alpha.5`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
+- 版は `ami.env` で固定してある（`ami-256-alpha.5`。路面・歩道の粒を 256 で細かくした直し（#81。AMI #288）を含む。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、下の「AMI の 256 版を組む」の手順で zip を組んで上げ、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
