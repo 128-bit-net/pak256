@@ -43,6 +43,8 @@ pak256_sample_bus
 見本のバス
 pak256_train_station
 駅
+pak256_rail_signal
+信号
 pak256_bus
 バス
 pak256_mail_truck
