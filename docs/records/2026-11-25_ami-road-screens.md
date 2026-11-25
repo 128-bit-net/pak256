@@ -10,14 +10,15 @@
 
 ## 結果
 
+- タイムライン無効（画面右下の「年代設定: 無効」）で確かめた。有効のときの登場年・退役年の判定は、下のコードの読みだけ。
 - 街の道路は `ami_road_local`（`square_x(x,y).get_ground_tile().find_object(mo_way)` で道路の名前を数えた。街の道路 4 タイルすべて）。街の最初の家も道路に沿って建った。
 - 画像 `2026-11-25_ami-road-screens/1_city-road.png`: 街「竹原」（座標 100,100）、1930 年、拡大 3。役場の前の道が AMI の生活道路。役場・家・木は借り物。
 - 起動のログに `ami_road.pak` の読み込みの誤りは無い（`symbol.BigLogo.pak` が無いという行は、`pak/` に無いファイルを本体が試すだけで、いつものこと）。
 
 ## `ami_road_general` が無いときの本体の動き（本体のコード）
 
-- `settings.cc` の `get_timeline_road_type`: 名前の道路が無ければ飛ばす。全部無ければ `NULL`。
-- 街の道路（`city_road[0]` は `ami_road_local` なので影響しない）。`NULL` のときは `recalc_average_speed` が `weg_search(road_wt,50,…)`、街どうしは `distribute_cities` が `weg_search(road_wt,80,…)` で代わりにする。`ami_road_local` は 40km/h なので、AMI だけの pak ではこれが選ばれる。
+- `settings.cc` の `get_timeline_road_type`: 名前の道路が無ければ飛ばす。全部無いか期間外なら `NULL`。
+- 街の道路（`city_road[0]` は `ami_road_local` なので影響しない）。`NULL` のときは `recalc_average_speed` が `weg_search(road_wt,50,…)`、街どうしは `distribute_cities` が `weg_search(road_wt,80,…)` で代わりにする（上限以下で一番速い道路。無ければ一番遅い道路）。街どうしは、開始年 1930 年では `ami_road_local` が期間外なので、`ami_road_general` が入るまで常にこちら。`ami_road_local` は 40km/h なので、AMI だけの pak ではこれが選ばれる。
 - 止まらないので `simuconf.tab` の道路の行は直さない。`ami_road_general` が入れば 1930 年から自動で使われる。
 
 ## 確かめていないこと
