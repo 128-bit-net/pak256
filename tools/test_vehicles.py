@@ -165,7 +165,7 @@ class TestRoadVehicles(unittest.TestCase):
             self.assertEqual(table["freight"], spec["freight"])
             self.assertEqual(table["waytype"], "road")
             self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
-            for key in ("payload", "speed", "power", "weight", "cost", "runningcost", "intro_year"):
+            for key in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
         self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})
         # docs/vehicles.md の表の length（12m → 7、7m → 4）
