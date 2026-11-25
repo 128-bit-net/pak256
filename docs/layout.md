@@ -136,17 +136,17 @@ CI は `.github/workflows/ci.yml`。
 - CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` が空の間は入らない。埋めれば次の組みから同梱される。ただし AMI の pak を入れるときは、先に #7（`LICENSE.md` の例外と `CREDITS.md` の行）を済ませる。`package.py` は、無ければ止まる。
+- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.1`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
 
 ## AMI の 256 版を同梱する
 
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・Release の zip の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- AMI が 256 版を Release に上げるまでは、`ami.env` を空のままにし、手元で組んだ AMI の pak のフォルダか zip を環境変数 `AMI_DIST` で渡す。
+- 版は `ami.env` で固定してある（`ami-256-alpha.1`。256 版の `ami_road.pak` だけの zip）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）を書き換える。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
-- AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけの予定）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
-- 帰属の書き方（AMI を初めて同梱するとき。#7）:
+- AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
+- 帰属の書き方（#7 で `ami-256-alpha.1` を同梱したときに入れた。AMI の版を変えても同じ）:
   - [CREDITS.md](../CREDITS.md) に 1 行: 物 `AMI（vendor/ami）`、作者 128na、連絡先 `128na/simutrans-addon-dev`、許諾 CC BY 4.0。
   - [LICENSE.md](../LICENSE.md) に例外を書く: 同梱する AMI の pak と絵は CC BY 4.0（CC BY-SA ではない）。今の「配布物（`.pak`）にも同じ許諾が及びます」の例外にする。
   - 配布の zip に、`build/ami_license.txt` を `ami_license.txt` の名前で入れる（`tools/package.py`）。
