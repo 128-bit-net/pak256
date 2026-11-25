@@ -5,7 +5,7 @@
 ## 手順
 
 1. `python -X utf8 tools/build.py --no-ami` で `ground.Outside.pak`・`ground.temperate.pak` を組む。
-2. 検証用に 手元の検証環境（`addon_check`）を写した作業フォルダ（`-set_workdir`）の `pak/` に、`work/pak256poc`（2 倍にした pak128）から地面の物（`ground.Outside.pak`・`landscape.grounds.all.pak`）を除いたものを入れ、上の 2 つを足した。`landscape.grounds.all.pak` の中の `Sidewalk`・`TunnelTexture`（`misc`）は本体が無いと止まるので、`work/src/landscape/grounds` の `sidewalk.dat` だけを別に組んで足した。地面の物以外は #5 の範囲外（pak128 由来の借り物）。
+2. 検証用に手元の検証環境（`addon_check`）を写した作業フォルダ（`-set_workdir`）の `pak/` に、`work/pak256poc`（2 倍にした pak128）から地面の物（`ground.Outside.pak`・`landscape.grounds.all.pak`）を除いたものを入れ、上の 2 つを足した。`landscape.grounds.all.pak` の中の `Sidewalk`・`TunnelTexture`（`misc`）は本体が無いと止まるので、`work/src/landscape/grounds` の `sidewalk.dat` だけを別に組んで足した。地面の物以外は #5 の範囲外（pak128 由来の借り物）。
 3. pak の `config/simuconf.tab` は `tile_height = 8`（`work/pak256poc/config` の写し）。AMI の 256 版は `work/ami256` の試しの pak。
 4. 本体は `-objects pak/ -load flat -freeplay -mute -mcp-port 47860 -screensize 1500x950` で起動。保存データは `flat_512_left_v64.sve`（平らな 512 四方）。送信用の記録（`settings.xml`）は空にした。
 5. 地形はスクリプト（このフォルダの `terrain_all.nut`・`rail.nut`・`cliff.nut`）で作った: 丘（単段の坂、座標 232〜241）、複段の坂の丘（222〜229）、湖（256〜267、水位を 2 回上げて海岸の斜面を出す）、線路（AMI の `ami_rail_ballast`）、1 段高い台地（300〜303。壁と柵）。
