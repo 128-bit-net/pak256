@@ -35,7 +35,7 @@ AMI の生活道路・一般道・高速の名前（`ami_road_local`・`ami_road
 | `intercity_road[0]` | `ami_road_local,0,1930` | 1930 年までは街どうしも生活道路。 |
 | `intercity_road[1]` | `ami_road_general,1930,2999` | 1930 年から一般道（120km/h）。高速道路（1990 年〜、360km/h）は街どうしの自動の道路には使わない。 |
 
-AMI の 256 版（`ami-256-alpha.1`）で先に入るのは `ami_road_local`（生活道路・通常の版）だけで、`ami_road_general` は無い。無い名前のときの本体の動きは、`dataobj/settings.cc` の `get_timeline_road_type` を読んで確かめた: 名前に当たる道路が無ければ飛ばし、見つからなければ（名前の道路が無いときと、期間外のとき。`NULL`）、街の道路は `karte_t::recalc_average_speed` が `weg_search`（上限 50km/h）、街どうしの道路は `karte_t::distribute_cities` が `weg_search`（上限 80km/h）で代わりにする。`weg_search` は上限以下で一番速い道路を選び、無ければ一番遅い道路を選ぶ。AMI だけの pak では生活道路（40km/h）が選ばれる。街どうしは、開始年 1930 年では `ami_road_local` が期間外（退役 1930 年）なので、`ami_road_general` が入るまでは、この代わりの選び方を通る。止まらないので、`simuconf.tab` は直さず、`ami_road_general` の行も残す（一般道が入れば自動で使われる）。街の道路が `ami_road_local` で建つことはゲームで確かめた（タイムライン無効で。有効のときの年の判定はコードを読んだだけ）。名前が変わったらここを直す。
+AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・通常の版）だけで `ami_road_general` が無かった（以下はそのときの確かめ。`ami-256-alpha.2`（#64）の `ami_road.pak` には `ami_road_general` も入るので、街どうしの道路は一般道になる見込みで、まだ確かめていない）。無い名前のときの本体の動きは、`dataobj/settings.cc` の `get_timeline_road_type` を読んで確かめた: 名前に当たる道路が無ければ飛ばし、見つからなければ（名前の道路が無いときと、期間外のとき。`NULL`）、街の道路は `karte_t::recalc_average_speed` が `weg_search`（上限 50km/h）、街どうしの道路は `karte_t::distribute_cities` が `weg_search`（上限 80km/h）で代わりにする。`weg_search` は上限以下で一番速い道路を選び、無ければ一番遅い道路を選ぶ。AMI だけの pak では生活道路（40km/h）が選ばれる。街どうしは、開始年 1930 年では `ami_road_local` が期間外（退役 1930 年）なので、`ami_road_general` が入るまでは、この代わりの選び方を通る。止まらないので、`simuconf.tab` は直さず、`ami_road_general` の行も残す（一般道が入れば自動で使われる）。街の道路が `ami_road_local` で建つことはゲームで確かめた（タイムライン無効で。有効のときの年の判定はコードを読んだだけ）。名前が変わったらここを直す。
 
 ### 速さと距離の換算
 
