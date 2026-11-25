@@ -1,0 +1,31 @@
+# 貨物 4 つ（本体が必ず求める 3 つ + 最初の産業の連鎖の石炭）。docs/goods.md
+# 値は pak128 に寄せた（concept の E）。絵は無い（記号は gui の sym_*）。
+- obj: good
+  name: Passagiere
+  copyright: pak256.LongScale チーム
+  catg: 0
+  value: 14
+  speed_bonus: 18
+  weight_per_unit: 85
+- obj: good
+  name: Post
+  copyright: pak256.LongScale チーム
+  metric: sack
+  catg: 0
+  value: 16
+  speed_bonus: 15
+  weight_per_unit: 50
+- obj: good
+  name: None
+  copyright: pak256.LongScale チーム
+  catg: 0
+  value: 0
+  weight_per_unit: 1
+- obj: good
+  name: Kohle
+  copyright: pak256.LongScale チーム
+  metric: tonnen
+  catg: 2
+  value: 32
+  speed_bonus: 0
+  weight_per_unit: 1000

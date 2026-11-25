@@ -14,4 +14,5 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/scenery/sample_marker`（見本。#9 で消す） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `AMI（vendor/ami）`（同梱する AMI の pak。256 版） | 128na | `128na/simutrans-addon-dev` | | CC BY 4.0 |
 | `objects/scenery/temperate_trees`（温帯の木 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_trees.py` は MIT） |
+| `objects/goods`（貨物 4 つ。値は pak128 を参考にした） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
