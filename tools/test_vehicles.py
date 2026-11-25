@@ -131,5 +131,79 @@ class TestSampleBus(unittest.TestCase):
         self.assertEqual(sum(hist[1:255]), 0)
 
 
+ROAD_DIR = os.path.join(ROOT, "objects", "vehicle", "road")
+
+
+def load_draw_vehicles():
+    spec = importlib.util.spec_from_file_location("draw_vehicles", os.path.join(ROAD_DIR, "draw_vehicles.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+class TestRoadVehicles(unittest.TestCase):
+    """バス・郵便のトラック（#41）。表の length・貨物・絵の位置（部分ごとの高さを含む）・特別な色。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = load_draw_vehicles()
+
+    def each(self):
+        for spec in self.mod.VEHICLES:
+            d = os.path.join(ROAD_DIR, spec["dir"])
+            with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8") as f:
+                table = yaml.safe_load(f)
+            img = Image.open(os.path.join(d, spec["stem"] + ".png")).convert("RGBA")
+            yield spec, table, img
+
+    def test_tables(self):
+        names = set()
+        for spec, table, _ in self.each():
+            names.add(table["name"])
+            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]), spec["name"])
+            self.assertEqual(table["name"], spec["name"])
+            self.assertEqual(table["freight"], spec["freight"])
+            self.assertEqual(table["waytype"], "road")
+            self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
+            for key in ("payload", "speed", "power", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
+        self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})
+
+    def test_cells_at_rule_position(self):
+        for spec, table, img in self.each():
+            self.assertEqual(img.size, (V.CELL * len(V.DIRECTIONS), V.CELL))
+            length = V.length_units(spec["real_length_m"])
+            for i, d in enumerate(V.DIRECTIONS):
+                whole = V.footprint(d, length, spec["width_m"], V.FRONT_UNITS)
+                pts = []
+                for t0, t1, height, *_ in spec["parts"]:
+                    for (x, y) in self.mod.part_corners(whole, t0, t1):
+                        pts += [V.to_screen(x, y, 0.0), V.to_screen(x, y, height)]
+                ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
+                box = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).getchannel("A").getbbox()
+                self.assertIsNotNone(box, d)
+                for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
+                    self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_no_special_colors_and_binary_alpha(self):
+        for spec, _, img in self.each():
+            found = set()
+            px = img.load()
+            for y in range(img.height):
+                for x in range(img.width):
+                    r, g, b, a = px[x, y]
+                    if a and (r << 16 | g << 8 | b) in SPECIAL:
+                        found.add(f"{r:02X}{g:02X}{b:02X}")
+            self.assertFalse(found, f"{spec['name']} 特別な色: {sorted(found)}")
+            self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_translations(self):
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", lang + ".tab"), encoding="utf-8") as f:
+                lines = [ln.rstrip("\r\n") for ln in f]
+            for spec in self.mod.VEHICLES:
+                self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
+
+
 if __name__ == "__main__":
     unittest.main()

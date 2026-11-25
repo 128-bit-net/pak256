@@ -1,0 +1,26 @@
+# mail_truck（絵は仮）。この表と PNG は draw_vehicles.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 7m ÷ 1.65 = 4.24 → length 4（docs/vehicles.md）。
+obj: vehicle
+name: pak256_mail_truck
+copyright: pak256.LongScale チーム
+waytype: road
+freight: Post
+payload: 44
+engine_type: diesel
+power: 77
+speed: 60
+gear: 100
+intro_year: 1930
+cost: 863000
+runningcost: 38
+weight: 5
+length: 4
+emptyimage:       # 向きごとの絵
+  s: mail_truck.0.0
+  w: mail_truck.0.1
+  sw: mail_truck.0.2
+  se: mail_truck.0.3
+  n: mail_truck.0.4
+  e: mail_truck.0.5
+  ne: mail_truck.0.6
+  nw: mail_truck.0.7
