@@ -108,12 +108,12 @@ class LintConfigTest(unittest.TestCase):
         self.assertFails("3・5・7 のどれでもない")
 
     def test_rule_slope_chars_ok(self):
-        self.edit("cityrules.tab", lambda t: t.replace("road_3 = .S. sns .S.", "road_3 = .u. sns .U."))
+        self.edit("cityrules.tab", lambda t: t.replace("road_4 = .S. sns .S.", "road_4 = .u. sns .U."))
         self.assertEqual(lint_config.lint(self.dir), [])
 
     def test_road_rule_checked(self):
-        self.edit("cityrules.tab", lambda t: t.replace("road_3 = .S. sns .S.", "road_3 = .S. sns .S"))
-        self.assertFails("road_3 は正方形でない")
+        self.edit("cityrules.tab", lambda t: t.replace("road_4 = .S. sns .S.", "road_4 = .S. sns .S"))
+        self.assertFails("road_4 は正方形でない")
 
     def test_rule_duplicate(self):
         self.edit("cityrules.tab", lambda t: t + "house_1 = ... .n. sss\n")
