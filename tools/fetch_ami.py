@@ -31,7 +31,8 @@ CACHE = os.path.join(ROOT, "build", "cache")
 
 def read_env(path=None):
     """ami.env を読む。path を省くと、呼ぶ時点の ENV_FILE を読む。"""
-    path = path or ENV_FILE
+    if path is None:
+        path = ENV_FILE
     env = {}
     with open(path, encoding="utf-8") as f:
         for line in f:
