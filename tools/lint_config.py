@@ -16,6 +16,10 @@
   cityrules.tab
     - house_N・road_N が 1 から連番で、それぞれ .chance がある
     - 規則が正方形（1 辺 3・5・7）で、使える記号だけを使い、中央が n（空き地）
+  menuconf.tab・cityrules.tab は、検査の前に本体と同じ読み方に直す
+    - キーの大文字・小文字は区別されない（小文字にして読む）。値の道具の名前（general_tool[3] など）は小文字のまま比べられるので、大文字なら誤り
+    - `toolbar[6][10-11]`・`[1,3]` のような範囲の書き方を 1 個ずつに展開して検査する（[n,s] のような ribi の名前は展開しない）
+  cityrules.tab の .chance は、10 進か 0x の整数で -32768〜32767（本体は strtol で読み、読めなければ黙って 0）
   全部の .tab
     - 空行・# の注釈・`キー = 値` のどれでもない行が無い
 
@@ -37,6 +41,7 @@ RULE_SIZES = (3, 5, 7)
 TOOLBAR_LINE = re.compile(r"^toolbar\[(\d+)\]\[(\d+)\]")
 TOOL_REF = re.compile(r"\b(toolbar|general_tool|simple_tool|dialog_tool)\[(\d+)\]")
 TOOL_DEF = re.compile(r"^(general_tool|simple_tool|dialog_tool)\[(\d+)\]\s*=")
+CHANCE_VALUE = re.compile(r"^[+-]?(0[xX][0-9a-fA-F]+|0|[1-9][0-9]*)$")
 RULE_KEY = re.compile(r"^(house|road)_(\d+)(\.chance)?$")
 
 
@@ -50,6 +55,72 @@ def is_comment(line):
     """本体が読み飛ばす行（空行・# の注釈・行頭が空白の行）。"""
     s = line.strip()
     return s == "" or s.startswith("#") or line[:1] in (" ", "	")
+
+
+RANGE_LIMIT = 256  # 本体は 1 つの [] の値を 256 個までしか持てない（tabfile.cc）
+
+
+def expand_key(key):
+    """本体の tabfile_t::read が `キー` に対してすることを写す。戻り値: (展開したキーの並び, エラーの文 か None)
+
+    - キーは小文字にし、右の空白と [] の中の空白を除く（format_key）
+    - [] の中に `,` か `-` があれば展開する（`toolbar[6][10-11]` は [10] と [11]、`[1,3]` は 1 と 3、`[2-4]` は 2・3・4）。
+      先頭の値は atoi と同じく数字の頭だけを読む。[] が複数あるときは全部の組み合わせ
+    - [] の中が n・s・e・w で始まる名前の列（`[n,s]` など ribi の書き方）は展開しない。この 2 つの設定では使わない
+    """
+    key = key.rstrip(" ").lower()
+    key = re.sub(r"\[[^\]]*\]", lambda m: m.group(0).replace(" ", ""), key)
+    parts = re.split(r"(\[[^\]]*\])", key)
+    choices = []  # 各 [] ごとの値の並び。展開しない [] は None
+    for part in parts:
+        if not (part.startswith("[") and part.endswith("]")):
+            choices.append(None)
+            continue
+        body = part[1:-1]
+        if not re.search(r".[,-]", body):
+            choices.append(None)
+            continue
+        head = re.match(r"-?\d*", body).group(0)
+        first = int(head) if re.fullmatch(r"-?\d+", head) else 0
+        if first == 0 and body[:1] in "nsew" and body != "":
+            choices.append(None)  # ribi の名前
+            continue
+        values = [first]
+        for sep, tok in re.findall(r"([,-])([^,-]*)", body[len(head):] if head else body):
+            num = re.match(r"-?\d*", tok).group(0)
+            num = int(num) if re.fullmatch(r"-?\d+", num) else 0
+            if sep == ",":
+                values.append(num)
+            else:
+                values.extend(range(values[-1] + 1, num + 1))
+            if len(values) >= RANGE_LIMIT:
+                return [], f"[{body}] の値が {RANGE_LIMIT} 個を超える（本体は止まる）"
+        choices.append(values)
+    out = [""]
+    for part, values in zip(parts, choices):
+        if values is None:
+            out = [o + part for o in out]
+        else:
+            out = [o + f"[{v}]" for o in out for v in values]
+    return out, None
+
+
+def normalize(lines):
+    """本体が読むとおりの形に直す: キーを小文字にし、範囲の書き方を 1 個ずつの行に展開する。
+    戻り値: (行の並び（行番号は元のまま）, エラーの並び)"""
+    out, errors = [], []
+    for n, line in lines:
+        if is_comment(line) or "=" not in line:
+            out.append((n, line))
+            continue
+        m = re.match(r"^([^=]*?)( *)=(.*)$", line)
+        keys, err = expand_key(m.group(1))
+        if err:
+            errors.append(f"{n}: {err}")
+            continue
+        for k in keys:
+            out.append((n, f"{k}{m.group(2)}={m.group(3)}"))
+    return out, errors
 
 
 def check_syntax(lines):
@@ -91,6 +162,9 @@ def check_menuconf(lines):
             errors.append(f"{n}: ツールバーの行は `=` の前後に空白を入れない（`toolbar[段][位置]=道具`）: {line.strip()}")
         value = line.split("=", 1)[1]
         r = TOOL_REF.match(value)
+        # 値（道具の名前）は本体が小文字のまま比べる（キーと違って小文字にしない）
+        if not r and re.match(r"(?i)(toolbar|general_tool|simple_tool|dialog_tool)\[", value):
+            errors.append(f"{n}: 道具の名前は小文字で書く（本体は大文字・小文字を区別する）: {value.split(',')[0]}")
         bar_refs.setdefault(bar, []).append((pos, n, int(r.group(2)) if r and r.group(1) == "toolbar" else None))  # 値の先頭が道具。2 つ目の欄にアイコンの番号があれば、道具の行が無くても使える
         if r:
             if r.group(1) in TOOL_ID_LIMITS and int(r.group(2)) >= TOOL_ID_LIMITS[r.group(1)]:
@@ -159,6 +233,8 @@ def parse_rules(lines):
         name = f"{m.group(1)}_{m.group(2)}"
         if m.group(3):
             chances[name] = n
+            if not CHANCE_VALUE.match(value) or not -32768 <= int(value, 0) <= 32767:
+                errors.append(f"{n}: {name}.chance の値が 10 進か 0x の整数（-32768〜32767）でない（本体は strtol で読み、読めない値は黙って 0 にする。先頭が 0 の数は 8 進になる）: {value!r}")
         else:
             if name in rules:
                 errors.append(f"{n}: {name} が重なっている")
@@ -210,7 +286,8 @@ def lint(config_dir):
         lines = read_lines(os.path.join(config_dir, name))
         found = check_syntax(lines)
         if name in checks:
-            found += checks[name](lines)
+            normalized, errs = normalize(lines)
+            found += errs + checks[name](normalized)
         errors += [f"{name}: {e}" for e in found]
     return errors
 
