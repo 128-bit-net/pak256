@@ -173,7 +173,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
 - **どこで動かすか**: AMI の手元の clone（`--ami-repo`・環境変数 `AMI_REPO`。既定は pak256 の本体の checkout の隣の `simutrans-addon-dev`）に、組む間だけ detached の worktree を `build/ami256/<SHA の頭 12 桁>/` に足し、終わったら消す。AMI のリポジトリにはコミット・push をせず、共有の checkout のブランチも切り替えない（`git fetch origin` と worktree の出し入れだけ）。
 - **AMI の側との分担**（2026-11-25、pak256 と AMI の進捗管理で決めた）:
   - 大きさを選ぶ道具（`SHEET_PAK_SIZE`・`sheet_settings.SCALE`・256 の検査）は AMI のリポジトリに残る。AMI が守るのは、道具を壊さないことまで（AMI の今の CI の範囲）。道具の使い方を変えるときは、AMI から知らせが来る。
-  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3 は pak256 の置き場の Release にだけある）。
+  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3・alpha.5 は pak256 の置き場の Release にだけある）。
   - 256 の組み立て（このツール）と、ゲームでの見た目の確かめは pak256 が受け持つ。
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
 - **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:
