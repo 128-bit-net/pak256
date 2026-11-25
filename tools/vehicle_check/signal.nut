@@ -1,5 +1,5 @@
 // 線路の信号の確かめ（#73）。MIT License。tools/game.py の Game.sq・--send で流す。
-// 変数（下の 4 行。開いたまま `--send-file` で流すときはここを書き換える。別の道具から流すときは、先頭に同じ名前の変数を足して、下の 4 行を消す）:
+// 変数（下の 1 行。開いたまま `--send-file` で流すときはここを書き換える。別の道具から流すときは、先頭に同じ名前の変数を足して、下の 1 行を消す）:
 // OX, OY（線路の周回の左上）, WAY（線路の名前）, CARS（編成の数）, SIGNALS（1 なら信号を置く）。
 OX <- 40; OY <- 60; WAY <- "ami_rail_ballast"; CARS <- 4; SIGNALS <- 1;
 // 横 W・縦 H の長方形の線路を 1 周敷き、上の辺に駅、下の辺に駅、左の辺の西の脇に車庫を置く。編成は 2 つの駅の間を周回する。
@@ -20,7 +20,7 @@ foreach (p in [[TA, OY], [BA, OY + H]]) {
     if (e != null) return s + "station " + (p[0] + i) + ": " + e;
   }
 }
-// 車庫: 下の辺の南の脇
+// 車庫: 左の辺の西の脇
 local depot_desc = null;
 foreach (d in building_desc_x.get_building_list(building_desc_x.depot)) {
   if (d.get_waytype() != wt_rail) continue;
@@ -36,7 +36,7 @@ if (SIGNALS == 1) {
   local sig = null;
   foreach (d in sign_desc_x.get_available_signs(wt_rail)) if (d.get_name() == "pak256_rail_signal") sig = d;
   if (sig == null) return s + "no signal";
-  // 1 回目は両方向、2 回目は片方向（本体は、東西の線路なら西向き、南北の線路なら南向きを選ぶ）。
+  // 1 回目は両方向、2 回目は片方向（列車が進む向きは、東西の線路なら西、南北の線路なら南。docs/signals.md の「置いたときの動き」）。
   // 上の辺は西向き、左の辺は南向きにそろえ、編成が反時計回りに 1 方向へ周回するようにする（両方向の信号だと、逆向きに入った編成どうしが向き合って止まる）。
   foreach (p in [[OX + 14, OY], [OX + 20, OY], [OX, OY + 3], [OX, OY + 6]]) {
     r("signal " + p[0] + "," + p[1], command_x.build_sign_at(pl, coord3d(p[0], p[1], 0), sig));

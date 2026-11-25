@@ -61,10 +61,21 @@ class SignalTest(unittest.TestCase):
             key = os.path.basename(p)[:-5]
             with Image.open(os.path.join(os.path.dirname(p), key + ".png")) as im:
                 im = im.convert("RGB")
+                def colors(col):
+                    return set(im.crop((col * 256, 0, col * 256 + 256, 256)).getdata())
+
+                def has_hue(col, pred):
+                    return any(pred(r, g, b) for r, g, b in colors(col))
+
+                red = lambda r, g, b: r > 150 and g < 90 and b < 90  # noqa: E731
+                green = lambda r, g, b: g > 120 and r < 90 and b < 140  # noqa: E731
                 for i in range(DIRS):
-                    red = im.crop((i * 256, 0, i * 256 + 256, 256)).tobytes()
-                    green = im.crop(((DIRS + i) * 256, 0, (DIRS + i) * 256 + 256, 256)).tobytes()
-                    self.assertNotEqual(red, green, f"{key}: 向き {i} の赤と青が同じ絵")
+                    # 本体は状態 0 を赤、1 を青として読む（0〜3 列が赤、4〜7 列が青）
+                    self.assertTrue(has_hue(i, red) and not has_hue(i, green), f"{key}: 状態 0（赤）の向き {i} に赤が無い")
+                    self.assertTrue(has_hue(DIRS + i, green) and not has_hue(DIRS + i, red), f"{key}: 状態 1（青）の向き {i} に青が無い")
+                for state in range(STATES):
+                    cells = [im.crop(((state * DIRS + i) * 256, 0, (state * DIRS + i) * 256 + 256, 256)).tobytes() for i in range(DIRS)]
+                    self.assertEqual(len(set(cells)), DIRS, f"{key}: 状態 {state} の向き 4 つの絵が重なる")
 
     def test_menuconf_removal_tool(self):
         """信号の撤去（general_tool[46]）の定義と、線路のツールバーの並びがある。"""

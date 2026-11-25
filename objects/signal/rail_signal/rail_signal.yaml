@@ -6,6 +6,7 @@ copyright: pak256.LongScale チーム
 # 閉塞信号。次の区間に列車がいると赤、いなければ青。image[状態 × 4 + 向き]。向きの順は n・s・w・e
 waytype: track
 is_signal: 1
+offset_left: 0
 intro_year: 1900
 cost: 500
 icon: "> rail_signal.1.0"

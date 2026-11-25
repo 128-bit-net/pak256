@@ -1,4 +1,4 @@
-"""仮の駅の表の検査（docs/stations.md）。
+"""線路の駅の表の検査（docs/stations.md）。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
@@ -71,16 +71,16 @@ class StationTest(unittest.TestCase):
                 self.assertTrue(has_art(2, 0), f"{sheet}: 道具の絵が空")
 
     def test_listed_in_docs(self):
-        """置き換えの控え（docs/stations.md の表）に、全部の停留所が、扱う貨物とともに載っている。"""
+        """docs/stations.md の駅の表に、全部の停留所が、扱う貨物とともに載っている。"""
         with open(os.path.join(ROOT, "docs", "stations.md"), encoding="utf-8") as f:
             doc = f.read()
         for p, d in stops():
             row = [ln for ln in doc.splitlines() if re.match(r"\|\s*`%s`\s*\|" % re.escape(d["name"]), ln)]
-            self.assertEqual(len(row), 1, f"{p}: stations.md の控えに無い")
+            self.assertEqual(len(row), 1, f"{p}: stations.md の表に無い")
             cells = [c.strip() for c in row[0].strip("|").split("|")]
             self.assertEqual(cells[1:4], [f"`{d['obj']}`", f"`{d['type']}`", f"`{d['waytype']}`"], p)
             for key in ("enables_pax", "enables_post", "enables_ware"):
-                self.assertEqual(key in cells[4], bool(d.get(key)), f"{p}: 控えの扱う貨物と {key} が合わない")
+                self.assertEqual(key in cells[4], bool(d.get(key)), f"{p}: 表の扱う貨物と {key} が合わない")
 
 
 if __name__ == "__main__":
