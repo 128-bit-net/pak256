@@ -37,6 +37,15 @@ def safe(rgb):
     return (r, g, b)
 
 
+SNOW = False  # True のとき、屋根を雪の色で描く（冬の絵）
+SNOW_ROOF = (238, 242, 248)
+
+
+def R(rgb):
+    """屋根の色。冬の絵では雪の色にする。"""
+    return SNOW_ROOF if SNOW else rgb
+
+
 def shade(rgb, k):
     return tuple(c * k for c in rgb)
 
@@ -120,7 +129,7 @@ def flat_box(cv, u0, u1, v0, v1, z0, z1, wall, roof):
     """平らな屋根の箱。壁（南西・南東の面）と屋根。"""
     face_sw(cv, u0, u1, v1, z0, z1, wall)
     face_se(cv, u1, v0, v1, z0, z1, wall)
-    cv.poly([P(u0, v0, z1), P(u1, v0, z1), P(u1, v1, z1), P(u0, v1, z1)], shade(roof, LIT_ROOF))
+    cv.poly([P(u0, v0, z1), P(u1, v0, z1), P(u1, v1, z1), P(u0, v1, z1)], shade(R(roof), LIT_ROOF))
 
 
 def gable_box(cv, u0, u1, v0, v1, z0, z1, ridge_h, ridge_axis, wall, roof_a, roof_b):
@@ -134,22 +143,23 @@ def gable_box(cv, u0, u1, v0, v1, z0, z1, ridge_h, ridge_axis, wall, roof_a, roo
         # 右下の妻（三角）
         cv.poly([P(u1, v0, z1), P(u1, v1, z1), P(u1, vm, zr)], shade(wall, LIT_SE))
         # 奥の屋根、手前の屋根
-        cv.poly([P(u0, v0, z1), P(u1, v0, z1), P(u1, vm, zr), P(u0, vm, zr)], shade(roof_b, 0.85))
-        cv.poly([P(u0, vm, zr), P(u1, vm, zr), P(u1, v1, z1), P(u0, v1, z1)], shade(roof_a, LIT_SW))
+        cv.poly([P(u0, v0, z1), P(u1, v0, z1), P(u1, vm, zr), P(u0, vm, zr)], shade(R(roof_b), 0.85))
+        cv.poly([P(u0, vm, zr), P(u1, vm, zr), P(u1, v1, z1), P(u0, v1, z1)], shade(R(roof_a), LIT_SW))
     else:
         um = (u0 + u1) / 2
         face_sw(cv, u0, u1, v1, z0, z1, wall)
         face_se(cv, u1, v0, v1, z0, z1, wall)
         # 左下の妻（三角）
         cv.poly([P(u0, v1, z1), P(u1, v1, z1), P(um, v1, zr)], shade(wall, LIT_SW))
-        cv.poly([P(u0, v0, z1), P(um, v0, zr), P(um, v1, zr), P(u0, v1, z1)], shade(roof_b, 0.85))
-        cv.poly([P(um, v0, zr), P(u1, v0, z1), P(u1, v1, z1), P(um, v1, zr)], shade(roof_a, LIT_SE))
+        cv.poly([P(u0, v0, z1), P(um, v0, zr), P(um, v1, zr), P(u0, v1, z1)], shade(R(roof_b), 0.85))
+        cv.poly([P(um, v0, zr), P(u1, v0, z1), P(u1, v1, z1), P(um, v1, zr)], shade(R(roof_a), LIT_SE))
 
 
 def hip_roof(cv, u0, u1, v0, v1, z1, h, roof):
     """寄棟風の屋根（四角錐を平らにつぶした形）。頂点は中心。"""
     um, vm = (u0 + u1) / 2, (v0 + v1) / 2
     top = (um, vm, z1 + h)
+    roof = R(roof)
     cv.poly([P(u0, v0, z1), P(u1, v0, z1), P(*top[:2], top[2])], shade(roof, 0.8))
     cv.poly([P(u0, v0, z1), P(u0, v1, z1), P(*top[:2], top[2])], shade(roof, 0.9))
     cv.poly([P(u0, v1, z1), P(u1, v1, z1), P(*top[:2], top[2])], shade(roof, LIT_SW))
@@ -233,8 +243,120 @@ def draw_apartment(cv):
     windows(cv, "se", u1, v0, v1, 0, 5, floor_h, wall, GLASS)
 
 
+def awning(cv, u0, u1, v, z, depth_m, rgb_a, rgb_b, stripes=6):
+    """左下の面（v = 一定）に張り出す縞の庇。高さ z（m）、張り出し depth_m。"""
+    step = (u1 - u0) / stripes
+    d = m2t(depth_m)
+    for i in range(stripes):
+        a, b = u0 + step * i, u0 + step * (i + 1)
+        c = rgb_a if i % 2 == 0 else rgb_b
+        cv.poly([P(a, v, z), P(b, v, z), P(b, v + d, z - 0.6), P(a, v + d, z - 0.6)], shade(c, LIT_SW))
+
+
+def sign_band(cv, face, fixed, a0, a1, z0, z1, rgb):
+    """壁の看板の帯。"""
+    if face == "sw":
+        face_sw(cv, a0, a1, fixed, z0, z1, rgb)
+    else:
+        face_se(cv, fixed, a0, a1, z0, z1, rgb)
+
+
+def draw_shop(cv):
+    """商店（com, level 1）。2 階建て、幅 11m・奥行き 8m、平らな屋根。1 階は大きな窓と縞の庇。"""
+    u0, u1, v0, v1 = footprint(11, 8, 0.5, 0.5)
+    wall = (226, 208, 176)
+    H = 7.0
+    flat_box(cv, u0, u1, v0, v1, 0, H, wall, (132, 126, 118))
+    flat_box(cv, u0, u1, v0, v1, H, H + 0.5, (190, 176, 150), (132, 126, 118))
+    # 1 階: 店先の大きな窓（左下の面）、庇、2 階の窓
+    face_sw(cv, u0 + 0.03, u1 - 0.03, v1, 0.5, 2.6, GLASS)
+    face_sw(cv, u0 + 0.12, u0 + 0.19, v1, 0, 2.2, (92, 62, 44))  # 戸
+    windows(cv, "sw", v1, u0, u1, 3.4, 1, 3.2, wall, GLASS)
+    windows(cv, "se", u1, v0, v1, 0.4, 2, 3.2, wall, GLASS)
+    awning(cv, u0 + 0.02, u1 - 0.02, v1, 3.0, 1.8, (196, 64, 52), (236, 228, 214))
+
+
+def draw_store(cv):
+    """量販店・雑居ビル（com, level 2）。4 階建て、幅 20m・奥行き 12m、平らな屋根。看板の帯が目立つ。"""
+    u0, u1, v0, v1 = footprint(20, 12, 0.5, 0.5)
+    wall = (188, 120, 98)
+    floor_h = 3.4
+    H = 13.6
+    flat_box(cv, u0, u1, v0, v1, 0, H, wall, (120, 118, 112))
+    flat_box(cv, u0, u1, v0, v1, H, H + 0.7, (170, 108, 88), (120, 118, 112))
+    face_sw(cv, u0 + 0.02, u1 - 0.02, v1, 0.4, 3.0, GLASS)
+    face_sw(cv, 0.5 - 0.03, 0.5 + 0.03, v1, 0, 2.4, (70, 70, 76))
+    sign_band(cv, "sw", v1, u0 + 0.05, u1 - 0.05, 3.2, 4.8, (232, 196, 60))
+    windows(cv, "sw", v1, u0, u1, 4.8, 3, floor_h, wall, GLASS)
+    windows(cv, "se", u1, v0, v1, 0.4, 4, floor_h, wall, GLASS)
+    # 屋上の看板塔（左奥）
+    su0, su1, sv0, sv1 = footprint(6, 1.2, 0.35, 0.62)
+    flat_box(cv, su0, su1, sv0, sv1, H + 0.7, H + 3.2, (232, 196, 60), (200, 170, 50))
+
+
+def draw_office(cv):
+    """オフィスビル（com, level 3）。7 階建て、幅 16m・奥行き 14m、青灰色のガラスの壁。"""
+    u0, u1, v0, v1 = footprint(16, 14, 0.5, 0.5)
+    wall = (118, 140, 160)
+    floor_h = 3.2
+    H = 22.4
+    flat_box(cv, u0 - 0.01, u1 + 0.01, v0 - 0.01, v1 + 0.01, 0, 1.0, (150, 146, 138), (160, 156, 148))
+    flat_box(cv, u0, u1, v0, v1, 1.0, H, wall, (128, 126, 120))
+    windows(cv, "sw", v1, u0, u1, 1.0, 6, floor_h, wall, (186, 214, 232), door=(0.5, 2.4, 2.6, (60, 66, 76)))
+    windows(cv, "se", u1, v0, v1, 1.0, 6, floor_h, wall, (186, 214, 232))
+    flat_box(cv, u0, u1, v0, v1, H, H + 0.6, (96, 112, 128), (128, 126, 120))
+    # 屋上の機械室
+    mu0, mu1, mv0, mv1 = footprint(5, 4, 0.42, 0.44)
+    flat_box(cv, mu0, mu1, mv0, mv1, H + 0.6, H + 2.6, (160, 160, 156), (128, 126, 120))
+
+
+def draw_workshop(cv):
+    """町工場（ind, level 1）。平屋、幅 13m・奥行き 10m、波板の切妻屋根（棟は u の向き）。"""
+    u0, u1, v0, v1 = footprint(13, 10, 0.5, 0.5)
+    wall = (168, 166, 156)
+    gable_box(cv, u0, u1, v0, v1, 0, 4.5, 1.6, "u", wall, (112, 118, 126), (98, 104, 112))
+    face_sw(cv, u0 + 0.06, u0 + 0.20, v1, 0, 3.6, (84, 90, 100))  # 搬入口
+    face_sw(cv, u0 + 0.26, u1 - 0.06, v1, 2.2, 3.2, GLASS_DARK)  # 明かり取りの窓
+    windows(cv, "se", u1, v0, v1, 1.2, 1, 3.2, wall, GLASS_DARK)
+
+
+def draw_warehouse(cv):
+    """倉庫（ind, level 2）。幅 22m・奥行き 14m、高さ 8m、勾配の浅い切妻（棟は v の向き）。壁は青緑。"""
+    u0, u1, v0, v1 = footprint(22, 14, 0.5, 0.5)
+    wall = (112, 146, 144)
+    gable_box(cv, u0, u1, v0, v1, 0, 8.0, 1.8, "v", wall, (176, 176, 170), (160, 160, 154))
+    n = 3
+    step = (u1 - u0) / n
+    for i in range(n):  # 巻き上げ戸
+        c = u0 + step * (i + 0.5)
+        face_sw(cv, c - 0.06, c + 0.06, v1, 0, 4.2, (206, 196, 160))
+    face_se(cv, u1, v0 + 0.1, v1 - 0.1, 5.6, 7.0, (86, 100, 100))  # 高窓の帯
+
+
+def draw_factory(cv):
+    """工場（ind, level 3）。幅 22m・奥行き 16m、高さ 9m、のこぎり屋根。煉瓦の煙突は 19m。"""
+    u0, u1, v0, v1 = footprint(22, 16, 0.5, 0.5)
+    wall = (176, 108, 86)
+    H = 9.0
+    flat_box(cv, u0, u1, v0, v1, 0, H, wall, (120, 118, 112))
+    # のこぎり屋根: 4 つの棟を並べる（棟は v の向き）
+    n = 4
+    step = (u1 - u0) / n
+    for i in range(n):
+        a, b = u0 + step * i, u0 + step * (i + 1)
+        # 緩い斜面（左上へ上がる）と、垂直の明かり取りの面（右下を向く）
+        cv.poly([P(a, v0, H), P(b, v0, H + 2.0), P(b, v1, H + 2.0), P(a, v1, H)], shade(R((110, 112, 116)), 0.9))
+        face_se(cv, b, v0, v1, H, H + 2.0, (150, 190, 205))
+    face_sw(cv, u0 + 0.06, u0 + 0.20, v1, 0, 4.4, (84, 90, 100))  # 搬入口
+    windows(cv, "sw", v1, u0 + 0.24, u1, 0, 1, 4.5, wall, GLASS_DARK)
+    windows(cv, "se", u1, v0, v1, 0.6, 1, 4.5, wall, GLASS_DARK)
+    # 煙突（奥の角寄り、1.8m 角で 19m）
+    cu0, cu1, cv0, cv1 = footprint(1.8, 1.8, 0.3, 0.32)
+    flat_box(cv, cu0, cu1, cv0, cv1, H, 19.0, (150, 82, 64), (70, 66, 64))
+
+
 # 物ごとの決め事: 描く関数、dat に書くもの
-#   type: tow（役場）・res（住宅）
+#   type: tow（役場）・res（住宅）・com（商業）・ind（工業）
 BUILDINGS = {
     "townhall": dict(
         name="pak256_townhall", draw=draw_townhall,
@@ -261,6 +383,36 @@ BUILDINGS = {
         dat={"type": "res", "level": 3, "chance": 100},
         note="集合住宅。5 階建て 15m",
     ),
+    "shop": dict(
+        name="pak256_shop", draw=draw_shop,
+        dat={"type": "com", "level": 1, "chance": 100},
+        note="商店。2 階建て 7.5m、縞の庇",
+    ),
+    "store": dict(
+        name="pak256_store", draw=draw_store,
+        dat={"type": "com", "level": 2, "chance": 100},
+        note="量販店・雑居ビル。4 階建て 14.3m、看板の帯",
+    ),
+    "office": dict(
+        name="pak256_office", draw=draw_office,
+        dat={"type": "com", "level": 3, "chance": 100},
+        note="オフィスビル。7 階建て 23m、ガラスの壁",
+    ),
+    "workshop": dict(
+        name="pak256_workshop", draw=draw_workshop,
+        dat={"type": "ind", "level": 1, "chance": 100},
+        note="町工場。平屋、棟高 6.1m、波板の切妻",
+    ),
+    "warehouse": dict(
+        name="pak256_warehouse", draw=draw_warehouse,
+        dat={"type": "ind", "level": 2, "chance": 100},
+        note="倉庫。高さ 8m、棟高 9.8m、巻き上げ戸",
+    ),
+    "factory": dict(
+        name="pak256_factory", draw=draw_factory,
+        dat={"type": "ind", "level": 3, "chance": 100},
+        note="工場。高さ 9m、のこぎり屋根、煙突 19m",
+    ),
 }
 
 
@@ -277,21 +429,29 @@ def table(key):
     lines += [
         "dims: 1,1,1",
         "intro_year: 1900",
-        "backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_buildings.py が描く",
-        f"  0: {{0: {{0: {{0: {{0: {key}.0.0}}}}}}}}",
+        "# 季節は backimage の末尾の添字。本体は絵が 4 枚のとき、0 = 夏・1 = 秋・2 = 冬・3 = 春で選び、雪線の上・雪の気候では 2（冬）を使う",
+        "# （gebaeude_t::calc_image の effective_season。2 枚だと月の冬には使われず、雪線の上だけになる）。春と秋は夏の絵と同じ。",
+        "backimage:        # backimage[配置][y][x][高さ][コマ][季節]。絵は draw_buildings.py が描く",
+        f"  0: {{0: {{0: {{0: {{0: {{0: {key}.0.0, 1: {key}.0.0, 2: {key}.0.1, 3: {key}.0.0}}}}}}}}}}",
     ]
     return "\n".join(lines) + "\n"
 
 
 def main():
+    global SNOW
     header = (
-        "# 役場と住宅（絵は仮）。この表と PNG は draw_buildings.py が書き出す。直すときはスクリプトを直して流し直す。\n"
-        "# 1 タイル = 26.4m の縮尺（docs/buildings.md）。\n"
+        "# 街の建物（絵は仮）。この表と PNG は draw_buildings.py が書き出す。直すときはスクリプトを直して流し直す。\n"
+        "# 1 タイル = 26.4m の縮尺（docs/buildings.md）。PNG は 2 枚並び（左 = 夏、右 = 冬）。\n"
     )
     for key, b in BUILDINGS.items():
-        cv = Canvas()
-        b["draw"](cv)
-        cv.finish().save(os.path.join(HERE, f"{key}.png"))
+        sheet = Image.new("RGB", (CELL * 2, CELL), CLEAR)
+        for i, snow in enumerate((False, True)):
+            SNOW = snow
+            cv = Canvas()
+            b["draw"](cv)
+            sheet.paste(cv.finish(), (CELL * i, 0))
+        SNOW = False
+        sheet.save(os.path.join(HERE, f"{key}.png"))
         with open(os.path.join(HERE, f"{key}.yaml"), "w", encoding="utf-8", newline="\n") as f:
             f.write(header + table(key))
 

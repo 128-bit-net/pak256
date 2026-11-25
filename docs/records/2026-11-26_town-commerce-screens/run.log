@@ -1,0 +1,386 @@
+city A1: None
+city A2: None
+city A3: None
+city A4: None
+city A5: None
+city A6: None
+city B1: None
+city B2: None
+t0: 函館 pop=314 bld=16 / 町田 pop=307 bld=14 / 広島 pop=301 bld=14 / 上越 pop=265 bld=11 / 大分 pop=313 bld=15 / 福山 pop=295 bld=12 / 鶴岡 pop=272 bld=11 / 今治 pop=289 bld=11 / year=1930 month=0
+poll 0: 函館 pop=331 bld=17 / 町田 pop=329 bld=15 / 広島 pop=323 bld=15 / 上越 pop=297 bld=12 / 大分 pop=341 bld=17 / 福山 pop=311 bld=12 / 鶴岡 pop=283 bld=11 / 今治 pop=318 bld=13 / year=1930 month=3
+  A1: pak256_house_small=3 pak256_store=2 pak256_row_house=4 pak256_townhall=1 pak256_workshop=1 pak256_apartment=5 pak256_factory=1 
+  A2: pak256_house_wide=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_house_wide=2 pak256_office=1 pak256_townhall=1 pak256_apartment=3 pak256_factory=1 pak256_row_house=4 
+  A5: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=3 pak256_row_house=6 
+  A6: pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_office=2 pak256_townhall=1 pak256_apartment=4 pak256_store=2 pak256_row_house=2 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=7 pak256_townhall=1 
+poll 1: 函館 pop=344 bld=18 / 町田 pop=346 bld=15 / 広島 pop=338 bld=15 / 上越 pop=329 bld=13 / 大分 pop=358 bld=17 / 福山 pop=330 bld=14 / 鶴岡 pop=330 bld=14 / 今治 pop=323 bld=13 / year=1930 month=7
+  A1: pak256_factory=1 pak256_office=1 pak256_row_house=4 pak256_apartment=5 pak256_house_small=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=1 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_house_small=1 pak256_office=1 pak256_row_house=5 pak256_apartment=4 pak256_house_wide=1 pak256_townhall=1 
+  A5: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_house_wide=1 pak256_office=2 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=2 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 2: 函館 pop=373 bld=20 / 町田 pop=361 bld=15 / 広島 pop=353 bld=15 / 上越 pop=356 bld=16 / 大分 pop=379 bld=18 / 福山 pop=345 bld=14 / 鶴岡 pop=356 bld=17 / 今治 pop=338 bld=13 / year=1930 month=11
+  A1: pak256_factory=1 pak256_shop=1 pak256_office=1 pak256_row_house=6 pak256_apartment=5 pak256_house_small=3 pak256_store=1 pak256_warehouse=1 pak256_townhall=1 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_house_small=2 pak256_office=2 pak256_row_house=5 pak256_apartment=5 pak256_house_wide=1 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_house_wide=1 pak256_shop=1 pak256_office=3 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=3 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 3: 函館 pop=409 bld=24 / 町田 pop=376 bld=15 / 広島 pop=368 bld=15 / 上越 pop=386 bld=19 / 大分 pop=394 bld=18 / 福山 pop=360 bld=14 / 鶴岡 pop=373 bld=18 / 今治 pop=353 bld=13 / year=1931 month=3
+  A1: pak256_factory=1 pak256_shop=1 pak256_office=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=2 pak256_store=1 pak256_house_small=3 pak256_row_house=7 pak256_warehouse=2 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_shop=1 pak256_office=1 pak256_row_house=6 pak256_apartment=5 pak256_house_small=1 pak256_store=1 pak256_townhall=1 pak256_house_wide=2 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_shop=1 pak256_office=3 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_store=1 pak256_row_house=3 pak256_house_small=1 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 4: 函館 pop=428 bld=25 / 町田 pop=391 bld=15 / 広島 pop=383 bld=15 / 上越 pop=399 bld=20 / 大分 pop=409 bld=18 / 福山 pop=375 bld=14 / 鶴岡 pop=390 bld=19 / 今治 pop=368 bld=13 / year=1931 month=7
+  A1: pak256_factory=1 pak256_shop=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_house_small=3 pak256_warehouse=2 pak256_row_house=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_house_small=1 pak256_office=3 pak256_store=1 pak256_row_house=6 pak256_apartment=5 pak256_house_wide=3 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_house_wide=1 pak256_office=3 pak256_store=2 pak256_townhall=1 pak256_apartment=7 pak256_house_small=2 pak256_row_house=3 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 5: 函館 pop=458 bld=28 / 町田 pop=406 bld=15 / 広島 pop=398 bld=15 / 上越 pop=420 bld=21 / 大分 pop=424 bld=18 / 福山 pop=390 bld=14 / 鶴岡 pop=435 bld=23 / 今治 pop=383 bld=13 / year=1931 month=11
+  A1: pak256_factory=1 pak256_office=2 pak256_row_house=6 pak256_apartment=7 pak256_house_wide=2 pak256_store=1 pak256_house_small=5 pak256_townhall=1 pak256_workshop=1 pak256_warehouse=2 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=2 pak256_row_house=6 pak256_apartment=5 pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=3 pak256_townhall=1 pak256_apartment=8 pak256_house_wide=1 pak256_store=1 pak256_row_house=3 pak256_house_small=3 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 6: 函館 pop=481 bld=29 / 町田 pop=421 bld=15 / 広島 pop=413 bld=15 / 上越 pop=456 bld=24 / 大分 pop=439 bld=18 / 福山 pop=405 bld=14 / 鶴岡 pop=457 bld=25 / 今治 pop=398 bld=13 / year=1932 month=3
+  A1: pak256_factory=1 pak256_shop=1 pak256_office=2 pak256_row_house=8 pak256_apartment=7 pak256_house_wide=1 pak256_store=1 pak256_house_small=4 pak256_townhall=1 pak256_workshop=1 pak256_warehouse=2 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=2 pak256_row_house=7 pak256_apartment=6 pak256_house_small=3 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=1 pak256_office=4 pak256_townhall=1 pak256_apartment=9 pak256_house_wide=1 pak256_store=1 pak256_row_house=4 pak256_house_small=4 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 7: 函館 pop=500 bld=31 / 町田 pop=436 bld=15 / 広島 pop=438 bld=15 / 上越 pop=472 bld=24 / 大分 pop=454 bld=18 / 福山 pop=420 bld=14 / 鶴岡 pop=481 bld=27 / 今治 pop=413 bld=13 / year=1932 month=7
+  A1: pak256_factory=1 pak256_shop=1 pak256_office=2 pak256_row_house=8 pak256_apartment=7 pak256_house_wide=1 pak256_store=2 pak256_house_small=4 pak256_townhall=1 pak256_workshop=1 pak256_warehouse=3 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=2 pak256_row_house=6 pak256_apartment=7 pak256_house_small=3 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=2 pak256_office=4 pak256_townhall=1 pak256_apartment=9 pak256_house_wide=2 pak256_store=2 pak256_row_house=5 pak256_house_small=2 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 8: 函館 pop=511 bld=31 / 町田 pop=451 bld=15 / 広島 pop=443 bld=15 / 上越 pop=515 bld=29 / 大分 pop=469 bld=18 / 福山 pop=435 bld=14 / 鶴岡 pop=499 bld=28 / 今治 pop=428 bld=13 / year=1932 month=11
+  A1: pak256_factory=2 pak256_shop=1 pak256_office=2 pak256_row_house=8 pak256_apartment=7 pak256_house_wide=1 pak256_store=2 pak256_house_small=4 pak256_townhall=1 pak256_workshop=1 pak256_warehouse=2 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=3 pak256_row_house=8 pak256_apartment=9 pak256_house_small=3 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=5 pak256_townhall=1 pak256_apartment=9 pak256_house_wide=1 pak256_store=1 pak256_row_house=6 pak256_house_small=2 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 9: 函館 pop=529 bld=31 / 町田 pop=466 bld=15 / 広島 pop=458 bld=15 / 上越 pop=529 bld=30 / 大分 pop=484 bld=18 / 福山 pop=450 bld=14 / 鶴岡 pop=517 bld=29 / 今治 pop=443 bld=13 / year=1933 month=3
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=2 pak256_warehouse=1 pak256_apartment=8 pak256_house_wide=1 pak256_store=1 pak256_house_small=3 pak256_townhall=1 pak256_workshop=1 pak256_row_house=9 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=4 pak256_row_house=7 pak256_apartment=10 pak256_house_small=3 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=5 pak256_townhall=1 pak256_apartment=10 pak256_house_wide=1 pak256_store=2 pak256_row_house=5 pak256_house_small=2 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 10: 函館 pop=545 bld=31 / 町田 pop=481 bld=15 / 広島 pop=473 bld=15 / 上越 pop=544 bld=30 / 大分 pop=499 bld=18 / 福山 pop=475 bld=14 / 鶴岡 pop=528 bld=29 / 今治 pop=458 bld=13 / year=1933 month=7
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=2 pak256_warehouse=1 pak256_apartment=9 pak256_house_wide=1 pak256_store=1 pak256_house_small=3 pak256_townhall=1 pak256_workshop=1 pak256_row_house=8 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=4 pak256_row_house=7 pak256_apartment=10 pak256_house_small=3 pak256_store=1 pak256_townhall=1 pak256_house_wide=3 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=2 pak256_office=5 pak256_townhall=1 pak256_apartment=10 pak256_house_wide=1 pak256_store=3 pak256_row_house=5 pak256_house_small=2 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 11: 函館 pop=581 bld=35 / 町田 pop=496 bld=15 / 広島 pop=488 bld=15 / 上越 pop=587 bld=33 / 大分 pop=514 bld=18 / 福山 pop=480 bld=14 / 鶴岡 pop=557 bld=32 / 今治 pop=473 bld=13 / year=1933 month=11
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=2 pak256_row_house=7 pak256_workshop=1 pak256_house_wide=2 pak256_store=1 pak256_townhall=1 pak256_warehouse=2 pak256_house_small=5 pak256_apartment=10 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_house_small=6 pak256_office=4 pak256_store=1 pak256_row_house=7 pak256_apartment=11 pak256_house_wide=3 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=2 pak256_office=6 pak256_townhall=1 pak256_apartment=10 pak256_house_wide=2 pak256_store=2 pak256_row_house=5 pak256_house_small=4 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 12: 函館 pop=612 bld=37 / 町田 pop=511 bld=15 / 広島 pop=513 bld=15 / 上越 pop=606 bld=35 / 大分 pop=529 bld=18 / 福山 pop=495 bld=14 / 鶴岡 pop=605 bld=37 / 今治 pop=488 bld=13 / year=1934 month=3
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=2 pak256_row_house=9 pak256_workshop=1 pak256_house_wide=2 pak256_store=1 pak256_townhall=1 pak256_warehouse=2 pak256_house_small=4 pak256_apartment=11 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=2 pak256_row_house=9 pak256_apartment=10 pak256_house_wide=4 pak256_store=1 pak256_house_small=5 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=6 pak256_townhall=1 pak256_apartment=11 pak256_house_wide=5 pak256_store=2 pak256_row_house=6 pak256_house_small=3 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 13: 函館 pop=660 bld=42 / 町田 pop=526 bld=15 / 広島 pop=528 bld=15 / 上越 pop=642 bld=38 / 大分 pop=544 bld=18 / 福山 pop=510 bld=14 / 鶴岡 pop=661 bld=43 / 今治 pop=503 bld=13 / year=1934 month=7
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=2 pak256_row_house=10 pak256_workshop=1 pak256_house_wide=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=2 pak256_house_small=5 pak256_apartment=12 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=2 pak256_row_house=8 pak256_apartment=12 pak256_house_wide=5 pak256_store=1 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=6 pak256_townhall=1 pak256_apartment=12 pak256_house_wide=4 pak256_store=2 pak256_row_house=9 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 14: 函館 pop=680 bld=45 / 町田 pop=541 bld=15 / 広島 pop=533 bld=15 / 上越 pop=650 bld=40 / 大分 pop=559 bld=18 / 福山 pop=525 bld=14 / 鶴岡 pop=673 bld=43 / 今治 pop=518 bld=13 / year=1934 month=11
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=3 pak256_row_house=11 pak256_workshop=1 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=3 pak256_house_wide=3 pak256_apartment=11 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_shop=2 pak256_office=4 pak256_row_house=9 pak256_apartment=12 pak256_house_wide=2 pak256_store=2 pak256_house_small=5 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=6 pak256_townhall=1 pak256_apartment=13 pak256_house_wide=4 pak256_store=3 pak256_row_house=8 pak256_house_small=5 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 15: 函館 pop=696 bld=45 / 町田 pop=556 bld=15 / 広島 pop=558 bld=15 / 上越 pop=667 bld=41 / 大分 pop=574 bld=18 / 福山 pop=550 bld=14 / 鶴岡 pop=715 bld=47 / 今治 pop=533 bld=13 / year=1935 month=3
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=3 pak256_row_house=12 pak256_workshop=1 pak256_house_small=6 pak256_store=1 pak256_townhall=1 pak256_warehouse=3 pak256_house_wide=3 pak256_apartment=11 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_shop=1 pak256_office=4 pak256_row_house=9 pak256_apartment=12 pak256_house_wide=2 pak256_store=1 pak256_house_small=7 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_row_house=4 
+  B1: pak256_shop=3 pak256_office=6 pak256_townhall=1 pak256_apartment=14 pak256_house_wide=5 pak256_store=3 pak256_row_house=9 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 16: 函館 pop=715 bld=46 / 町田 pop=571 bld=15 / 広島 pop=563 bld=15 / 上越 pop=686 bld=42 / 大分 pop=589 bld=18 / 福山 pop=555 bld=14 / 鶴岡 pop=727 bld=47 / 今治 pop=548 bld=13 / year=1935 month=7
+  A1: pak256_factory=3 pak256_shop=1 pak256_office=3 pak256_warehouse=4 pak256_apartment=13 pak256_house_small=6 pak256_store=1 pak256_townhall=1 pak256_workshop=1 pak256_house_wide=3 pak256_row_house=10 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_row_house=11 pak256_apartment=12 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_shop=2 pak256_office=6 pak256_townhall=1 pak256_apartment=14 pak256_house_wide=5 pak256_store=4 pak256_row_house=10 pak256_house_small=5 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 17: 函館 pop=742 bld=47 / 町田 pop=586 bld=15 / 広島 pop=578 bld=15 / 上越 pop=715 bld=44 / 大分 pop=604 bld=18 / 福山 pop=570 bld=14 / 鶴岡 pop=763 bld=50 / 今治 pop=563 bld=13 / year=1935 month=11
+  A1: pak256_factory=4 pak256_shop=1 pak256_office=2 pak256_row_house=10 pak256_apartment=14 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=1 pak256_house_wide=3 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_row_house=9 pak256_apartment=14 pak256_house_wide=3 pak256_store=2 pak256_house_small=7 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=2 pak256_shop=3 pak256_office=4 pak256_townhall=1 pak256_apartment=15 pak256_house_wide=5 pak256_store=4 pak256_row_house=11 pak256_house_small=5 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 18: 函館 pop=790 bld=52 / 町田 pop=601 bld=15 / 広島 pop=593 bld=15 / 上越 pop=737 bld=45 / 大分 pop=619 bld=18 / 福山 pop=585 bld=14 / 鶴岡 pop=805 bld=54 / 今治 pop=578 bld=13 / year=1936 month=3
+  A1: pak256_factory=4 pak256_shop=2 pak256_office=2 pak256_row_house=9 pak256_apartment=16 pak256_house_small=8 pak256_store=1 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_row_house=10 pak256_apartment=14 pak256_house_wide=3 pak256_store=2 pak256_house_small=7 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=18 pak256_house_wide=5 pak256_store=4 pak256_workshop=1 pak256_row_house=8 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 19: 函館 pop=811 bld=54 / 町田 pop=616 bld=15 / 広島 pop=608 bld=15 / 上越 pop=754 bld=45 / 大分 pop=634 bld=18 / 福山 pop=600 bld=14 / 鶴岡 pop=817 bld=54 / 今治 pop=593 bld=13 / year=1936 month=7
+  A1: pak256_factory=4 pak256_shop=2 pak256_office=3 pak256_row_house=11 pak256_apartment=16 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_row_house=10 pak256_apartment=15 pak256_house_wide=3 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=4 pak256_office=5 pak256_townhall=1 pak256_apartment=18 pak256_house_wide=4 pak256_store=5 pak256_workshop=1 pak256_row_house=9 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 20: 函館 pop=822 bld=54 / 町田 pop=631 bld=15 / 広島 pop=633 bld=15 / 上越 pop=770 bld=45 / 大分 pop=649 bld=18 / 福山 pop=615 bld=14 / 鶴岡 pop=829 bld=55 / 今治 pop=608 bld=13 / year=1936 month=11
+  A1: pak256_factory=4 pak256_shop=1 pak256_office=3 pak256_row_house=11 pak256_apartment=16 pak256_house_small=7 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=18 pak256_house_wide=4 pak256_store=6 pak256_warehouse=1 pak256_row_house=8 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 21: 函館 pop=829 bld=54 / 町田 pop=646 bld=15 / 広島 pop=638 bld=15 / 上越 pop=785 bld=45 / 大分 pop=664 bld=18 / 福山 pop=630 bld=14 / 鶴岡 pop=847 bld=56 / 今治 pop=623 bld=13 / year=1937 month=3
+  A1: pak256_factory=4 pak256_shop=1 pak256_office=4 pak256_row_house=11 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=6 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=5 pak256_office=6 pak256_townhall=1 pak256_apartment=19 pak256_house_wide=5 pak256_store=5 pak256_warehouse=1 pak256_row_house=7 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 22: 函館 pop=851 bld=55 / 町田 pop=661 bld=15 / 広島 pop=653 bld=15 / 上越 pop=800 bld=45 / 大分 pop=679 bld=18 / 福山 pop=655 bld=14 / 鶴岡 pop=876 bld=58 / 今治 pop=638 bld=13 / year=1937 month=7
+  A1: pak256_factory=4 pak256_shop=1 pak256_office=4 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=6 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=5 pak256_office=6 pak256_townhall=1 pak256_apartment=19 pak256_house_wide=5 pak256_store=5 pak256_warehouse=1 pak256_row_house=9 pak256_house_small=6 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 23: 函館 pop=868 bld=56 / 町田 pop=676 bld=15 / 広島 pop=668 bld=15 / 上越 pop=815 bld=45 / 大分 pop=694 bld=18 / 福山 pop=660 bld=14 / 鶴岡 pop=916 bld=62 / 今治 pop=653 bld=13 / year=1937 month=11
+  A1: pak256_factory=4 pak256_shop=1 pak256_office=4 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=6 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=7 pak256_office=6 pak256_townhall=1 pak256_apartment=20 pak256_house_wide=5 pak256_store=5 pak256_warehouse=1 pak256_row_house=8 pak256_house_small=8 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 24: 函館 pop=885 bld=57 / 町田 pop=691 bld=15 / 広島 pop=683 bld=15 / 上越 pop=830 bld=45 / 大分 pop=709 bld=18 / 福山 pop=675 bld=14 / 鶴岡 pop=945 bld=65 / 今治 pop=668 bld=13 / year=1938 month=3
+  A1: pak256_factory=5 pak256_shop=1 pak256_office=4 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=1 pak256_shop=7 pak256_office=7 pak256_townhall=1 pak256_apartment=20 pak256_house_wide=6 pak256_store=4 pak256_warehouse=1 pak256_workshop=1 pak256_row_house=8 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 25: 函館 pop=900 bld=57 / 町田 pop=706 bld=15 / 広島 pop=698 bld=15 / 上越 pop=845 bld=45 / 大分 pop=724 bld=18 / 福山 pop=690 bld=14 / 鶴岡 pop=984 bld=70 / 今治 pop=683 bld=13 / year=1938 month=7
+  A1: pak256_factory=5 pak256_shop=1 pak256_office=4 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_factory=2 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=20 pak256_house_wide=8 pak256_store=5 pak256_warehouse=2 pak256_workshop=1 pak256_row_house=10 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 26: 函館 pop=915 bld=57 / 町田 pop=721 bld=15 / 広島 pop=723 bld=15 / 上越 pop=860 bld=45 / 大分 pop=739 bld=18 / 福山 pop=705 bld=14 / 鶴岡 pop=1001 bld=71 / 今治 pop=698 bld=13 / year=1938 month=11
+  A1: pak256_factory=6 pak256_shop=1 pak256_office=3 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=5 pak256_office=3 pak256_row_house=11 pak256_apartment=15 pak256_house_wide=2 pak256_store=2 pak256_house_small=6 pak256_townhall=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=3 pak256_shop=5 pak256_office=6 pak256_townhall=1 pak256_apartment=20 pak256_house_wide=8 pak256_store=5 pak256_warehouse=1 pak256_workshop=2 pak256_row_house=10 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 27: 函館 pop=936 bld=58 / 町田 pop=736 bld=15 / 広島 pop=738 bld=15 / 上越 pop=885 bld=45 / 大分 pop=754 bld=18 / 福山 pop=720 bld=14 / 鶴岡 pop=1022 bld=73 / 今治 pop=713 bld=13 / year=1939 month=3
+  A1: pak256_factory=5 pak256_shop=1 pak256_office=4 pak256_row_house=12 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_small=8 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=1 pak256_office=6 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=2 pak256_row_house=11 pak256_house_wide=2 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=4 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=21 pak256_house_wide=7 pak256_store=5 pak256_warehouse=1 pak256_workshop=2 pak256_row_house=10 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 28: 函館 pop=964 bld=60 / 町田 pop=751 bld=15 / 広島 pop=753 bld=15 / 上越 pop=896 bld=45 / 大分 pop=769 bld=18 / 福山 pop=735 bld=14 / 鶴岡 pop=1039 bld=73 / 今治 pop=728 bld=13 / year=1939 month=7
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=2 pak256_row_house=13 pak256_apartment=16 pak256_house_small=8 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_wide=5 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=1 pak256_row_house=11 pak256_house_wide=2 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=4 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=21 pak256_house_wide=6 pak256_store=5 pak256_warehouse=1 pak256_workshop=2 pak256_row_house=12 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 29: 函館 pop=980 bld=60 / 町田 pop=766 bld=15 / 広島 pop=758 bld=15 / 上越 pop=901 bld=45 / 大分 pop=784 bld=18 / 福山 pop=750 bld=14 / 鶴岡 pop=1075 bld=76 / 今治 pop=743 bld=13 / year=1939 month=11
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=2 pak256_row_house=14 pak256_apartment=16 pak256_house_small=8 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=6 pak256_office=2 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=9 pak256_house_wide=2 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=6 pak256_office=5 pak256_townhall=1 pak256_apartment=23 pak256_house_wide=6 pak256_store=5 pak256_warehouse=1 pak256_workshop=3 pak256_row_house=11 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 30: 函館 pop=986 bld=60 / 町田 pop=781 bld=15 / 広島 pop=773 bld=15 / 上越 pop=921 bld=45 / 大分 pop=799 bld=18 / 福山 pop=775 bld=14 / 鶴岡 pop=1098 bld=78 / 今治 pop=758 bld=13 / year=1940 month=3
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=3 pak256_row_house=13 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=3 pak256_workshop=3 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=6 pak256_office=2 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=2 pak256_row_house=10 pak256_house_wide=2 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=7 pak256_office=5 pak256_townhall=1 pak256_apartment=23 pak256_house_wide=6 pak256_store=4 pak256_warehouse=3 pak256_workshop=3 pak256_row_house=11 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 31: 函館 pop=997 bld=60 / 町田 pop=796 bld=15 / 広島 pop=788 bld=15 / 上越 pop=932 bld=45 / 大分 pop=814 bld=18 / 福山 pop=780 bld=14 / 鶴岡 pop=1111 bld=78 / 今治 pop=773 bld=13 / year=1940 month=7
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=3 pak256_row_house=13 pak256_apartment=16 pak256_house_wide=4 pak256_store=2 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=3 pak256_office=5 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=10 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=7 pak256_office=6 pak256_townhall=1 pak256_apartment=24 pak256_house_wide=6 pak256_store=3 pak256_warehouse=3 pak256_workshop=3 pak256_row_house=11 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 32: 函館 pop=1018 bld=60 / 町田 pop=811 bld=15 / 広島 pop=803 bld=15 / 上越 pop=947 bld=45 / 大分 pop=829 bld=18 / 福山 pop=795 bld=14 / 鶴岡 pop=1129 bld=79 / 今治 pop=788 bld=13 / year=1940 month=11
+  A1: pak256_factory=8 pak256_shop=1 pak256_office=2 pak256_row_house=13 pak256_apartment=17 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=5 pak256_office=3 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=10 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=25 pak256_house_wide=6 pak256_store=4 pak256_warehouse=3 pak256_workshop=4 pak256_row_house=10 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 33: 函館 pop=1033 bld=60 / 町田 pop=826 bld=15 / 広島 pop=818 bld=15 / 上越 pop=958 bld=45 / 大分 pop=844 bld=18 / 福山 pop=810 bld=14 / 鶴岡 pop=1159 bld=82 / 今治 pop=803 bld=13 / year=1941 month=3
+  A1: pak256_factory=8 pak256_shop=1 pak256_office=2 pak256_row_house=13 pak256_apartment=17 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=5 pak256_office=4 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=2 pak256_row_house=10 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=25 pak256_house_wide=6 pak256_store=5 pak256_warehouse=3 pak256_workshop=5 pak256_row_house=11 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 34: 函館 pop=1048 bld=60 / 町田 pop=841 bld=15 / 広島 pop=843 bld=15 / 上越 pop=968 bld=45 / 大分 pop=859 bld=18 / 福山 pop=825 bld=14 / 鶴岡 pop=1176 bld=83 / 今治 pop=818 bld=13 / year=1941 month=7
+  A1: pak256_factory=8 pak256_shop=1 pak256_office=2 pak256_row_house=13 pak256_apartment=17 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=5 pak256_office=4 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=9 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_house_small=1 pak256_office=2 pak256_townhall=1 pak256_apartment=6 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=25 pak256_house_wide=7 pak256_store=5 pak256_workshop=4 pak256_warehouse=4 pak256_row_house=11 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 35: 函館 pop=1069 bld=61 / 町田 pop=856 bld=15 / 広島 pop=858 bld=15 / 上越 pop=983 bld=45 / 大分 pop=874 bld=18 / 福山 pop=840 bld=14 / 鶴岡 pop=1200 bld=85 / 今治 pop=833 bld=13 / year=1941 month=11
+  A1: pak256_factory=8 pak256_shop=1 pak256_office=2 pak256_row_house=13 pak256_apartment=17 pak256_house_wide=5 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=5 pak256_office=4 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=9 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=6 pak256_office=6 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=9 pak256_store=5 pak256_workshop=3 pak256_warehouse=5 pak256_row_house=10 pak256_house_small=9 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 36: 函館 pop=1095 bld=61 / 町田 pop=871 bld=15 / 広島 pop=873 bld=15 / 上越 pop=998 bld=45 / 大分 pop=889 bld=18 / 福山 pop=855 bld=14 / 鶴岡 pop=1236 bld=88 / 今治 pop=848 bld=13 / year=1942 month=3
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=2 pak256_row_house=14 pak256_apartment=18 pak256_house_small=7 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_wide=4 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=5 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=9 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=5 pak256_shop=5 pak256_office=6 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=6 pak256_store=5 pak256_warehouse=5 pak256_workshop=6 pak256_row_house=13 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 37: 函館 pop=1100 bld=61 / 町田 pop=886 bld=15 / 広島 pop=878 bld=15 / 上越 pop=1023 bld=45 / 大分 pop=904 bld=18 / 福山 pop=880 bld=14 / 鶴岡 pop=1249 bld=89 / 今治 pop=863 bld=13 / year=1942 month=7
+  A1: pak256_factory=6 pak256_shop=1 pak256_office=4 pak256_row_house=14 pak256_apartment=17 pak256_house_wide=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_store=1 pak256_factory=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=4 pak256_office=4 pak256_townhall=1 pak256_apartment=17 pak256_house_small=6 pak256_store=3 pak256_row_house=9 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=8 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=7 pak256_store=5 pak256_warehouse=3 pak256_workshop=6 pak256_row_house=13 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+poll 38: 函館 pop=1115 bld=61 / 町田 pop=901 bld=15 / 広島 pop=893 bld=15 / 上越 pop=1019 bld=45 / 大分 pop=919 bld=18 / 福山 pop=885 bld=14 / 鶴岡 pop=1268 bld=90 / 今治 pop=878 bld=13 / year=1942 month=11
+  A1: pak256_factory=5 pak256_shop=1 pak256_office=5 pak256_row_house=14 pak256_apartment=17 pak256_house_wide=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=8 pak256_office=2 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=3 pak256_row_house=8 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_office=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=2 pak256_townhall=1 pak256_apartment=6 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=9 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=5 pak256_store=4 pak256_warehouse=3 pak256_workshop=7 pak256_row_house=15 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=1 pak256_row_house=3 pak256_apartment=6 pak256_factory=1 pak256_townhall=1 
+poll 39: 函館 pop=1130 bld=61 / 町田 pop=916 bld=15 / 広島 pop=908 bld=15 / 上越 pop=1030 bld=45 / 大分 pop=934 bld=18 / 福山 pop=910 bld=14 / 鶴岡 pop=1279 bld=90 / 今治 pop=893 bld=13 / year=1943 month=3
+  A1: pak256_factory=7 pak256_shop=1 pak256_office=3 pak256_row_house=14 pak256_apartment=17 pak256_house_wide=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+  A2: pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+  A3: pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+  A4: pak256_factory=6 pak256_office=5 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=2 pak256_row_house=8 pak256_house_wide=1 
+  A5: pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+  A6: pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+  B1: pak256_factory=10 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=5 pak256_store=4 pak256_warehouse=2 pak256_workshop=7 pak256_row_house=15 pak256_house_small=10 
+  B2: pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+final: 函館 pop=1130 bld=61 / 町田 pop=916 bld=15 / 広島 pop=908 bld=15 / 上越 pop=1030 bld=45 / 大分 pop=934 bld=18 / 福山 pop=910 bld=14 / 鶴岡 pop=1279 bld=90 / 今治 pop=893 bld=13 / year=1943 month=3
+count A1: com+ind=18 all=61 pak256_factory=7 pak256_shop=1 pak256_office=3 pak256_row_house=14 pak256_apartment=17 pak256_house_wide=4 pak256_store=1 pak256_townhall=1 pak256_warehouse=4 pak256_workshop=2 pak256_house_small=7 
+count A2: com+ind=1 all=15 pak256_house_small=1 pak256_office=1 pak256_townhall=1 pak256_apartment=7 pak256_house_wide=1 pak256_row_house=4 
+count A3: com+ind=2 all=15 pak256_house_small=2 pak256_office=1 pak256_store=1 pak256_townhall=1 pak256_apartment=5 pak256_house_wide=1 pak256_row_house=4 
+count A4: com+ind=13 all=45 pak256_factory=6 pak256_office=5 pak256_townhall=1 pak256_apartment=16 pak256_house_small=6 pak256_store=2 pak256_row_house=8 pak256_house_wide=1 
+count A5: com+ind=1 all=18 pak256_house_small=2 pak256_factory=1 pak256_townhall=1 pak256_apartment=6 pak256_house_wide=2 pak256_row_house=6 
+count A6: com+ind=1 all=14 pak256_factory=1 pak256_townhall=1 pak256_apartment=7 pak256_house_small=1 pak256_row_house=4 
+count B1: com+ind=33 all=90 pak256_factory=10 pak256_shop=5 pak256_office=5 pak256_townhall=1 pak256_apartment=26 pak256_house_wide=5 pak256_store=4 pak256_warehouse=2 pak256_workshop=7 pak256_row_house=15 pak256_house_small=10 
+count B2: com+ind=2 all=13 pak256_house_wide=1 pak256_office=2 pak256_row_house=3 pak256_apartment=6 pak256_townhall=1 
+selected ['A1', 'B1']
+month raw=3
+month raw=5
+month raw=7
+month raw=8
+month raw=10
+month raw=11
+done {'winter': True, 'summer': True}
