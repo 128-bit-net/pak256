@@ -41,8 +41,14 @@ pak256_coal_kraftwerk
 Coal Power Plant
 pak256_sample_bus
 Sample Bus
+pak256_bus_stop
+Bus Stop
+pak256_truck_stop
+Truck Loading Bay
 pak256_train_station
 Train Station
+pak256_rail_signal
+Signal
 pak256_bus
 Bus
 pak256_mail_truck

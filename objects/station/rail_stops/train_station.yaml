@@ -1,4 +1,4 @@
-# 駅（絵は仮。AMI の物が出たら置き換えて消す。docs/stations.md）。この表と PNG は draw_stops.py が書き出す。
+# 駅（絵は簡単な物。docs/stations.md）。この表と PNG は draw_stops.py が書き出す。
 # 1 タイル = 26.4m の縮尺（docs/buildings.md）。
 obj: building
 name: pak256_train_station
