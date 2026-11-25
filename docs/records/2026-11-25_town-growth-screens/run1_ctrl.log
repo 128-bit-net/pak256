@@ -1,0 +1,33 @@
+setup: stop 100: No through station here!
+stops 2 nobus (control)
+t0: 八王子 pop=304 bld=12 gen_pax=0 tr_pax=0 growth=0 / 佐世保 pop=310 bld=13 gen_pax=0 tr_pax=0 growth=0 / year=1930 month=0
+poll 0: 八王子 pop=309 bld=12 gen_pax=2 tr_pax=0 growth=0 / 佐世保 pop=314 bld=13 gen_pax=2 tr_pax=0 growth=0 / year=1930 month=5
+poll 1: 八王子 pop=314 bld=12 gen_pax=61 tr_pax=0 growth=1 / 佐世保 pop=321 bld=13 gen_pax=73 tr_pax=0 growth=1 / year=1930 month=9
+poll 2: 八王子 pop=328 bld=13 gen_pax=68 tr_pax=0 growth=1 / 佐世保 pop=335 bld=14 gen_pax=80 tr_pax=0 growth=1 / year=1931 month=2
+poll 3: 八王子 pop=333 bld=13 gen_pax=61 tr_pax=0 growth=1 / 佐世保 pop=340 bld=14 gen_pax=57 tr_pax=0 growth=2 / year=1931 month=7
+poll 4: 八王子 pop=347 bld=14 gen_pax=58 tr_pax=0 growth=2 / 佐世保 pop=351 bld=15 gen_pax=69 tr_pax=0 growth=1 / year=1932 month=0
+poll 5: 八王子 pop=369 bld=16 gen_pax=50 tr_pax=0 growth=2 / 佐世保 pop=357 bld=15 gen_pax=51 tr_pax=0 growth=1 / year=1932 month=5
+poll 6: 八王子 pop=377 bld=16 gen_pax=56 tr_pax=0 growth=1 / 佐世保 pop=365 bld=15 gen_pax=48 tr_pax=0 growth=1 / year=1932 month=10
+poll 7: 八王子 pop=384 bld=16 gen_pax=47 tr_pax=0 growth=0 / 佐世保 pop=371 bld=15 gen_pax=51 tr_pax=0 growth=0 / year=1933 month=3
+poll 8: 八王子 pop=395 bld=17 gen_pax=37 tr_pax=0 growth=0 / 佐世保 pop=376 bld=15 gen_pax=31 tr_pax=0 growth=0 / year=1933 month=8
+poll 9: 八王子 pop=402 bld=17 gen_pax=27 tr_pax=0 growth=0 / 佐世保 pop=381 bld=15 gen_pax=27 tr_pax=0 growth=0 / year=1934 month=1
+poll 10: 八王子 pop=422 bld=19 gen_pax=11 tr_pax=0 growth=1 / 佐世保 pop=388 bld=15 gen_pax=13 tr_pax=0 growth=1 / year=1934 month=6
+poll 11: 八王子 pop=442 bld=21 gen_pax=11 tr_pax=0 growth=0 / 佐世保 pop=392 bld=15 gen_pax=8 tr_pax=0 growth=0 / year=1934 month=11
+poll 12: 八王子 pop=468 bld=24 gen_pax=2 tr_pax=0 growth=0 / 佐世保 pop=405 bld=16 gen_pax=0 tr_pax=0 growth=0 / year=1935 month=4
+poll 13: 八王子 pop=482 bld=25 gen_pax=123 tr_pax=0 growth=2 / 佐世保 pop=416 bld=17 gen_pax=110 tr_pax=0 growth=0 / year=1935 month=8
+poll 14: 八王子 pop=485 bld=25 gen_pax=122 tr_pax=0 growth=0 / 佐世保 pop=420 bld=17 gen_pax=99 tr_pax=0 growth=0 / year=1936 month=1
+poll 15: 八王子 pop=489 bld=25 gen_pax=114 tr_pax=0 growth=1 / 佐世保 pop=425 bld=17 gen_pax=84 tr_pax=0 growth=1 / year=1936 month=6
+poll 16: 八王子 pop=500 bld=26 gen_pax=92 tr_pax=0 growth=7 / 佐世保 pop=438 bld=18 gen_pax=70 tr_pax=0 growth=2 / year=1936 month=11
+poll 17: 八王子 pop=510 bld=27 gen_pax=91 tr_pax=0 growth=0 / 佐世保 pop=449 bld=19 gen_pax=61 tr_pax=0 growth=8 / year=1937 month=4
+poll 18: 八王子 pop=514 bld=27 gen_pax=72 tr_pax=0 growth=1 / 佐世保 pop=452 bld=19 gen_pax=67 tr_pax=0 growth=0 / year=1937 month=9
+poll 19: 八王子 pop=518 bld=27 gen_pax=71 tr_pax=0 growth=0 / 佐世保 pop=455 bld=19 gen_pax=38 tr_pax=0 growth=0 / year=1938 month=2
+poll 20: 八王子 pop=521 bld=27 gen_pax=47 tr_pax=0 growth=0 / 佐世保 pop=459 bld=19 gen_pax=37 tr_pax=0 growth=1 / year=1938 month=7
+poll 21: 八王子 pop=525 bld=27 gen_pax=35 tr_pax=0 growth=1 / 佐世保 pop=463 bld=19 gen_pax=27 tr_pax=0 growth=0 / year=1939 month=0
+poll 22: 八王子 pop=534 bld=28 gen_pax=23 tr_pax=0 growth=0 / 佐世保 pop=467 bld=19 gen_pax=20 tr_pax=0 growth=1 / year=1939 month=5
+poll 23: 八王子 pop=537 bld=28 gen_pax=18 tr_pax=0 growth=0 / 佐世保 pop=471 bld=19 gen_pax=12 tr_pax=0 growth=1 / year=1939 month=10
+poll 24: 八王子 pop=540 bld=28 gen_pax=4 tr_pax=0 growth=0 / 佐世保 pop=473 bld=19 gen_pax=2 tr_pax=0 growth=0 / year=1940 month=3
+poll 25: 八王子 pop=545 bld=28 gen_pax=129 tr_pax=0 growth=1 / 佐世保 pop=482 bld=20 gen_pax=114 tr_pax=0 growth=0 / year=1940 month=7
+poll 26: 八王子 pop=548 bld=28 gen_pax=133 tr_pax=0 growth=0 / 佐世保 pop=491 bld=21 gen_pax=118 tr_pax=0 growth=0 / year=1941 month=0
+poll 27: 八王子 pop=553 bld=28 gen_pax=115 tr_pax=0 growth=1 / 佐世保 pop=496 bld=21 gen_pax=84 tr_pax=0 growth=2 / year=1941 month=5
+poll 28: 八王子 pop=556 bld=28 gen_pax=98 tr_pax=0 growth=0 / 佐世保 pop=499 bld=21 gen_pax=86 tr_pax=0 growth=1 / year=1941 month=10
+poll 29: 八王子 pop=559 bld=28 gen_pax=85 tr_pax=0 growth=0 / 佐世保 pop=501 bld=21 gen_pax=72 tr_pax=0 growth=1 / year=1942 month=3

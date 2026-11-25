@@ -1,0 +1,30 @@
+setup: no stops (control: no halts)
+t0: 福山 pop=313 bld=13 gen_pax=0 tr_pax=0 gen_mail=0 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=0 tr_pax=0 gen_mail=0 tr_mail=0 growth=0 / year=1930 month=0
+poll 0: 福山 pop=313 bld=13 gen_pax=7 tr_pax=0 gen_mail=1 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=8 tr_pax=0 gen_mail=0 tr_mail=0 growth=0 / year=1930 month=5
+poll 1: 福山 pop=313 bld=13 gen_pax=81 tr_pax=0 gen_mail=20 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=70 tr_pax=0 gen_mail=21 tr_mail=0 growth=0 / year=1930 month=9
+poll 2: 福山 pop=313 bld=13 gen_pax=79 tr_pax=0 gen_mail=15 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=69 tr_pax=0 gen_mail=9 tr_mail=0 growth=0 / year=1931 month=2
+poll 3: 福山 pop=313 bld=13 gen_pax=66 tr_pax=0 gen_mail=16 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=54 tr_pax=0 gen_mail=12 tr_mail=0 growth=0 / year=1931 month=7
+poll 4: 福山 pop=313 bld=13 gen_pax=57 tr_pax=0 gen_mail=14 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=55 tr_pax=0 gen_mail=14 tr_mail=0 growth=0 / year=1932 month=0
+poll 5: 福山 pop=313 bld=13 gen_pax=57 tr_pax=0 gen_mail=11 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=50 tr_pax=0 gen_mail=10 tr_mail=0 growth=0 / year=1932 month=5
+poll 6: 福山 pop=313 bld=13 gen_pax=47 tr_pax=0 gen_mail=9 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=50 tr_pax=0 gen_mail=5 tr_mail=0 growth=0 / year=1932 month=10
+poll 7: 福山 pop=313 bld=13 gen_pax=39 tr_pax=0 gen_mail=6 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=36 tr_pax=0 gen_mail=3 tr_mail=0 growth=0 / year=1933 month=3
+poll 8: 福山 pop=313 bld=13 gen_pax=45 tr_pax=0 gen_mail=7 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=35 tr_pax=0 gen_mail=9 tr_mail=0 growth=0 / year=1933 month=8
+poll 9: 福山 pop=313 bld=13 gen_pax=26 tr_pax=0 gen_mail=5 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=21 tr_pax=0 gen_mail=3 tr_mail=0 growth=0 / year=1934 month=1
+poll 10: 福山 pop=313 bld=13 gen_pax=19 tr_pax=0 gen_mail=4 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=17 tr_pax=0 gen_mail=5 tr_mail=0 growth=0 / year=1934 month=6
+poll 11: 福山 pop=313 bld=13 gen_pax=21 tr_pax=0 gen_mail=1 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=12 tr_pax=0 gen_mail=1 tr_mail=0 growth=0 / year=1934 month=11
+poll 12: 福山 pop=313 bld=13 gen_pax=6 tr_pax=0 gen_mail=2 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=4 tr_pax=0 gen_mail=1 tr_mail=0 growth=0 / year=1935 month=4
+poll 13: 福山 pop=313 bld=13 gen_pax=93 tr_pax=0 gen_mail=17 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=78 tr_pax=0 gen_mail=10 tr_mail=0 growth=0 / year=1935 month=8
+poll 14: 福山 pop=313 bld=13 gen_pax=82 tr_pax=0 gen_mail=12 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=66 tr_pax=0 gen_mail=12 tr_mail=0 growth=0 / year=1936 month=1
+poll 15: 福山 pop=313 bld=13 gen_pax=71 tr_pax=0 gen_mail=17 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=60 tr_pax=0 gen_mail=12 tr_mail=0 growth=0 / year=1936 month=6
+poll 16: 福山 pop=313 bld=13 gen_pax=61 tr_pax=0 gen_mail=12 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=58 tr_pax=0 gen_mail=9 tr_mail=0 growth=0 / year=1936 month=11
+poll 17: 福山 pop=313 bld=13 gen_pax=55 tr_pax=0 gen_mail=13 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=43 tr_pax=0 gen_mail=14 tr_mail=0 growth=0 / year=1937 month=4
+poll 18: 福山 pop=313 bld=13 gen_pax=59 tr_pax=0 gen_mail=7 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=56 tr_pax=0 gen_mail=4 tr_mail=0 growth=0 / year=1937 month=9
+poll 19: 福山 pop=313 bld=13 gen_pax=46 tr_pax=0 gen_mail=6 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=38 tr_pax=0 gen_mail=4 tr_mail=0 growth=0 / year=1938 month=2
+poll 20: 福山 pop=313 bld=13 gen_pax=41 tr_pax=0 gen_mail=6 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=30 tr_pax=0 gen_mail=5 tr_mail=0 growth=0 / year=1938 month=7
+poll 21: 福山 pop=313 bld=13 gen_pax=26 tr_pax=0 gen_mail=8 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=23 tr_pax=0 gen_mail=4 tr_mail=0 growth=0 / year=1939 month=0
+poll 22: 福山 pop=313 bld=13 gen_pax=22 tr_pax=0 gen_mail=4 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=20 tr_pax=0 gen_mail=2 tr_mail=0 growth=0 / year=1939 month=5
+poll 23: 福山 pop=313 bld=13 gen_pax=14 tr_pax=0 gen_mail=2 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=9 tr_pax=0 gen_mail=3 tr_mail=0 growth=0 / year=1939 month=10
+poll 24: 福山 pop=313 bld=13 gen_pax=7 tr_pax=0 gen_mail=1 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=6 tr_pax=0 gen_mail=0 tr_mail=0 growth=0 / year=1940 month=3
+poll 25: 福山 pop=313 bld=13 gen_pax=103 tr_pax=0 gen_mail=15 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=82 tr_pax=0 gen_mail=9 tr_mail=0 growth=0 / year=1940 month=7
+poll 26: 福山 pop=313 bld=13 gen_pax=79 tr_pax=0 gen_mail=16 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=83 tr_pax=0 gen_mail=8 tr_mail=0 growth=0 / year=1941 month=0
+poll 27: 福山 pop=313 bld=13 gen_pax=63 tr_pax=0 gen_mail=11 tr_mail=0 growth=0 / 金沢 pop=293 bld=10 gen_pax=63 tr_pax=0 gen_mail=14 tr_mail=0 growth=0 / year=1941 month=5

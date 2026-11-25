@@ -1,0 +1,33 @@
+setup: depot 68,61
+[convoy] pak256_bus
+[convoy] pak256_mail_truck
+ok
+t0: 舞鶴 pop=307 bld=12 gen_pax=0 tr_pax=0 growth=0 / 金沢 pop=303 bld=12 gen_pax=0 tr_pax=0 growth=0 / year=1930 month=0
+poll 0: 舞鶴 pop=310 bld=12 gen_pax=8 tr_pax=0 growth=0 / 金沢 pop=330 bld=14 gen_pax=4 tr_pax=0 growth=1 / year=1930 month=5
+poll 1: 舞鶴 pop=314 bld=12 gen_pax=87 tr_pax=2 growth=0 / 金沢 pop=341 bld=14 gen_pax=95 tr_pax=2 growth=2 / year=1930 month=9
+poll 2: 舞鶴 pop=319 bld=12 gen_pax=65 tr_pax=0 growth=1 / 金沢 pop=352 bld=14 gen_pax=64 tr_pax=0 growth=2 / year=1931 month=2
+poll 3: 舞鶴 pop=322 bld=12 gen_pax=56 tr_pax=2 growth=0 / 金沢 pop=370 bld=15 gen_pax=71 tr_pax=2 growth=2 / year=1931 month=7
+poll 4: 舞鶴 pop=326 bld=12 gen_pax=78 tr_pax=2 growth=1 / 金沢 pop=382 bld=15 gen_pax=62 tr_pax=2 growth=3 / year=1932 month=0
+poll 5: 舞鶴 pop=329 bld=12 gen_pax=66 tr_pax=2 growth=0 / 金沢 pop=411 bld=18 gen_pax=56 tr_pax=2 growth=20 / year=1932 month=5
+poll 6: 舞鶴 pop=333 bld=12 gen_pax=59 tr_pax=2 growth=0 / 金沢 pop=422 bld=18 gen_pax=61 tr_pax=2 growth=2 / year=1932 month=10
+poll 7: 舞鶴 pop=336 bld=12 gen_pax=49 tr_pax=2 growth=1 / 金沢 pop=431 bld=18 gen_pax=51 tr_pax=2 growth=1 / year=1933 month=3
+poll 8: 舞鶴 pop=339 bld=12 gen_pax=37 tr_pax=2 growth=0 / 金沢 pop=440 bld=18 gen_pax=41 tr_pax=2 growth=1 / year=1933 month=8
+poll 9: 舞鶴 pop=342 bld=12 gen_pax=28 tr_pax=0 growth=0 / 金沢 pop=448 bld=18 gen_pax=27 tr_pax=0 growth=0 / year=1934 month=1
+poll 10: 舞鶴 pop=346 bld=12 gen_pax=24 tr_pax=0 growth=0 / 金沢 pop=457 bld=18 gen_pax=15 tr_pax=0 growth=0 / year=1934 month=6
+poll 11: 舞鶴 pop=350 bld=12 gen_pax=13 tr_pax=0 growth=0 / 金沢 pop=472 bld=19 gen_pax=15 tr_pax=0 growth=1 / year=1934 month=11
+poll 12: 舞鶴 pop=354 bld=12 gen_pax=11 tr_pax=1 growth=0 / 金沢 pop=487 bld=20 gen_pax=9 tr_pax=1 growth=0 / year=1935 month=4
+poll 13: 舞鶴 pop=358 bld=12 gen_pax=73 tr_pax=3 growth=1 / 金沢 pop=507 bld=22 gen_pax=119 tr_pax=3 growth=14 / year=1935 month=8
+poll 14: 舞鶴 pop=363 bld=12 gen_pax=79 tr_pax=5 growth=1 / 金沢 pop=517 bld=22 gen_pax=113 tr_pax=5 growth=2 / year=1936 month=1
+poll 15: 舞鶴 pop=366 bld=12 gen_pax=78 tr_pax=4 growth=0 / 金沢 pop=526 bld=22 gen_pax=111 tr_pax=4 growth=1 / year=1936 month=6
+poll 16: 舞鶴 pop=369 bld=12 gen_pax=75 tr_pax=2 growth=1 / 金沢 pop=539 bld=23 gen_pax=111 tr_pax=2 growth=1 / year=1936 month=11
+poll 17: 舞鶴 pop=380 bld=13 gen_pax=74 tr_pax=0 growth=0 / 金沢 pop=560 bld=25 gen_pax=94 tr_pax=0 growth=1 / year=1937 month=4
+poll 18: 舞鶴 pop=384 bld=13 gen_pax=61 tr_pax=5 growth=1 / 金沢 pop=600 bld=30 gen_pax=105 tr_pax=5 growth=10 / year=1937 month=9
+poll 19: 舞鶴 pop=386 bld=13 gen_pax=57 tr_pax=3 growth=0 / 金沢 pop=609 bld=30 gen_pax=68 tr_pax=3 growth=1 / year=1938 month=2
+poll 20: 舞鶴 pop=389 bld=13 gen_pax=38 tr_pax=2 growth=0 / 金沢 pop=614 bld=30 gen_pax=75 tr_pax=2 growth=0 / year=1938 month=7
+poll 21: 舞鶴 pop=392 bld=13 gen_pax=46 tr_pax=3 growth=0 / 金沢 pop=621 bld=30 gen_pax=75 tr_pax=3 growth=0 / year=1939 month=0
+poll 22: 舞鶴 pop=395 bld=13 gen_pax=28 tr_pax=0 growth=0 / 金沢 pop=627 bld=30 gen_pax=62 tr_pax=0 growth=0 / year=1939 month=5
+poll 23: 舞鶴 pop=398 bld=13 gen_pax=23 tr_pax=0 growth=1 / 金沢 pop=633 bld=30 gen_pax=32 tr_pax=0 growth=0 / year=1939 month=10
+poll 24: 舞鶴 pop=400 bld=13 gen_pax=11 tr_pax=0 growth=0 / 金沢 pop=638 bld=30 gen_pax=21 tr_pax=0 growth=0 / year=1940 month=3
+poll 25: 舞鶴 pop=402 bld=13 gen_pax=8 tr_pax=0 growth=0 / 金沢 pop=642 bld=30 gen_pax=12 tr_pax=0 growth=0 / year=1940 month=8
+poll 26: 舞鶴 pop=405 bld=13 gen_pax=99 tr_pax=6 growth=0 / 金沢 pop=648 bld=30 gen_pax=156 tr_pax=6 growth=1 / year=1941 month=0
+poll 27: 舞鶴 pop=409 bld=13 gen_pax=80 tr_pax=3 growth=0 / 金沢 pop=653 bld=30 gen_pax=150 tr_pax=3 growth=1 / year=1941 month=5
