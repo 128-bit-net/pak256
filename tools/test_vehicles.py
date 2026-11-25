@@ -180,7 +180,7 @@ class TestCoalTruck(unittest.TestCase):
             self.assertEqual(f.read(), self.truck.yaml_lines(self.spec))
 
     def test_values_match_docs_table(self):
-        # docs/vehicles.md の「石炭のトラック」の表の値と、表（yaml）の値が同じ
+        # docs/vehicles.md の「道路の車両」の表の値と、表（yaml）の値が同じ
         with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
             text = f.read()
         doc = docs_row(text, self.spec["name"])

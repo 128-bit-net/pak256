@@ -163,9 +163,26 @@ class LifecycleTest(Base):
     @unittest.skipUnless(os.name == "nt", "Job Object は Windows だけ")
     def test_game_process_is_in_job_and_job_closed_on_stop(self):
         g = self.run_with(lambda self_, code, timeout=30: "1")
-        with g:
-            self.assertIsNotNone(g.job.handle)
+        assigned = []
+        orig = game.JobObject.assign
+
+        def spy(job, proc):
+            ok = orig(job, proc)
+            assigned.append((proc.pid, ok))
+            return ok
+        with mock.patch.object(game.JobObject, "assign", spy):
+            with g:
+                self.assertIsNotNone(g.job.handle)
+                self.assertEqual(assigned, [(g.proc.pid, True)])  # 起動したゲームのプロセスが Job に入った
         self.assertIsNone(g.job)
+
+    def test_job_failure_does_not_stop_the_game(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1")
+        with mock.patch.object(game, "JobObject", side_effect=OSError("no job")):
+            with g:
+                self.assertIsNone(g.job)
+                self.assertTrue(game.alive(g.proc.pid))
+        self.assertFalse(os.path.exists(self.work))
 
     def test_keep_leaves_workdir(self):
         g = self.run_with(lambda self_, code, timeout=30: "1", keep=True)
@@ -287,6 +304,11 @@ class SquirrelCheckTest(unittest.TestCase):
         game.check_squirrel('// "コメントの引用符\nreturn 1')
         game.check_squirrel('/* " \n " */ return 1')
         game.check_squirrel('return @"a\nb"')  # 逐語の文字列は改行を許す
+        game.check_squirrel('local q = \'"\';\nlocal s = "x";')  # 文字リテラル '"'
+        game.check_squirrel("local q = '\\'';\nlocal s = \"x\";")  # エスケープした文字リテラル
+        game.check_squirrel('# "注釈の引用符\nreturn 1')
+        with self.assertRaises(ValueError):  # 文字リテラルの後でも、文字列の改行は弾く
+            game.check_squirrel('local q = \'"\';\nreturn "a\nb"')
 
     def test_sq_stops_before_sending(self):
         g = game.Game("e", "m", 47880, work="w", client=__file__)

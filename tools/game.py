@@ -27,7 +27,7 @@
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
 - MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47899）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
-- Squirrel の文字列リテラルの中に改行を入れない（Python の "\n" が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
+- Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（#38 のテストプレイのフォルダへ入れる道具と共通）。
 """
 import argparse
@@ -194,14 +194,14 @@ def check_squirrel(code):
     """Squirrel の文字列リテラル（"…"）の中に改行があれば、流す前に止める（#59）。
 
     Python の "\\n" は本物の改行になり、本体の run_squirrel でコンパイルが通らない（"…" の中の改行は Squirrel の誤り）。
-    文字列の外の改行（複数行のコード・// と /* */ の注釈）は構わない。@"…" の逐語の文字列は改行を許すので見ない。
+    文字列の外の改行（複数行のコード・// # /* */ の注釈・'"' の文字リテラル）は構わない。@"…" の逐語の文字列は改行を許すので見ない。
     """
     i, n, line = 0, len(code), 1
     while i < n:
         c = code[i]
         if c == "\n":
             line += 1
-        elif code.startswith("//", i):
+        elif code.startswith("//", i) or c == "#":
             while i < n and code[i] != "\n":
                 i += 1
             continue
@@ -221,6 +221,9 @@ def check_squirrel(code):
                     break
                 line += code[i] == "\n"
                 i += 1
+        elif c == "'":  # 文字リテラル（'"' など）。1 文字か、エスケープ 1 つ
+            i += 3 if code[i + 1:i + 2] != "\\" else 4
+            continue
         elif c == '"':
             start = line
             i += 1
@@ -341,9 +344,13 @@ class Game:
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
-            self.job = JobObject()
+            try:
+                self.job = JobObject()
+            except OSError as e:  # 保険の仕組みの失敗で起動を止めない
+                self.job = None
+                print(f"[game] Job Object を作れなかった（{e}）。この Python を強制終了するとゲームが残る", flush=True)
             self.proc = subprocess.Popen(cmd, cwd=self.work, stdout=log, stderr=subprocess.STDOUT)
-        if os.name == "nt" and not self.job.assign(self.proc):
+        if self.job is not None and not self.job.assign(self.proc):
             print("[game] Job Object に入れられなかった（この Python を強制終了するとゲームが残る）", flush=True)
         print(f"[game] pid={self.proc.pid} port={self.port} work={self.work}", flush=True)
         end, last = time.monotonic() + limit, None
@@ -415,7 +422,7 @@ class Game:
             raise ValueError(f"窓の番号か名前を渡す: {which!r}（名前: {', '.join(DIALOGS)}）")
         return self.sq(f"return gui.open_dialog_tool({nr})")
 
-    def settle(self, seconds=10, speed=SETTLE_SPEED):
+    def settle(self, seconds=15, speed=SETTLE_SPEED):
         """建設中の絵（黄と黒の縞）が終わるまでゲームを進めて、速さを 1 に戻す（速さ 1 のままだと終わらない。#58）。
 
         建物（車庫・停留所など）を置いた後、撮る前に呼ぶ。seconds は実時間の秒。
