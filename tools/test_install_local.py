@@ -165,6 +165,23 @@ class InstallLocalTest(unittest.TestCase):
             self.install(zip_path=z)
         self.assertTrue(self.exists("pak256", "old.pak"))
 
+    def test_crc_broken_member_stops_before_cleaning(self):
+        put(os.path.join(self.dest, "pak256", "old.pak"))
+        z = os.path.join(self.tmp.name, "crc.zip")
+        with zipfile.ZipFile(z, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("pak256/a.pak", "AAAAAAAA")
+        data = bytearray(open(z, "rb").read())
+        data[data.index(b"AAAAAAAA")] = ord("B")  # 中身を 1 バイト変える（CRC が合わなくなる）
+        open(z, "wb").write(data)
+        with self.assertRaises(RuntimeError):
+            self.install(zip_path=z)
+        self.assertTrue(self.exists("pak256", "old.pak"))
+
+    def test_non_ascii_zip_name_in_version(self):
+        z = self.make_zip(["pak256/a.pak"], os.path.join(self.tmp.name, "テスト版.zip"))
+        self.install(zip_path=z)
+        self.assertEqual(self.read("pak256", "VERSION"), "zip-テスト版" + chr(10))
+
     def test_package_zip_roundtrip(self):
         # package.py が作る zip の形（pak256/ 始まり）をそのまま入れられる
         put(os.path.join(self.root, "LICENSE.md"), "CC BY-SA 4.0")

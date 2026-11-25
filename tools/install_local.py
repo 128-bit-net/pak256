@@ -66,7 +66,7 @@ def install_local(dest, zip_path=None, build=None, root=game.ROOT, exe=game.EXE,
     check_dest(dest, exe, root)
     placed = game.install_pak(os.path.join(dest, PAK_FOLDER), root=root, build=build, zip_path=zip_path, clean=True)
     version = version_name(zip_path, root)
-    with open(os.path.join(dest, PAK_FOLDER, game.VERSION_FILE), "w", encoding="ascii", newline="") as f:
+    with open(os.path.join(dest, PAK_FOLDER, game.VERSION_FILE), "w", encoding="utf-8", newline="") as f:
         f.write(version + "\n")
     placed.append(game.VERSION_FILE)
     bat = os.path.join(dest, PLAY_BAT)
@@ -89,12 +89,15 @@ def main():
     ap.add_argument("--build", action="store_true", help="入れる前に tools/build.py を流す（zip のときは使えない）")
     ap.add_argument("--no-play-bat", action="store_true", help="play.bat を作らない")
     a = ap.parse_args()
-    if a.build:
-        if a.zip:
-            sys.exit("[install_local] --build と --zip は同時に使えない")
-        subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
+    if a.build and (a.zip or a.build_dir):
+        sys.exit("[install_local] --build は --zip・--build-dir と同時に使えない（build.py は <リポジトリ>/build に組む）")
     try:
+        check_dest(a.dest)  # 時間のかかる build の前に、入れ先を確かめる
+        if a.build:
+            subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
         placed = install_local(a.dest, a.zip, a.build_dir, make_bat=not a.no_play_bat)
+    except subprocess.CalledProcessError as e:
+        sys.exit(f"[install_local] build.py が失敗した（終了コード {e.returncode}）")
     except (RuntimeError, OSError, zipfile.BadZipFile) as e:
         sys.exit(f"[install_local] {e}")
     print(f"[install_local] {os.path.join(a.dest, PAK_FOLDER)} に {len(placed)} ファイルを入れた")
