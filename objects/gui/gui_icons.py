@@ -651,6 +651,15 @@ def g_rail_x(c):
     badge(c, "x")
 
 
+def g_signal_x(c):
+    """信号の撤去: 信号の柱と灯りに赤い ×。"""
+    c.line([(44, 112), (44, 40)], 9)
+    c.rect(26, 14, 62, 50, DRK, r=6, outline=W, w=3)
+    c.ell(34, 22, 54, 42, GRN)
+    c.line([(24, 112), (64, 112)], 7, GRY)
+    badge(c, "x")
+
+
 def g_special(c):
     pts = []
     for i in range(10):
@@ -910,12 +919,14 @@ ICONS = {
     ("bar", 44): g_underground,
     ("bar", 45): g_newgame,
     ("bar", 46): g_rail_x,
+    ("bar", 47): g_signal_x,
 }
 
 BG = {      # 地の色を変える絵（気候は色で見分けやすくする）
     ("general", 1): (170, 56, 50),
     ("bar", 20): (170, 56, 50),
     ("bar", 46): (170, 56, 50),
+    ("bar", 47): (170, 56, 50),
     ("bar", 32): (30, 90, 170),
     ("bar", 33): (190, 150, 60),
     ("bar", 34): (30, 130, 80),

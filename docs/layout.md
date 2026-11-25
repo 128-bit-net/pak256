@@ -30,11 +30,12 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 仮の駅（線路）。AMI の物が出たら消す。[stations.md](stations.md) | #46 |
+| `objects/station/` | 線路の駅（pak256 の物。AMI は駅を作らない）。[stations.md](stations.md) | #46・#73 |
+| `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、仮の駅（`objects/station/`。#46）だけ。AMI の 256 版が出たら置き換えて消す（[stations.md](stations.md)）。道路の車庫は #64、道路の停留所（バス停・荷役所）は #72 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、線路の駅（`objects/station/`。#46・#73）と線路の信号（`objects/signal/`。#73）。AMI は駅と信号を作らないので、pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64、道路の停留所（バス停・荷役所）は #72 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 
@@ -102,7 +103,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
-| `test_stations.py` | 仮の駅の表の検査: `type: stop`・`waytype`（`rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
+| `test_stations.py` | 線路の駅の表の検査: `type: stop`・`waytype`（`rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
+| `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
 | `test_build_ami256.py` | `build_ami256.py` の検査: 描く順の分け方・子の環境から外す変数・アイコンの段の失敗（終了コード 0 の `Traceback`）・途中から続けるときの止め・描き直し（段の順）・AMI のコミットからの変更の拾い方・`ami.env` の書き換え・比べ方・上げる前の止め（試し・別のコミット・飛ばした段・道具の版の抜け・AMI の道具や dat の変更・変わった zip・既にあるタグ）。AMI・Blender・gh は使わない |
