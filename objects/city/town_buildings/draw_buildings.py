@@ -179,7 +179,7 @@ def draw_townhall(cv):
     # 屋上の縁（胸壁）
     flat_box(cv, u0, u1, v0, v1, H + 0.6, H + 1.2, (186, 178, 162), (120, 118, 112))
     # 窓と正面玄関
-    windows(cv, "sw", v1, u0, u1, 0.6, 3, floor_h, wall, GLASS, door=(0.5, 2.6, 3.0, (92, 62, 44)))
+    windows(cv, "sw", v1, u0, u1, 0.6, 3, floor_h, wall, GLASS, door=(0.5, 2.6, 2.4, (92, 62, 44)))
     windows(cv, "se", u1, v0, v1, 0.6, 3, floor_h, wall, GLASS)
     # 玄関の庇（1 階の上、2.4m 張り出す）
     ux0, ux1 = 0.5 - m2t(2.2), 0.5 + m2t(2.2)
@@ -239,7 +239,7 @@ BUILDINGS = {
     "townhall": dict(
         name="pak256_townhall", draw=draw_townhall,
         dat={"type": "tow", "build_time": 0, "passengers": 12, "chance": 100},
-        note="役場。街が最初に建てる（住民 0 のとき）。3 階建て 12m、時計塔まで約 19m",
+        note="役場。街が最初に建てる（住民 0 のとき）。3 階建て、屋上 13.2m、時計塔まで約 20m",
     ),
     "house_small": dict(
         name="pak256_house_small", draw=draw_house_small,

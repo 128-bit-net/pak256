@@ -3,7 +3,7 @@
 obj: building
 name: pak256_townhall
 copyright: pak256.LongScale チーム
-# 役場。街が最初に建てる（住民 0 のとき）。3 階建て 12m、時計塔まで約 19m
+# 役場。街が最初に建てる（住民 0 のとき）。3 階建て、屋上 13.2m、時計塔まで約 20m
 type: tow
 build_time: 0
 passengers: 12

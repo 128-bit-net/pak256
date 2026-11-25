@@ -10,7 +10,7 @@ pak128 の値を参考にしたが、文は写さず、本体のコード（OTRP
 
 - 差し替えたのは初版のとき。ツールバーの番号と空白は、レビューの指摘で直した後は再び起動していない（起動のログでは、ツールバーの誤りは警告にならないため、ログでは確かめられない）。
 - 4 つとも読み込めた（初版）: `Read 5 house building rules`・`Read 3 road building rules`・`Reading speedbonus configuration` が出て、`fatal`・`bad format`・`ignored`（規則の無視）の行は無い。起動のログに設定ファイルが原因の警告は無い。
-- 確かめていない: ツールバーの見た目。街の成長（家・道が建つ様子）は #8 で見た（`cityrules.tab` の節）。`ami_road_local` が街の道路になることは [記録](records/2026-11-25_ami-road-screens.md) で確かめた。
+- 確かめていない: ツールバーの見た目。街の成長は #8 で、人口をスクリプトで足した形だけ見た（輸送での成長は未確認。`cityrules.tab` の節と記録）。`ami_road_local` が街の道路になることは [記録](records/2026-11-25_ami-road-screens.md) で確かめた。
 - 起動中にゲームの MCP は応答しなかった（起動の最初の画面が出たまま）。そのため、街の増え方の数値は取っていない。
 
 ## `simuconf.tab`
