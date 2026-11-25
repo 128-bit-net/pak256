@@ -16,4 +16,5 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/scenery/temperate_trees`（温帯の木 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_trees.py` は MIT） |
 | `objects/goods`（貨物 4 つ。名前と値は pak128 と同じ） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/city/town_buildings`（役場と住宅 5 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_buildings.py` は MIT） |
+| `objects/industry/coal_chain`（炭鉱と石炭火力の発電所。絵は仮。値は pak128 に合わせた） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_industry.py` は MIT） |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |

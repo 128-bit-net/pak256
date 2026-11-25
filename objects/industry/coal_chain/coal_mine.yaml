@@ -1,0 +1,26 @@
+# 産業（絵は仮）。この表と PNG は draw_industry.py が書き出す。直すときはスクリプトを直して流し直す。
+# 1 タイル = 26.4m の縮尺（docs/industry.md）。
+obj: factory
+name: pak256_coal_mine
+copyright: pak256.LongScale チーム
+# 炭鉱。立坑の櫓（高さ 17m）・巻上げ小屋・積込み小屋・石炭の山。2x2 タイル。値は pak128 の shaft_coal_mine に合わせた
+location: Land
+mapcolor: 176
+distributionweight: 1
+outputgood: [Kohle]
+outputcapacity: [300]
+productivity: 80
+range: 50
+electricity_amount: 150
+electricity_boost: 800
+mail_demand: 0
+mail_boost: 0
+passenger_demand: 20
+passenger_boost: 500
+needs_ground: 1
+intro_year: 1700
+dims: 2,2
+backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_industry.py が描く
+  0:
+    0: {0: {0: {0: coal_mine.0.0}}, 1: {0: {0: coal_mine.0.1}}}
+    1: {0: {0: {0: coal_mine.1.0}}, 1: {0: {0: coal_mine.1.1}}}
