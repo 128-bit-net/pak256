@@ -171,17 +171,9 @@ def flat_diamond(color_fn):
 
 # ---------------------------------------------------------------- 気候の絵（ClimateTexture）
 
-CLIMATES = [
-    # 名前, 暗い色, 明るい色（本体の気候の番号の順。温帯が 4）
-    ("water", (60, 110, 160), (76, 128, 176)),
-    ("desert", (196, 172, 112), (222, 200, 140)),
-    ("tropic", (66, 132, 52), (104, 164, 70)),
-    ("mediterran", (104, 138, 62), (148, 166, 84)),
-    ("temperate", (72, 120, 52), (118, 160, 76)),
-    ("tundra", (104, 120, 92), (138, 150, 118)),
-    ("rocky", (112, 106, 98), (152, 146, 134)),
-    ("arctic", (222, 228, 238), (246, 248, 252)),
-]
+# 本体の気候の番号の順（温帯が 4）。色と模様は、気候ごとの tex_* が持つ
+CLIMATES = [("water",), ("desert",), ("tropic",), ("mediterran",), ("temperate",),
+            ("tundra",), ("rocky",), ("arctic",)]
 
 
 def fbm(a, b, seed, octaves=((4, 0.45), (8, 0.30), (16, 0.17), (32, 0.08))):
@@ -587,7 +579,7 @@ def build_all(outdir):
     write_dat(outside_dir, "outside.dat", "Outside", [f"Image[0][0]={sheet.ref(0, 0)}"],
               "地図の外のタイル。この絵の幅（256）が本体のタイルの幅になる")
 
-    # ClimateTexture（8 気候。温帯が 4。温帯以外は仮の色）
+    # ClimateTexture（8 気候。温帯が 4。0 の水は Water が描くので下絵だけ）
     sheet = Sheet("texture-climate", 8, 1)
     lines = []
     for i in range(8):
