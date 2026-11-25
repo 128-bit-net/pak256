@@ -29,8 +29,12 @@ SKIP = {".gitkeep"}
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)  # 同じ中身なら同じ zip になるように
 
 
-def collect(root=ROOT, build=BUILD):
-    """(zip の中の名前, 元のファイル) の一覧を返す。"""
+def collect_runtime(root=ROOT, build=BUILD):
+    """(zip の中の名前, 元のファイル) のうち、ゲームが読む物（pak・config・text）だけ。許諾の文の検査はしない。
+
+    配布の zip（collect）も、ゲームに入れる道具（game.install_pak・install_local.py。#38）も、ここから取る。
+    pak が 1 つも無ければ止まる。
+    """
     files = []
     paks = sorted(glob.glob(os.path.join(build, "pak", "*.pak")))
     if not paks:
@@ -47,6 +51,12 @@ def collect(root=ROOT, build=BUILD):
                 path = os.path.join(dirpath, name)
                 rel = os.path.relpath(path, root).replace(os.sep, "/")
                 files.append((f"{TOP}/{rel}", path))
+    return files
+
+
+def collect(root=ROOT, build=BUILD):
+    """配布の zip に入れる (zip の中の名前, 元のファイル) の一覧を返す。許諾の文の検査を含む。"""
+    files = collect_runtime(root, build)
     for name in ("LICENSE.md", "CREDITS.md"):
         files.append((f"{TOP}/{name}", os.path.join(root, name)))
     # LICENSE.md が相対リンクで引く許諾の本文。zip の中でリンクが切れないように入れる
