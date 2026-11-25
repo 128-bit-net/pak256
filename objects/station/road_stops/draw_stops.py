@@ -1,4 +1,4 @@
-"""道路の停留所（バス停・トラックの荷役所）の絵と表を書き出す（docs/stations.md）。MIT License。絵は仮（箱を数式で描いた物）。
+"""停留所（バス停・トラックの荷役所）と駅の絵と表を書き出す（docs/stations.md）。MIT License。絵は仮（箱を数式で描いた物）。
 
 - 縮尺・タイルの座標は objects/city/town_buildings/draw_buildings.py と同じ（1 タイル = 26.4m、高さ 1m = 5.94px）。
 - 停留所は 1x1 タイル。道路の向きごとに 8 通り（本体の決まり。0 NS 中、1 EW 中、2 NS 南端、3 EW 東端、4 NS 北端、5 EW 西端、

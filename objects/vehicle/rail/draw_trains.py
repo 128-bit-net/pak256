@@ -6,7 +6,7 @@
   （表に cell_size: 512 と位置合わせ -128,-128 を書く。docs/layout.md の「セルの大きさ」）。
 - 8 方向を 512px のセルに横に並べたシート（4096x512）を車両ごとに `<名前>/<名前>.png` に、表を `<名前>.yaml` に書く。
 - 道路の車両の描く道具（objects/vehicle/road/draw_vehicles.py）の箱を組む関数と色の決まりを読んで使う（道具を写して増やさない）。
-- 車輪の下端の高さは `V.RAIL_WHEEL_DROP_PX`（レールの上面。AMI の線路は新描画位置でレールが地面より下がる）。
+- 車輪の下端の高さは `V.RAIL_WHEEL_DROP_PX`（地面より何 px 下に描くか。今は 0 = 地面の高さ。docs/vehicles.md）。
 
 使い方（Pillow が要る。書き出した PNG と表は git に入れる）:
     python -X utf8 objects/vehicle/rail/draw_trains.py
@@ -159,6 +159,10 @@ def yaml_lines(spec):
         f"runningcost: {spec['runningcost']}",
         f"weight: {spec['weight']}",
         f"length: {length}",
+    ]
+    if not spec["powered"]:  # 付随車は先頭にならない（気動車か付随車の後ろ）
+        lines += ["constraint:", "  prev:", "    0: pak256_railcar", "    1: pak256_railcar_trailer"]
+    lines += [
         "emptyimage:       # 向きごとの絵（画像名,x の位置合わせ,y の位置合わせ）",
     ]
     for i, direction in enumerate(V.DIRECTIONS):

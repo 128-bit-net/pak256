@@ -16,6 +16,10 @@ cost: 1894000
 runningcost: 28
 weight: 17
 length: 12
+constraint:
+  prev:
+    0: pak256_railcar
+    1: pak256_railcar_trailer
 emptyimage:       # 向きごとの絵（画像名,x の位置合わせ,y の位置合わせ）
   s: "railcar_trailer.0.0,-128,-128"
   w: "railcar_trailer.0.1,-128,-128"

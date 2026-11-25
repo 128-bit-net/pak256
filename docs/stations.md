@@ -12,7 +12,7 @@
 | `pak256_truck_stop` | `building` | `stop` | `road` | 貨物（`enables_ware`。旅客・郵便は扱わない） | トラックの荷役所 / Truck Loading Bay |
 | `pak256_train_station` | `building` | `stop` | `track` | 旅客（`enables_pax`。郵便・貨物は扱わない） | 駅 / Train Station |
 
-- どちらも 1x1 タイル、`level` 2（容量。本体は level × 32。値は仮で、pak128 の荷役所に合わせた）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
+- どれも 1x1 タイル、`level` 2（容量。本体は level × 32。値は仮で、pak128 の荷役所に合わせた）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
 - 駅（`pak256_train_station`）: 線路（AMI の `ami_rail_ballast`）の脇に、高さ 0.9m のホームと屋根つきの待合を置く。線路はタイルの中央（c = 0.43〜0.57。道床の幅 約 3.4m）を通ると見て、近い側（c = 0.66〜0.98）にホームを置いた。1x1 タイルで、向きの絵・シートの並びは上のバス停と同じ。**列車は 2 両で 24 単位 = 1.5 タイルあるので、駅は 2〜3 タイル並べて置く**（1 タイルだと編成がはみ出す）。ゲームで 3 タイルを並べ、気動車 + 付随車が停まって旅客を積み降ろしできた（[記録](records/2026-11-25_rail-train.md)）。
 - AMI の物に置き換えるときは、次を行う。`objects/station/` を消す・`tools/test_stations.py` を消す・`text/` の 2 行ずつ（ja・en）を消す・`CREDITS.md` の行を消す・この文書を消す・`layout.md` の物の種類の表の `objects/station/` の行、道具の表の `test_stations.py` の行、「例外は…」の文を消す。AMI の物の名前は AMI の側（`ja_ami.tab` など）が持つ。
 - 保存データは物の名前で引くので、置き換えると、置いてあった停留所は消える（本体は見つからない物を外す）。置き換えは、遊べる版（α0.2）より前に行うのがよい（保存データでの挙動は本体のコードの読みで、置いて確かめてはいない）。
