@@ -2,7 +2,7 @@
 
 車両を描くときの決まり。[#40](https://github.com/128-bit-net/pak256/issues/40) で、道路の車両（バス・トラック）の分を決めた。線路の車両の分は [#46](https://github.com/128-bit-net/pak256/issues/46) で足した（concept の D。下の「線路の車両」）。背景は [concept.md](concept.md) の C・D。
 
-決まりは `tools/vehicles.py`（MIT）に計算として置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、この文書と `vehicles.py` を一緒に直す。線路の車両（気動車・付随車）の分は下の「線路の車両」（[#46](https://github.com/128-bit-net/pak256/issues/46)）。
+決まりは `tools/vehicles.py`（MIT）に計算として置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、[standards.md](standards.md)・この文書・`vehicles.py` を一緒に直す。線路の車両（気動車・付随車）の分は下の「線路の車両」（[#46](https://github.com/128-bit-net/pak256/issues/46)）。
 
 ## 長さ・描画位置
 
@@ -96,6 +96,6 @@
 ## 決めていないこと
 
 - 線路の分岐・斜め（あれば）・2 段以上の坂での線路の車両の見え方（直線・90° の曲がり・1 段の坂は確かめた。上の「曲がり・坂」）。
-- 逆向き運転の `reverse_base_offset`（上の「前後の位置」）。線路の終点での折り返し（編成の向きを入れ替えない通常の折り返し）では、前後対称の絵で崩れは見えなかった。
+- 逆向き運転の `reverse_base_offset`（上の「前後の位置（細目）」と [standards.md](standards.md) の 4 章）。線路の終点での折り返し（編成の向きを入れ替えない通常の折り返し）では、前後対称の絵で崩れは見えなかった。
 - 長い連節バスを 512 のセルで描いたときの、曲がりでのはみ出しの見え方（列車は #71 で見た。上の「曲がり・坂」）。
 - 追い越し（OTRP の `overtaking_base_offset`。既定では左側通行のずれと同じ値を足す）のときの車線の位置。
