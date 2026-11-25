@@ -1,0 +1,7 @@
+§# pak256.LongScale の物の名前（日本語）。先頭の § は UTF-8 の印、# で始まる行は読まれない。後は名前と訳の行が交互（OTRP の dataobj/translator.cc）。
+pak256_zelkova
+ケヤキ
+pak256_cedar
+スギ
+pak256_birch
+シラカバ

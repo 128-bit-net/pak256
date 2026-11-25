@@ -150,6 +150,16 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
   - [LICENSE.md](../LICENSE.md) に例外を書く: 同梱する AMI の pak と絵は CC BY 4.0（CC BY-SA ではない）。今の「配布物（`.pak`）にも同じ許諾が及びます」の例外にする。
   - 配布の zip に、`build/ami_license.txt` を `ami_license.txt` の名前で入れる（`tools/package.py`）。
 
+## 物の名前の訳と街の名前
+
+`text/` に置く。本体が pak のフォルダの `text/` から読む（`dataobj/translator.cc`）。
+
+- `ja.tab`・`en.tab`: 物の名前（dat の `name`）と訳の行が交互に並ぶ。先頭の `§` は UTF-8 の印、`#` で始まる行は読まれない。物を足した PR で、名前を足す。
+- `citylist_ja.txt`・`citylist_en.txt`: 街の名前。1 行に 1 つ。本体は、新しい街ごとに一覧から名前を選ぶ。一覧が無い言語では、本体の既定の音節の組み合わせで名前を作る。
+- 名前が画面に出るのは、木のように選んで置く物。地面・GUI の物は画面に名前が出ないので、今は訳さない。
+- AMI の物の名前は AMI の側（`ja_ami.tab` など）で持つ。ここには書かない。
+- 訳語は pak128 の訳を写さず、自分で付ける。
+
 ## 見本の物
 
 表から dat → pak が通る形の見本は、温帯の木 `objects/scenery/temperate_trees/`（[trees.md](trees.md)）。絵は `draw_trees.py` が描き、表も書き出す。
