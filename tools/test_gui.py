@@ -62,9 +62,9 @@ class GuiTest(unittest.TestCase):
 
     def test_every_used_icon_has_a_picture(self):
         """使っているアイコンがすべて、番号でなく専用の絵を持つ（#66）。"""
-        for kind, nums in draw_gui.used_icons().items():
-            for n in nums:
-                self.assertIn((kind, n), gui_icons.ICONS, f"{kind} {n}")
+        used = {(kind, n) for kind, nums in draw_gui.used_icons().items() for n in nums}
+        self.assertEqual(sorted(used - set(gui_icons.ICONS)), [], "絵が無い番号")
+        self.assertEqual(sorted(set(gui_icons.ICONS) - used), [], "使われない絵（menuconf.tab に無い番号）")
 
     def test_icons_are_distinguishable(self):
         """同じ種類の中で、同じ絵のアイコンが無い。"""
@@ -82,7 +82,9 @@ class GuiTest(unittest.TestCase):
             for n in nums:
                 im = draw_gui.tool_icon(kind, n)
                 self.assertEqual(im.size, (128, 128))
-                for r, g, b, a in im.getdata():
+                raw = im.tobytes()
+                for i in range(0, len(raw), 4):
+                    r, g, b, a = raw[i:i + 4]
                     self.assertIn(a, (0, 255))
                     if a:
                         self.assertNotIn((r, g, b), special)

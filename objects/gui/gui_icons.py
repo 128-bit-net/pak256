@@ -2,7 +2,7 @@
 
 道具ごとに、見て何をする道具か分かる簡単な図形の絵を描く（他の pak の絵は使わない）。
 番号 → 絵の対応は ICONS（種類, 番号）。番号の意味は本体の simmenu.h の列挙（docs/gui.md の「アイコンの絵」）。
-512px の絵に描いて 128px に縮め、縁の半透明を切る（makeobj の特別な色は draw_ground.rgba で避ける）。
+512px の絵に描いて 128px に縮め、縁の半透明を切る（makeobj の特別な色は、書き出す draw_gui.tool_icon が draw_ground.rgba で避ける）。
 """
 import math
 
@@ -186,9 +186,9 @@ def coin(c, x=64, y=64, k=1.0):
     c.xf()
 
 
-def lines(c, x0=28, x1=100, y0=36, n=3, gap=26, w=9):
+def lines(c, x0=28, x1=100, y0=36, n=3, gap=26, w=9, col=W):
     for i in range(n):
-        c.line([(x0, y0 + i * gap), (x1, y0 + i * gap)], w)
+        c.line([(x0, y0 + i * gap), (x1, y0 + i * gap)], w, col)
 
 
 def road(c, x=64, y=64, k=1.0):
@@ -210,8 +210,8 @@ def cube(c, y=64, k=1.0, hole=False):
 
 
 def badge(c, kind):
-    """右下の飾り（足す・引く・上・下・消す・直す・直す印）。"""
-    colors = {"plus": GRN, "minus": RED, "up": GRN, "down": RED, "x": RED, "edit": ORG, "info": BLU}
+    """右下の飾り（足す・引く・消す・直す・情報）。"""
+    colors = {"plus": GRN, "minus": RED, "x": RED, "edit": ORG, "info": BLU}
     c.xf()
     c.ell(66, 66, 122, 122, colors[kind], outline=W, w=4)
     if kind == "plus":
@@ -219,8 +219,6 @@ def badge(c, kind):
         c.line([(94, 78), (94, 110)], 8)
     elif kind == "minus":
         c.line([(78, 94), (110, 94)], 8)
-    elif kind in ("up", "down"):
-        arrow(c, 94, 94, 0 if kind == "up" else 180, 34, W, 9, 12)
     elif kind == "x":
         c.line([(80, 80), (108, 108)], 8)
         c.line([(108, 80), (80, 108)], 8)
@@ -311,8 +309,9 @@ def g_wayobj_remove(c):
 
 
 def g_buy_land(c):
-    tile(c, 66, k=1.0)
-    coin(c, 64, 82, 0.5)
+    """街の建物（家）を買う道具（TOOL_BUY_HOUSE）。"""
+    house(c, 52, 58, 0.85)
+    coin(c, 92, 96, 0.38)
 
 
 def g_pause(c):
@@ -364,7 +363,7 @@ def g_coverage(c):
 
 def g_names(c):
     c.rect(12, 34, 116, 94, W, r=10)
-    c.text((64, 64), "ABC", 40, DRK)
+    c.text((64, 64), "Ab", 56, DRK)
 
 
 def g_grid(c):
@@ -386,6 +385,12 @@ def g_underground(c):
     cube(c, 62, 1.0, hole=True)
 
 
+def g_section_view(c):
+    """断面の表示（K。地面を横に切った面）。"""
+    cube(c, 62, 1.0)
+    c.poly([(8, 66), (64, 38), (120, 66), (64, 94)], YEL, outline=ORG, w=3)
+
+
 def g_rotate(c):
     c.arc(22, 22, 106, 106, 40, 330, 13)
     c.poly([(98, 10), (118, 50), (74, 44)], W)
@@ -401,10 +406,15 @@ def g_tooltips(c):
     bus(c, 64, 48, 0.55, col=ORG)
 
 
-def g_signal(c):
-    c.rect(40, 12, 88, 116, DRK, r=10, outline=W, w=4)
-    for i, col in enumerate((RED, YEL, GRN)):
-        c.ell(52, 22 + i * 30, 76, 46 + i * 30, col)
+def g_reservation(c):
+    """線路の予約（ブロックの予約表示の切り替え）。2 本のレールと枕木のうち、予約された区間を赤く塗る。"""
+    for i in range(7):
+        c.line([(16 + i * 16, 30), (16 + i * 16, 98)], 7, BRN)
+    c.rect(36, 24, 92, 104, RED, r=8)
+    for x in (48, 64, 80):
+        c.line([(x, 34), (x, 94)], 6, (255, 190, 180))
+    c.line([(6, 48), (122, 48)], 9, W)
+    c.line([(6, 80), (122, 80)], 9, W)
 
 
 def g_owner(c):
@@ -437,8 +447,7 @@ def g_lines(c):
 
 def g_messages(c):
     c.poly([(12, 18), (116, 18), (116, 88), (60, 88), (36, 112), (38, 88), (12, 88)], W)
-    lines(c, 30, 98, 40, 2, 24, 7)
-    c.xf()
+    lines(c, 30, 98, 40, 2, 24, 7, (120, 130, 150))
 
 
 def g_finance(c):
@@ -574,7 +583,7 @@ def g_info(c):
 def g_doc(c):
     c.poly([(26, 10), (80, 10), (104, 34), (104, 118), (26, 118)], W)
     c.poly([(80, 10), (80, 34), (104, 34)], GRY)
-    lines(c, 40, 90, 52, 3, 20, 7)
+    lines(c, 40, 90, 52, 3, 20, 7, (120, 130, 150))
 
 
 def g_doc_info(c):
@@ -603,7 +612,6 @@ def g_bush(c):
     for x, y, r in ((40, 74, 26), (88, 74, 26), (64, 56, 32)):
         c.ell(x - r, y - r, x + r, y + r, GRN, outline=DGRN, w=3)
     c.rect(56, 82, 72, 108, BRN)
-    c.xf()
 
 
 def g_edit_bush(c):
@@ -803,11 +811,11 @@ ICONS = {
     ("simple", 12): g_grid,
     ("simple", 13): g_trees,
     ("simple", 14): g_houses,
-    ("simple", 15): g_underground,
+    ("simple", 15): g_section_view,
     ("simple", 16): g_rotate,
     ("simple", 17): g_quit,
     ("simple", 20): g_tooltips,
-    ("simple", 33): g_signal,
+    ("simple", 33): g_reservation,
     ("simple", 34): g_owner,
     # 窓を開く道具（DIALOGE_TOOL）
     ("dialog", 0): g_help,
@@ -875,7 +883,7 @@ ICONS = {
     ("bar", 41): _dir_slope(63, "N", True),
     ("bar", 42): _dir_slope(297, "W", True),
     ("bar", 43): _dir_slope(117, "E", True),
-    ("bar", 44): lambda c: cube(c, 62, 1.0, hole=True),
+    ("bar", 44): g_underground,
     ("bar", 45): g_newgame,
 }
 

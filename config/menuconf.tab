@@ -190,7 +190,7 @@ toolbar[3][9]=buildings(34,1)
 toolbar[3][10]=buildings(35,1)
 toolbar[3][11]=general_tool[14],,s,1
 
-# ---- 特殊（街・木・目印・土地の購入）----
+# ---- 特殊（プレイヤーの切り替え・木・目印・街の建物の購入・スクリプト）----
 toolbar[4][0]=buildings(35,0)
 toolbar[4][1]=simple_tool[5]
 toolbar[4][2]=general_tool[11]
