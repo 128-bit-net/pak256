@@ -41,6 +41,7 @@ general_tool[36] = ,,11,
 general_tool[38] = ,,11,
 general_tool[39] = ,11,11,
 general_tool[44] = ,9,11,
+general_tool[46] = ,1,11,
 
 # ---- 1 回押すだけの道具 ----
 simple_tool[0] = 0,p
@@ -183,7 +184,7 @@ toolbar[2][20]=general_tool[39],37,,5 #気候: ツンドラ
 toolbar[2][21]=general_tool[39],38,,6 #気候: 岩
 toolbar[2][22]=general_tool[39],39,,7 #気候: 北極
 
-# ---- 線路（AMI の線路・橋・トンネル・駅・車庫。信号はまだ無い）----
+# ---- 線路（AMI の線路・橋・トンネル・車庫と、pak256 の駅・信号）----
 toolbar[3][0]=ways(2,0)
 toolbar[3][1]=ways(2,1)
 toolbar[3][2]=bridges(2)
@@ -192,10 +193,11 @@ toolbar[3][4]=wayobjs(2)
 toolbar[3][5]=signs(2)
 toolbar[3][6]=general_tool[17],46,,2
 toolbar[3][7]=general_tool[33],,,2
-toolbar[3][8]=buildings(33,2)
-toolbar[3][9]=buildings(34,2)
-toolbar[3][10]=buildings(35,2)
-toolbar[3][11]=general_tool[14],,t,2
+toolbar[3][8]=general_tool[46],47,,2
+toolbar[3][9]=buildings(33,2)
+toolbar[3][10]=buildings(34,2)
+toolbar[3][11]=buildings(35,2)
+toolbar[3][12]=general_tool[14],,t,2
 
 # ---- 道路（AMI の道路・橋・トンネル・標識・停留所・車庫）----
 toolbar[4][0]=ways(1,0)
