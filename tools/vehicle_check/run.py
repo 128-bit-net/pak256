@@ -92,7 +92,7 @@ def main():
     ap.add_argument("--port", type=int, required=True)
     ap.add_argument("--vehicle", default="pak256_sample_bus")
     ap.add_argument("--depot", default="", help="道路の車庫の名前（空なら最初に見つかった物）")
-    ap.add_argument("--extra-pak", action="append", default=[], help="借りる pak（道路の車庫・停留所。試験のときだけ）")
+    ap.add_argument("--extra-pak", action="append", default=[], help="借りる pak（別の車庫・停留所を試すときだけ）")
     ap.add_argument("--way", default="ami_road_local", help="輪に敷く道路の名前（AMI の 256 版の道路）")
     ap.add_argument("--origin", default="40,40", help="輪の北西の角（温帯の x<256 に置く）")
     ap.add_argument("--rounds", type=int, default=90, help="撮る回数の上限（4 秒ごと）")

@@ -3,7 +3,7 @@
 - 縮尺・タイルの座標は objects/city/town_buildings/draw_buildings.py と同じ（1 タイル = 26.4m、高さ 1m = 5.94px）。
 - 車庫は 1x1 タイル、向きは 4 通り（本体の決まり。`dims` の 3 つめが 4）。向きごとに、戸（車の出入り口）の面を変える。
   戸の面は LAYOUT_SIDE の順（0〜3）。南西・南東の面は戸が見え、北東・北西の面は隠れるので、そちらは地面の舗装（後ろの絵）だけで入口を示す。
-- シートは 4 列（向き）× 3 行（0 行 = 後ろ（舗装）、1 行 = 前（建物）、2 行 = 道具の絵）。セルの名前は <名前>.<行>.<列>。
+- シートは 4 列（向き）× 3 行（0 行 = 後ろ（舗装）、1 行 = 前（建物）、2 行 = 道具の絵（2 行 0 列）と置くときのカーソル（2 行 1 列））。セルの名前は <名前>.<行>.<列>。
 
 使い方（Pillow が要る。書き出した PNG と表は git に入れる）:
     python -X utf8 objects/depot/road_depot/draw_depot.py
@@ -96,6 +96,7 @@ def sheet():
         part = out.crop((0, row * CELL, CELL, row * CELL + CELL))
         icon.paste(part, (0, 0), _mask(part))
     out.paste(icon, (0, CELL * 2))
+    out.paste(icon, (CELL, CELL * 2))  # 置くときのカーソル（2 行 1 列）。道具の絵と同じ絵
     return out
 
 
@@ -112,6 +113,7 @@ def table():
         "noinfo: 1",
         f"dims: 1,1,{LAYOUTS}",
         "icon: \"> road_depot.2.0\"",
+        "cursor: road_depot.2.1",
         "backimage:        # backimage[向き][y][x][高さ][コマ]。向きの順は draw_depot.py の LAYOUT_SIDE",
     ]
     for i in range(LAYOUTS):

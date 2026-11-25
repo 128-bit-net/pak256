@@ -58,6 +58,12 @@ class DepotTest(unittest.TestCase):
                         self.assertTrue(has_art(row, i), f"{p}: {row} 行 {i} 列が空")
                 self.assertEqual(str(d["icon"]).lstrip("> "), f"{key}.2.0")
                 self.assertTrue(has_art(2, 0), "道具の絵が空")
+                self.assertEqual(str(d["cursor"]), f"{key}.2.1")
+                self.assertTrue(has_art(2, 1), "カーソルの絵が空")
+                # 向きごとに戸の面が違う（4 列が互いに違う絵）。順の取り違えや同じ絵の使い回しを止める
+                for row in (0, 1):
+                    cells = [im.crop((c * 256, row * 256, c * 256 + 256, row * 256 + 256)).tobytes() for c in range(LAYOUTS)]
+                    self.assertEqual(len(set(cells)), LAYOUTS, f"{row} 行の 4 つの向きが互いに違わない")
 
     def test_listed_and_translated(self):
         with open(os.path.join(ROOT, "docs", "stations.md"), encoding="utf-8") as f:
