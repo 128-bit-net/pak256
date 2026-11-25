@@ -30,6 +30,7 @@ class SignalTest(unittest.TestCase):
             self.assertEqual(d["obj"], "roadsign", p)
             self.assertEqual(d["waytype"], "track", p)
             self.assertEqual(int(d["is_signal"]), 1, p)
+            self.assertEqual(int(d["offset_left"]), 0, f"{p}: offset_left は 0（絵は最初から左に描いてある）")
             self.assertEqual(sorted(d["image"]), list(range(STATES * DIRS)), f"{p}: 絵が 状態 × 向き の数にならない")
             sheet = os.path.join(os.path.dirname(p), key + ".png")
             with Image.open(sheet) as im:

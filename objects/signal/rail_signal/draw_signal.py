@@ -98,7 +98,7 @@ def table():
         "obj: roadsign",
         f"name: {NAME}",
         "copyright: pak256.LongScale チーム",
-        "# 閉塞信号。次の区間に列車がいると赤、いなければ青。image[状態 × 4 + 向き]。向きの順は n・s・w・e",
+        "# 閉塞信号。ふだんは赤、列車が近づいて次の区間が空いているときだけ青。image[状態 × 4 + 向き]。向きの順は n・s・w・e",
         "waytype: track",
         "is_signal: 1",
         "offset_left: 0",  # 絵は最初から進む向きの左に描いてあるので、信号を左に立てる地図でも、本体の左寄せ（既定 14）を使わない
