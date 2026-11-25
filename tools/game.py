@@ -89,13 +89,16 @@ def _is_runtime(rel):
     return (rel.endswith(".pak") and "/" not in rel) or rel.split("/", 1)[0] in ("config", "text")
 
 
+VERSION_FILE = "VERSION"  # install_local.py が書く版の名前のファイル（入れ替えのとき一緒に消す）
+
+
 def clean_pak(dest):
-    """dest の中の、install_pak が入れる種類の物（最上段の *.pak・config/・text/）だけを消す。ほかの物は残す。"""
+    """dest の中の、入れる種類の物（最上段の *.pak・config/・text/・VERSION）だけを消す。下位のフォルダなどほかの物は残す。"""
     if not os.path.isdir(dest):
         return
     for name in os.listdir(dest):
         path = os.path.join(dest, name)
-        if os.path.isfile(path) and name.endswith(".pak"):
+        if os.path.isfile(path) and (name.endswith(".pak") or name == VERSION_FILE):
             os.remove(path)
         elif os.path.isdir(path) and name in ("config", "text"):
             shutil.rmtree(path)
@@ -104,10 +107,13 @@ def clean_pak(dest):
 def _zip_members(zip_path):
     """配布の zip（先頭のフォルダは pak256/）から、ゲームが読む物の (相対パス, 名前) を返す。危ない名前は止める。"""
     with zipfile.ZipFile(zip_path) as z:
+        bad = z.testzip()  # 壊れたメンバーは、消す前に見つける
+        if bad:
+            raise RuntimeError(f"zip が壊れている: {bad}")
         names = [n for n in z.namelist() if not n.endswith("/")]
     out = []
     for n in names:
-        if ".." in n.split("/") or n.startswith(("/", "\\")) or ":" in n or "\\" in n:
+        if ".." in n.split("/") or n.startswith(("/", "\\")) or ":" in n or "\\" in n or any(c in n for c in '*?"<>|'):
             raise RuntimeError(f"zip の中の名前が危ない: {n}")
         parts = n.split("/")
         if parts[0] == package.TOP:
@@ -124,7 +130,7 @@ def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=Fals
     """pak と config/・text/ を dest（本体の pak のフォルダ）に入れる。
 
     dest の中身は配布の zip の pak256/ と同じ形（*.pak・config・text だけ。許諾の文は入れない）。
-    zip_path があれば、その zip（Release の物を含む配布の zip）から取る。無ければ手元で組んだ build/pak/ と config/・text/ から取る
+    zip_path があれば（root・build は使わない）、その zip（Release の物を含む配布の zip）から取る。無ければ手元で組んだ build/pak/ と config/・text/ から取る
     （配布用の許諾の検査は通さない。package.collect_runtime）。
     clean は、入れる前に dest の古い *.pak・config/・text/ を消す（テストプレイのフォルダの入れ替え。ほかの物は残す）。
     extra は、足りない物を別の pak から借りるときのファイル（試験のときだけ。コミットしない）。

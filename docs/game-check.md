@@ -86,15 +86,17 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 手元で組んだ pak、または配布の zip を、テストプレイのフォルダ（本体の実行ファイルの横）の `pak256/` に入れる。ゲームは起動しない。
 
 ```
-python -X utf8 tools/build.py
-python -X utf8 tools/install_local.py <テストプレイのフォルダ>                    # build/pak/ と config/・text/ を入れる
+python -X utf8 tools/install_local.py <テストプレイのフォルダ> --build           # build.py で組んでから、build/pak/ と config/・text/ を入れる
+python -X utf8 tools/install_local.py <テストプレイのフォルダ>                    # 組み済みの build/pak/ を入れる
 python -X utf8 tools/install_local.py <テストプレイのフォルダ> --zip <配布の zip>  # Release の zip などを直接入れる
 ```
 
 - 入れ先の形: `<dest>/<本体の実行ファイル>`・`<dest>/pak256/`（この道具が入れる）・`<dest>/play.bat`（無ければ作る。`-singleuser -objects pak256/` を付けて起動する。既にあれば触らない）。`save/`・`settings.xml` には触らない。
-- 入れ替えるとき、`pak256/` の古い `*.pak`・`config/`・`text/` は消す（`pak256/` のほかの物は残す）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
+- `pak256/VERSION` に入れた物の版の名前を書く（手元で組んだ物は `local-<短いコミット>`、作業ツリーに変更があれば `-dirty`。zip は `zip-<zip のファイル名>`）。
+- `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/` を、配布の zip と同じ一覧から直接入れる）。
+- 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`config/`・`text/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
 - 入れ先に本体の実行ファイルが無い・このリポジトリの中なら止まる（間違った場所へ入れない）。
-- zip は先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`config/`・`text/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
+- zip は（壊れていないか・危ない名前が無いかを、消す前に調べる）先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`config/`・`text/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
 - 配布用の許諾の文の検査（`LICENSE.md` の例外など）は通さない。ゲームで試すだけで、配るわけではない。配るのは `package.py`。
 
 pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で、`Game` の作業フォルダ（`<作業フォルダ>/pak/`）も同じ関数で入れる。配布の zip の一覧のうち、ゲームが読む物だけを返す `package.collect_runtime` を土台にしていて、許諾の検査（`package.collect`）とは切り離してある。
