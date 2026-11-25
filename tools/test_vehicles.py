@@ -46,6 +46,17 @@ class TestRules(unittest.TestCase):
         self.assertEqual(V.length_units(5.0), 3)    # 3.03
         self.assertEqual(V.length_units(5.8), 4)    # 3.52
         self.assertEqual(V.length_units(0.5), 1)
+        # 0.5 ちょうどは切り上げ（Python の round の偶数丸めではない）
+        self.assertEqual(V.length_units(4.125), 3)  # 2.5
+
+    def test_fixed_numbers(self):
+        # docs/vehicles.md に書いた数。変えるときは文書と一緒に直す
+        self.assertEqual(V.FRONT_UNITS, 0)
+        self.assertEqual(V.ORIGIN, (128, 192))
+        self.assertEqual(V.CELL, 256)
+        self.assertEqual(V.UNITS_PER_TILE, 16)
+        self.assertAlmostEqual(V.M_PER_UNIT, 1.65)
+        self.assertAlmostEqual(V.PX_PER_M_Z, 5.94, places=2)
 
     def test_lane_offset_is_half_of_driveleft(self):
         # 右側の車線は、本体の左側通行のずれ（×4）のちょうど半分を反対に置く。軸の向きで 24,12、斜めで 24,0 か 0,12
@@ -107,14 +118,17 @@ class TestSampleBus(unittest.TestCase):
 
     def test_no_special_colors(self):
         found = set()
-        for r, g, b, a in self.img.getdata():
-            if a and (r << 16 | g << 8 | b) in SPECIAL:
-                found.add(f"{r:02X}{g:02X}{b:02X}")
+        px = self.img.load()
+        for y in range(self.img.height):
+            for x in range(self.img.width):
+                r, g, b, a = px[x, y]
+                if a and (r << 16 | g << 8 | b) in SPECIAL:
+                    found.add(f"{r:02X}{g:02X}{b:02X}")
         self.assertFalse(found, f"特別な色: {sorted(found)}")
 
     def test_alpha_is_binary(self):
-        alphas = set(self.img.getchannel("A").getdata())
-        self.assertLessEqual(alphas, {0, 255})
+        hist = self.img.getchannel("A").histogram()
+        self.assertEqual(sum(hist[1:255]), 0)
 
 
 if __name__ == "__main__":

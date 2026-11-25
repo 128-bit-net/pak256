@@ -7,7 +7,8 @@
 // 時計回りは 東・SE・南・SW・西・北、反時計回りは その逆の 8 方向のうち残りの向きを通る。
 // ダイヤは輪の辺の中ほどの道路のタイルを順に回る。北の辺の 1 つは停留所（道路の停留所があれば置く）。
 // 車庫と停留所は、pak256 にも AMI の 256 版にもまだ無いので、試験のときだけ別の pak から借りる（run.py）。
-// 流す前に、次の 4 つの変数を run.py が先頭に足す: OX, OY（P1 の場所）, VEH（車両の名前）, DEPOT（車庫の名前。空なら道路の車庫を探す）
+// 流す前に、次の 5 つの変数を run.py が先頭に足す: OX, OY（P1 の場所）, VEH（車両の名前）, DEPOT（車庫の名前。空なら道路の車庫を探す）,
+// WAY（道路の名前。借りた pak の道路でなく AMI の道路に敷くため）
 local W = 10, D = 6, H = 8;
 local pl = player_x(0);
 local s = "";
@@ -15,8 +16,8 @@ function c(x, y) { return coord3d(OX + x, OY + y, 0); }
 function r(name, v) { if (v != null) s += name + "=[" + v + "]\n"; }
 
 local way = null;
-foreach (w in way_desc_x.get_available_ways(wt_road, st_flat)) { way = w; break; }
-if (way == null) return "no road";
+foreach (w in way_desc_x.get_available_ways(wt_road, st_flat)) if (w.get_name() == WAY) way = w;
+if (way == null) return "no road " + WAY;
 local line = function(x0, y0, x1, y1) { r("way " + x0 + "," + y0 + "-" + x1 + "," + y1, command_x.build_way(pl, c(x0, y0), c(x1, y1), way, true)); };
 // 階段: (x0,y0) から k 段。sx は 1 段ごとの x の向き（+1 か -1）、まず x へ 1、次に y へ 1
 local stair = function(x0, y0, k, sx) {

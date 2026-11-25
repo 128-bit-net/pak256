@@ -10,7 +10,9 @@
   pak/（組んだ pak と config/・text/）と save/（平らな保存データ）を写した物。settings.xml は写さない（送信用の記録を避ける）。
 - 道路の車庫は、pak256 にも AMI の 256 版（ami-256-alpha.1）にもまだ無いので、試験のときだけ別の pak から借りて pak/ に置く
   （--depot で名前を渡す。借りた物はコミットしない）。
-- MCP の道具は OTRP 本体のリポジトリの mcp_client.py（--mcp-client。既定は E:/addon_dev の隣の simutrans/）。
+- MCP で動かすので、OTRP 本体（MCP のある版。-mcp-port）と、OTRP 本体のリポジトリの mcp_client.py が要る
+  （--mcp-client か環境変数 MCP_CLIENT。既定は pak256 の本体の checkout と同じフォルダにある simutrans/ の中）。
+- Windows で動かす前提（ゲームを taskkill で閉じる）。
 - 通行の向きは保存データで決まる（本体の設定。スクリプトからは変えられない）。左側通行と右側通行の保存データを 1 つずつ流す。
 - ゲームは起動したときの PID で閉じる。
 """
@@ -144,6 +146,7 @@ def main():
     ap.add_argument("--port", type=int, required=True)
     ap.add_argument("--vehicle", default="pak256_sample_bus")
     ap.add_argument("--depot", default="", help="道路の車庫の名前（空なら最初に見つかった物）")
+    ap.add_argument("--way", default="ami_road_local", help="輪に敷く道路の名前（AMI の 256 版の道路）")
     ap.add_argument("--origin", default="40,40", help="輪の北西の角（温帯の x<256 に置く）")
     ap.add_argument("--rounds", type=int, default=90, help="撮る回数の上限（4 秒ごと）")
     ap.add_argument("--limit", type=int, default=480,
@@ -164,7 +167,7 @@ def main():
         ox, oy = (int(v) for v in args.origin.split(","))
         with open(os.path.join(HERE, "course.nut"), encoding="utf-8") as f:
             nut = f.read()
-        head = f'OX <- {ox}; OY <- {oy}; VEH <- "{args.vehicle}"; DEPOT <- "{args.depot}";\n'
+        head = f'OX <- {ox}; OY <- {oy}; VEH <- "{args.vehicle}"; DEPOT <- "{args.depot}"; WAY <- "{args.way}";\n'
         print("[course]", game.sq(head + nut, timeout=60), flush=True)
         left = game.sq("return settings.get_drive_on_left() ? \"left\" : \"right\"")
         print("[drive]", left, flush=True)
