@@ -322,5 +322,98 @@ class TestRoadVehicles(unittest.TestCase):
                 self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
 
 
+RAIL_DIR = os.path.join(ROOT, "objects", "vehicle", "rail")
+
+
+class TestRailVehicles(unittest.TestCase):
+    """線路の車両（気動車・付随車。#46）。表・512 のセル・線路の中心に描く位置・特別な色・docs の表。"""
+
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location("draw_trains", os.path.join(RAIL_DIR, "draw_trains.py"))
+        cls.mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.mod)
+
+    def each(self):
+        for spec in self.mod.VEHICLES:
+            d = os.path.join(RAIL_DIR, spec["dir"])
+            with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8", newline="") as f:
+                raw = f.read()
+            img = Image.open(os.path.join(d, spec["stem"] + ".png")).convert("RGBA")
+            yield spec, raw, yaml.safe_load(raw), img
+
+    def test_centered_footprint_has_no_lane_offset(self):
+        # 線路の車両は車線のずれを付けない（本体は左側通行のずれを道路の車両にしか足さない）
+        for d in V.DIRECTIONS:
+            pts = V.footprint(d, 12, 2.8, 0, centered=True)
+            mx = sum(p[0] for p in pts) / 4
+            my = sum(p[1] for p in pts) / 4
+            hx, hy = V.HEADING[d]
+            # 中心は基準点から後ろへ length / 2 の所（横のずれが無い）
+            self.assertAlmostEqual(mx, -hx * 6 / V.UNITS_PER_TILE, 6, d)
+            self.assertAlmostEqual(my, -hy * 6 / V.UNITS_PER_TILE, 6, d)
+
+    def test_tables(self):
+        self.assertEqual({s["name"] for s in self.mod.VEHICLES}, {"pak256_railcar", "pak256_railcar_trailer"})
+        for spec, raw, table, _ in self.each():
+            self.assertEqual(raw, self.mod.yaml_lines(spec), spec["name"])  # yaml は道具が書く物と同じ
+            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]))
+            self.assertEqual(table["length"], 12)  # 20m
+            self.assertEqual(table["waytype"], "track")
+            self.assertEqual(table["freight"], "Passagiere")
+            self.assertEqual(table["cell_size"], 512)
+            self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
+            for i, d in enumerate(V.DIRECTIONS):
+                self.assertEqual(table["emptyimage"][d], f"{spec['stem']}.0.{i},-128,-128")
+            self.assertEqual(table.get("engine_type") == "diesel", spec["powered"])
+            self.assertEqual(table["power"] > 0, spec["powered"])
+
+    def test_cells_at_rule_position(self):
+        for spec, _, _, img in self.each():
+            self.assertEqual(img.size, (512 * len(V.DIRECTIONS), 512))
+            length = V.length_units(spec["real_length_m"])
+            for i, d in enumerate(V.DIRECTIONS):
+                whole = V.footprint(d, length, self.mod.WIDTH_M, V.FRONT_UNITS, centered=True)
+                bogie = V.footprint(d, length - 3, self.mod.BOGIE_WIDTH_M, V.FRONT_UNITS - 1.5, centered=True)
+                pts = []
+                # 車体（床 〜 屋根）と、その下の台車（地面 〜 床。車体より狭い）
+                for corners, zs in ((whole, (self.mod.FLOOR_M, self.mod.HEIGHT_M)), (bogie, (0.0,))):
+                    for (x, y) in corners:
+                        for z in zs:
+                            sx, sy = V.to_screen(x, y, z)
+                            pts.append((sx + self.mod.PAD, sy + self.mod.PAD + V.RAIL_WHEEL_DROP_PX))
+                ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
+                box = img.crop((i * 512, 0, (i + 1) * 512, 512)).getchannel("A").getbbox()
+                self.assertIsNotNone(box, d)
+                for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
+                    self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_no_special_colors_and_binary_alpha(self):
+        for spec, _, _, img in self.each():
+            found = set()
+            px = img.load()
+            for y in range(img.height):
+                for x in range(img.width):
+                    r, g, b, a = px[x, y]
+                    if a and (r << 16 | g << 8 | b) in SPECIAL:
+                        found.add(f"{r:02X}{g:02X}{b:02X}")
+            self.assertFalse(found, f"{spec['name']} 特別な色: {sorted(found)}")
+            self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_values_match_docs_table_and_translations(self):
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        for spec in self.mod.VEHICLES:
+            doc = docs_row(text, spec["name"])
+            self.assertEqual(int(doc["length"]), V.length_units(spec["real_length_m"]), spec["name"])
+            for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", lang + ".tab"), encoding="utf-8") as f:
+                lines = [ln.rstrip("\r\n") for ln in f]
+            for spec in self.mod.VEHICLES:
+                self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
+
+
 if __name__ == "__main__":
     unittest.main()

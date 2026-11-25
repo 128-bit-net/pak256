@@ -1,8 +1,8 @@
 # 車両の長さと描画位置
 
-車両を描くときの決まり。[#40](https://github.com/128-bit-net/pak256/issues/40) で、道路の車両（バス・トラック）の分を決めた。線路の車両の分は、線路を入れるときに足す（concept の D）。背景は [concept.md](concept.md) の C・D。
+車両を描くときの決まり。[#40](https://github.com/128-bit-net/pak256/issues/40) で、道路の車両（バス・トラック）の分を決めた。線路の車両の分は [#46](https://github.com/128-bit-net/pak256/issues/46) で足した（concept の D。下の「線路の車両」）。背景は [concept.md](concept.md) の C・D。
 
-決まりは `tools/vehicles.py`（MIT）に計算として置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、この文書と `vehicles.py` を一緒に直す。
+決まりは `tools/vehicles.py`（MIT）に計算として置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、この文書と `vehicles.py` を一緒に直す。線路の車両（気動車・付随車）の分は下の「線路の車両」（[#46](https://github.com/128-bit-net/pak256/issues/46)）。
 
 ## 長さ
 
@@ -74,6 +74,25 @@
 - 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
 - 車庫は AMI の 256 版の `ami_road_depot`（[stations.md](stations.md)）を使う。
 
+## 線路の車両
+
+[#46](https://github.com/128-bit-net/pak256/issues/46)（気動車と付随車）。線路は AMI の 256 版の `ami_rail_ballast`（`ami-256-alpha.2`）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/rail/<名前>/`（`railcar`・`railcar_trailer`）。描く道具は `objects/vehicle/rail/draw_trains.py`（MIT）で、道路の車両の道具（`draw_vehicles.py`）の箱を組む関数・色の決まりを読んで使う。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/rail/draw_trains.py`。Pillow だけで動く）。車両を足すときは `VEHICLES` に 1 件足し、この表に 1 行足す。検査は `tools/test_vehicles.py` の `TestRailVehicles`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_railcar` | 気動車 / Railcar | `Passagiere` | 20m・2.8m・3.6m | 12 | 80 | 90 | 220 | 100 | 21 | 8959000 | 221 | 1930 |
+| `pak256_railcar_trailer` | 気動車の付随車 / Railcar Trailer | `Passagiere` | 20m・2.8m・3.6m | 12 | 80 | 90 | 0 | 100 | 17 | 1894000 | 28 | 1930 |
+
+- **値の目安**: pak128 の気動車（`Haru_VT98` とその付随車 `Haru_VT98_car`）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名・連結の指定・煙・音は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。道路の車両の石炭のトラックと同じ扱い。法律の専門家には確かめていない）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1952）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
+- 気動車は動力あり（`engine_type: diesel`。架線の要らない種類にした）、付随車は動力なし。連結の指定（`constraint`）は書いていないので、どの組み合わせでもつながる。気動車は 1 両でも走り、付随車を後ろへつないでもよい。煙・音は書かない（pak に無い物を引かない）。
+- **長さ**: 20m → `length=12`（上の「長さ」）。車体の絵は 12 × 1.65m = 19.8m に描く。
+- **横の位置**: 線路の中心（基準点）に描く。本体は左側通行のずれを道路の車両（`road_vehicle_t`）にしか足さず（`simvehicle.cc` の `road_vehicle_t::get_screen_offset`）、線路の車両は通行の向きに関わらず線路の中心に出る。`tools/vehicles.py` の `footprint(…, centered=True)` が、このずれ無しの車体の枠を出す。
+- **前後の位置**: 道路の車両と同じ（車体の前の端が基準点）。前後を同じ形に描いたので、逆向きに走っても形は崩れない。
+- **高さ**: 車輪の下端は地面の高さ（`RAIL_WHEEL_DROP_PX = 0`）。AMI の線路は新描画位置でレールが地面より下がる（レールの基準面が `Datum(4,1)` で、256 版は 2 倍）が、ゲームで走らせて撮ると、車輪の下端が地面のままで、車体の下の暗い帯の下端がレールの上に乗って見えた（試験は [記録](records/2026-11-25_rail-train.md)）。
+- **セル**: 20m の車体は、画面で横の斜め（11.3px/単位）で 136px 伸びて 1 タイルのセル（256）に収まらないので、512 のセルに描く。256 のセルの絵を 512 のセルの真ん中に置き（256 のセルの座標 + 128）、表に `cell_size: 512` と、各絵の位置合わせ `,-128,-128` を書く（[layout.md](layout.md) の「セルの大きさ」の試しと同じ形）。makeobj は警告なく組め、ゲームで 512 のセルの車両が線路の上の決まった位置に出ることを東西の直線で確かめた。
+- 絵: 気動車は両端に運転席（前面ガラス）、付随車は両端に貫通扉の窓。クリーム色の車体に緑の帯、床の下に暗い台車の帯。
+- 旅客は、仮の駅（`pak256_train_station`。[stations.md](stations.md)）で積み降ろす。車庫は AMI の `ami_rail_depot`（`ami_rail.pak`）。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。
@@ -83,13 +102,14 @@
 - `run.py`: 検証環境を写した作業フォルダで本体を起動し、`course.nut` を流して、向きごとに撮る（夜は飛ばす）。ゲームは起動した PID で閉じる。使い方は `run.py` の先頭。
 - 試験の印: `draw_bus.py --marker --out <場所>` で、車体の地面の枠（桃色）・前の端（青の線）・基準点（青の点）・タイルの中心（桃色の十字）を重ねた絵を書く（git に入れない）。
 - 右側通行: 手元の右側通行の保存データは使えなかった（起動画面で止まる）。`draw_bus.py --emulate-right` で、左側通行のずれを先に引いた絵（名前に `_right_test`）を書き、左側通行の地図で走らせると、右側通行の地図での見え方と同じ所に出る（本体は左側通行で絵をずらすだけなので）。
+- 線路の車両の試験は `tools/vehicle_check/rail_run.py` と `rail.nut`（#46）。東西の直線の線路に、仮の駅 2 つ（3 タイルずつ）と AMI の車庫を置き、気動車 + 付随車の 1 編成を 2 つの駅の間で往復させて、一定の間隔で撮る（`--cities` で街を 2 つ置いて旅客を運ばせ、財務の窓も撮る。`--trailer 0` で 1 両だけ。`toolbar_rail.png` は線路のツールバー）。使い方は `rail_run.py` の先頭。曲がり・斜め・坂の線路は走らせていない。
 - 道路の停留所（#44）は pak256 の仮の物、車庫（#64）は AMI の `ami_road_depot` を使う（借りる pak は要らない）。AMI の停留所（[128na/simutrans-addon-dev#264](https://github.com/128na/simutrans-addon-dev/issues/264)）が入ったら替える。
 
 #40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。#41 のバスと郵便のトラックをゲームで走らせた記録は [records/2026-11-25_bus-mail.md](records/2026-11-25_bus-mail.md)。
 
 ## 決めていないこと
 
-- 線路の車両の分（concept の D）。線路の描画位置は、AMI の新描画位置の線路に合わせる方向で、線路を入れるときに決める。
-- 逆向き運転の `reverse_base_offset`（上の「前後の位置」）。
+- 線路の曲がり・斜め・坂での線路の車両の見え方（東西の直線だけ確かめた）。
+- 逆向き運転の `reverse_base_offset`（上の「前後の位置」）。線路の終点での折り返し（編成の向きを入れ替えない通常の折り返し）では、前後対称の絵で崩れは見えなかった。
 - 長い車両（連節バス・列車）を 512 のセルで描いたときの、曲がりでのはみ出しの見え方。
 - 追い越し（OTRP の `overtaking_base_offset`。既定では左側通行のずれと同じ値を足す）のときの車線の位置。

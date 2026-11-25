@@ -15,6 +15,10 @@ UNITS_PER_TILE = 16  # 本体の CARUNITS_PER_TILE
 M_PER_TILE = M_PER_UNIT * UNITS_PER_TILE  # 26.4m
 PX_PER_M_Z = CELL / (M_PER_TILE * math.sqrt(2)) * math.sqrt(3) / 2  # 高さ 1m の px（約 5.94）
 
+# 線路の車両（#46）の車輪の下端を、地面より何 px 下に描くか。AMI の線路は新描画位置で、レールが地面より下がる
+# （way-addon.md の「線路の新描画位置」）。ゲームで走らせて決める（docs/vehicles.md の「線路の車両」）
+RAIL_WHEEL_DROP_PX = 0
+
 # 本体が左側通行のときに足すずれ（64px のタイルでの値。本家 125.0.1 の vehicle_base.cc の
 # driveleft_base_offsets と、OTRP の settings.cc の既定値。どちらも同じ）。本体はこれを タイルの幅 / 64 倍する
 DRIVELEFT_64 = {
@@ -71,15 +75,17 @@ def lane_point(direction):
     return from_screen(*lane_offset_px(direction))
 
 
-def footprint(direction, length, width_m, front_units):
+def footprint(direction, length, width_m, front_units, centered=False):
     """車体の地面の四隅（タイルの単位）。前の右・前の左・後の左・後の右の順。
 
     length は dat の length（単位）。車体の長さは length × 1.65m に描く（実物の長さではない。連結のすき間を出さないため）。
     front_units は、基準点から車体の前の端までの距離（単位。前が正）。
+    centered は線路の車両（#46）。本体は左側通行のずれを道路の車両（road_vehicle_t）にしか足さないので、
+    線路の車両は車線のずれを付けず、線路の中心（基準点）に描く。
     """
     hx, hy = HEADING[direction]
     rx, ry = -hy, hx  # 右の向き
-    px, py = lane_point(direction)
+    px, py = (0.0, 0.0) if centered else lane_point(direction)
     front = front_units / UNITS_PER_TILE
     back = (front_units - length) / UNITS_PER_TILE
     half = width_m / M_PER_TILE / 2
