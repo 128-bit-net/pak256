@@ -1,0 +1,29 @@
+# 産業（絵は仮）。この表と PNG は draw_industry.py が書き出す。直すときはスクリプトを直して流し直す。
+# 1 タイル = 26.4m の縮尺（docs/industry.md）。
+obj: factory
+name: pak256_coal_power_plant
+copyright: pak256.LongScale チーム
+# 石炭火力の発電所。ボイラー棟（20m）・タービン棟・煙突（28m）・石炭置き場。3x3 タイル。値は pak128 の old_powerplant_kraftwerk に合わせた
+location: Land
+mapcolor: 131
+distributionweight: 2
+productivity: 600
+range: 40
+electricity_amount: 800
+electricity_boost: 0
+mail_demand: 5
+mail_boost: 500
+passenger_demand: 20
+passenger_boost: 800
+inputgood: [Kohle]
+inputcapacity: [8000]
+inputsupplier: [0]
+inputfactor: [50]
+needs_ground: 1
+intro_year: 1890
+dims: 3,3
+backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_industry.py が描く
+  0:
+    0: {0: {0: {0: coal_power_plant.0.0}}, 1: {0: {0: coal_power_plant.0.1}}, 2: {0: {0: coal_power_plant.0.2}}}
+    1: {0: {0: {0: coal_power_plant.1.0}}, 1: {0: {0: coal_power_plant.1.1}}, 2: {0: {0: coal_power_plant.1.2}}}
+    2: {0: {0: {0: coal_power_plant.2.0}}, 1: {0: {0: coal_power_plant.2.1}}, 2: {0: {0: coal_power_plant.2.2}}}

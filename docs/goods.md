@@ -19,7 +19,7 @@
 
 ## 最初の産業の連鎖（仮）
 
-**炭鉱 → 発電所**。炭鉱が `Kohle` を出し、発電所が `Kohle` を受けて電気を出す（電気は貨物ではないので、貨物の dat は `Kohle` 1 つで足りる）。roadmap の「産業 1 本の連鎖（例: 炭鉱 → 発電所）」のとおり。pak128 にも同じ連鎖がある。産業の dat（`objects/industry/`）は別の issue で作る。
+**炭鉱 → 発電所**。炭鉱が `Kohle` を出し、発電所が `Kohle` を受けて電気を出す（電気は貨物ではないので、貨物の dat は `Kohle` 1 つで足りる）。roadmap の「産業 1 本の連鎖（例: 炭鉱 → 発電所）」のとおり。pak128 にも同じ連鎖がある。産業の dat は `objects/industry/coal_chain/` にある（[industry.md](industry.md)）。
 
 - 値の釣り合い（`value`・`speed_bonus`）は、産業と車両がそろってから見直す（roadmap の段階 4）。
 - 足す貨物・変える名前は、産業の組み方を決めるときに決める（concept の E）。それまでは pak128 のまま。

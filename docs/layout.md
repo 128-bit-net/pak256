@@ -27,7 +27,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/gui/` | 記号・カーソル・ツールバーのアイコン | #6 |
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
-| `objects/industry/` | 産業（工場・発電所） | |
+| `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける | |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
 
