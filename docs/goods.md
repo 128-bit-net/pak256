@@ -1,6 +1,6 @@
 # 貨物
 
-貨物の dat（`objects/goods/goods.yaml`）の決め事。[#4](https://github.com/128-bit-net/pak256/issues/4) で足した。concept の E（pak128 に寄せる）に沿う。pak128 の dat の値を参考にして、値は同じにした。dat の文・絵は写していない（貨物に絵は無い）。
+貨物の dat（`objects/goods/goods.yaml`）の決め事。[#4](https://github.com/128-bit-net/pak256/issues/4) で足した。concept の E（pak128 に寄せる）に沿う。pak128 の dat の値（名前・分類・単位・値段・速度ボーナス・重さ。機能上の数値）を、同じにした。dat の文・コメント・絵は写していない（貨物に絵は無い）。名前と数値だけなので、元の作者の記載は要らないと判断した（法律の専門家には確かめていない）。
 
 ## 置いた貨物
 
@@ -13,7 +13,8 @@
 
 - `Passagiere`・`Post`・`None` は、本体が必ず求める（`bauer/goods_manager.cc`）。
 - `name` は本体の名前に合わせる必要がある物（上の 3 つ）と、pak128 と同じ綴りの `Kohle`。移行する人が貨物名で探せるようにした。名前の画面表示は `text/ja.tab`・`en.tab`。
-- 画面の記号（貨物の窓の色の線）は、貨物の dat では持たず、本体が決める。`Passagiere`・`Post`・`Waren` の記号は GUI（[gui.md](gui.md)）。
+- 貨物の窓の色の線は、dat に `mapcolor` を書かないので本体が貨物の並びから自動で決める（貨物を足すと色が変わりうる）。
+- 別の物として、`Passagiere`・`Post`・`Waren` の記号の絵は GUI にある（[gui.md](gui.md)）。貨物の dat に絵は持たせない。
 - 分類の名前（`CATEGORY_01`〜`07`）の訳も `text/` に足した（貨物の窓に出る）。pak128 の分類 7 つの分け方を使う（[concept.md](concept.md) の「2.3」）。
 
 ## 最初の産業の連鎖（仮）
