@@ -12,7 +12,7 @@ YAML の 1 ファイルに、物を 1 つ（マッピング）か、いくつか
 `obj`・`name`・`copyright` の無い物は止める（CREDITS.md と dat の copyright= を必ず書くため。CONTRIBUTING.md）。
 
 使い方（1 ファイルを dat にして標準出力へ）:
-    python -X utf8 tools/datgen.py objects/scenery/temperate_trees/zelkova.yaml
+    python -X utf8 tools/datgen.py objects/scenery/trees/zelkova.yaml
 """
 import sys
 

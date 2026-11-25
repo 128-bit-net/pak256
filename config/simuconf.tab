@@ -97,9 +97,11 @@ forest_count_divisor = 16
 forest_inverse_spare_tree_density = 400
 
 # 木で埋まる気候・木が生えない気候（ビット: 1 水、2 砂漠、4 熱帯、8 地中海、16 温帯、
-# 32 ツンドラ、64 岩、128 北極）。
+# 32 ツンドラ、64 岩、128 北極）。熱帯は全面に木が生える。砂漠・北極は木を足したので（#102）、
+# まばらに生える（forest_inverse_spare_tree_density の本数）。水と岩は木の絵が無いので生えない
+# （docs/trees.md の「気候ごとの木」）。木を足す・消すときは tools/test_trees.py がこの 2 つとの食い違いを見る。
 tree_climates = 4
-no_tree_climates = 130
+no_tree_climates = 65
 
 ##############################  遊び方  ##############################
 

@@ -1,18 +1,27 @@
-"""温帯の木の絵の検査（docs/trees.md）。高さ・幅が表の値の ±5% に収まり、特別な色が混じらないことを確かめる。
+"""木の絵・表・設定の検査（docs/trees.md）。
+- 絵: 見た目（季節）の行ごとに、高さ・幅が表の値の ±5% に収まり、特別な色が混じらない。
+- 表（.yaml）: 気候・季節の数・画像の参照が docs/trees.md の表と合う。温帯の 3 種は 5 季節（冬・雪の絵がある）。
+- 設定: 水・岩を除く各気候に木が 1 種以上ある。config/simuconf.tab の tree_climates・no_tree_climates が木と食い違わない。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 
 縮尺は docs/standards.md の 1 章（高さ 1m = 5.9px、地面の距離 1m = 6.9px）。育ち age 0〜4 は成木の 0.2〜1.0 倍。
-Pillow が要る（tools/requirements.txt）。
+Pillow・PyYAML が要る（tools/requirements.txt）。
 """
 import os
 import re
 import unittest
 
+import yaml
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TREES = os.path.join(ROOT, "objects", "scenery", "temperate_trees")
+TREES = os.path.join(ROOT, "objects", "scenery", "trees")
 DOC = os.path.join(ROOT, "docs", "trees.md")
+SIMUCONF = os.path.join(ROOT, "config", "simuconf.tab")
+# 本体の気候のビット（config/simuconf.tab の tree_climates の説明と同じ）
+CLIMATE_BIT = {"water": 1, "desert": 2, "tropic": 4, "mediterran": 8, "temperate": 16, "tundra": 32, "rocky": 64, "arctic": 128}
+NO_TREE_OK = {"water", "rocky"}  # 木を置かない気候（理由は docs/trees.md の「気候ごとの木」）
+TEMPERATE_TRIO = {"zelkova", "cedar", "birch"}
 CELL = 256
 AGES = 5
 PX_H = 5.9
@@ -28,16 +37,36 @@ SPECIAL = {
 }
 
 
-def doc_species():
-    """docs/trees.md の「種類」の表から {ファイル名: (高さ m, 幅 m)} を読む。"""
+def doc_table():
+    """docs/trees.md の「種類」の表から {ファイル名: (高さ m, 幅 m, 気候の集合)} を読む。
+    列: 名前 | 見た目 | 成木の高さ | 樹冠の幅 | 気候 | 重み"""
     with open(DOC, encoding="utf-8") as f:
         text = f.read()
     found = {}
     for line in text.splitlines():
-        m = re.match(r"\|\s*`pak256_(\w+)`\s*\|[^|]*\|\s*(\d+)m\s*\|\s*約\s*(\d+)m\s*\|", line)
+        m = re.match(r"\|\s*`pak256_(\w+)`\s*\|[^|]*\|\s*(\d+)m\s*\|\s*約\s*(\d+)m\s*\|\s*`([\w,]+)`\s*\|", line)
         if m:
-            found[m.group(1)] = (float(m.group(2)), float(m.group(3)))
+            found[m.group(1)] = (float(m.group(2)), float(m.group(3)), set(m.group(4).split(",")))
     return found
+
+
+def doc_species():
+    """{ファイル名: (高さ m, 幅 m)}。"""
+    return {k: (h, w) for k, (h, w, _) in doc_table().items()}
+
+
+def read_yaml(name):
+    with open(os.path.join(TREES, f"{name}.yaml"), encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def simuconf_int(key):
+    with open(SIMUCONF, encoding="utf-8") as f:
+        for line in f:
+            m = re.match(rf"\s*{key}\s*=\s*(\d+)", line)
+            if m:
+                return int(m.group(1))
+    raise KeyError(key)
 
 
 def cell_bbox(img, age):
@@ -67,30 +96,34 @@ def special_colors(img):
 
 
 def size_problems(img, height_m, width_m):
-    """各 age の高さと、成木の幅が表の値の ±5% に収まらない所を文字列の一覧で返す。"""
+    """シートの各行（見た目）の、各 age の高さと成木の幅が表の値の ±5% に収まらない所を文字列の一覧で返す。"""
+    if img.width != CELL * AGES or img.height % CELL or img.height < CELL:
+        return [f"シートの大きさが {img.size}（幅 {CELL * AGES}、高さは {CELL} の倍数のはず）"]
     problems = []
-    if img.size != (CELL * AGES, CELL):
-        return [f"シートの大きさが {img.size}（{CELL * AGES}x{CELL} のはず）"]
-    for age in range(AGES):
-        box = cell_bbox(img, age)
-        if box is None:
-            problems.append(f"age {age} が空")
-            continue
-        want_h = height_m * (age + 1) / AGES
-        got_h = (box[3] - box[1]) / PX_H
-        if abs(got_h - want_h) > want_h * TOL:
-            problems.append(f"age {age} の高さ {got_h:.2f}m（表から {want_h:.2f}m の ±5% のはず）")
-    box = cell_bbox(img, AGES - 1)
-    if box is not None:
-        got_w = (box[2] - box[0]) / PX_W
-        if abs(got_w - width_m) > width_m * TOL:
-            problems.append(f"成木の幅 {got_w:.2f}m（表の {width_m:g}m の ±5% のはず）")
+    for row in range(img.height // CELL):
+        band = img.crop((0, row * CELL, img.width, (row + 1) * CELL))
+        for age in range(AGES):
+            box = cell_bbox(band, age)
+            if box is None:
+                problems.append(f"行 {row} の age {age} が空")
+                continue
+            want_h = height_m * (age + 1) / AGES
+            got_h = (box[3] - box[1]) / PX_H
+            if abs(got_h - want_h) > want_h * TOL:
+                problems.append(f"行 {row} の age {age} の高さ {got_h:.2f}m（表から {want_h:.2f}m の ±5% のはず）")
+        box = cell_bbox(band, AGES - 1)
+        if box is not None:
+            got_w = (box[2] - box[0]) / PX_W
+            if abs(got_w - width_m) > width_m * TOL:
+                problems.append(f"行 {row} の成木の幅 {got_w:.2f}m（表の {width_m:g}m の ±5% のはず）")
     return problems
 
 
 class TreeSheetTest(unittest.TestCase):
-    def test_doc_table_has_three_species(self):
-        self.assertEqual(sorted(doc_species()), ["birch", "cedar", "zelkova"])
+    def test_doc_table_matches_files(self):
+        on_disk = sorted(f[:-5] for f in os.listdir(TREES) if f.endswith(".yaml"))
+        self.assertEqual(sorted(doc_species()), on_disk)
+        self.assertTrue(TEMPERATE_TRIO <= set(on_disk))
 
     def test_sheets_match_doc(self):
         for name, (h, w) in doc_species().items():
@@ -103,6 +136,92 @@ class TreeSheetTest(unittest.TestCase):
             with self.subTest(name=name):
                 img = Image.open(os.path.join(TREES, f"{name}.png"))
                 self.assertEqual(special_colors(img), [])
+
+
+class TreeTableTest(unittest.TestCase):
+    """表（.yaml）の気候・季節・画像の参照。"""
+
+    def test_climates_match_doc(self):
+        for name, (_, _, climates) in doc_table().items():
+            with self.subTest(name=name):
+                got = set(read_yaml(name)["climates"].replace(" ", "").split(","))
+                self.assertEqual(got, climates)
+                self.assertTrue(got <= set(CLIMATE_BIT))
+
+    def test_seasons_and_images(self):
+        """seasons は 5（夏・秋・冬・春・雪）か 2（夏・雪）。全部の年齢・季節の画像が、シートの行に収まる。
+        温帯の 3 種は 5 で、冬（season 2）と雪（season 4）が夏と違う絵（葉を落とす・雪が載る）。"""
+        for name in doc_species():
+            with self.subTest(name=name):
+                t = read_yaml(name)
+                img = Image.open(os.path.join(TREES, f"{name}.png"))
+                rows = img.height // CELL
+                n = t["seasons"]
+                self.assertIn(n, (2, 5))
+                if name in TEMPERATE_TRIO:
+                    self.assertEqual(n, 5)
+                seen = set()
+                for age in range(AGES):
+                    self.assertEqual(sorted(t["image"][age]), list(range(n)))
+                    for season in range(n):
+                        m = re.fullmatch(rf"{name}\.(\d+)\.(\d+)", t["image"][age][season])
+                        self.assertIsNotNone(m, t["image"][age][season])
+                        row, col = int(m.group(1)), int(m.group(2))
+                        self.assertEqual(col, age)
+                        self.assertLess(row, rows)
+                        seen.add((season, row))
+                # 雪（最後の season）は夏（season 0）と別の行
+                snow_row = {s: r for s, r in seen}[n - 1]
+                self.assertNotEqual(snow_row, {s: r for s, r in seen}[0])
+                if n == 5:
+                    winter_row = {s: r for s, r in seen}[2]
+                    self.assertNotEqual(winter_row, {s: r for s, r in seen}[0])
+
+    def test_snow_row_differs_from_summer(self):
+        """雪の行の絵が、夏の行の絵と実際に違う（同じ絵を指しているだけでない）。"""
+        for name in doc_species():
+            with self.subTest(name=name):
+                t = read_yaml(name)
+                n = t["seasons"]
+                img = Image.open(os.path.join(TREES, f"{name}.png")).convert("RGB")
+                last = AGES - 1
+                row = lambda s: int(t["image"][last][s].split(".")[1])
+                a = img.crop((last * CELL, row(0) * CELL, (last + 1) * CELL, (row(0) + 1) * CELL))
+                b = img.crop((last * CELL, row(n - 1) * CELL, (last + 1) * CELL, (row(n - 1) + 1) * CELL))
+                diff = sum(1 for p, q in zip(a.getdata(), b.getdata()) if p != q)
+                self.assertGreater(diff, 300)
+
+
+class ClimateCoverageTest(unittest.TestCase):
+    """各気候に木があり、config/simuconf.tab と食い違わない。"""
+
+    @staticmethod
+    def covered():
+        out = set()
+        for name, (_, _, climates) in doc_table().items():
+            out |= climates
+        return out
+
+    def test_every_climate_has_a_tree_except_water_and_rock(self):
+        self.assertEqual(set(CLIMATE_BIT) - self.covered(), NO_TREE_OK)
+
+    def test_simuconf_no_tree_climates_match(self):
+        """木のある気候が no_tree_climates に入っていない。木の無い気候（水・岩）は入っている。"""
+        no_tree = simuconf_int("no_tree_climates")
+        for cl, bit in CLIMATE_BIT.items():
+            with self.subTest(climate=cl):
+                if cl in self.covered():
+                    self.assertEqual(no_tree & bit, 0)
+                else:
+                    self.assertNotEqual(no_tree & bit, 0)
+
+    def test_simuconf_tree_climates_have_trees(self):
+        """tree_climates（全面に木を生やす）に入る気候には、木がある。"""
+        tree = simuconf_int("tree_climates")
+        for cl, bit in CLIMATE_BIT.items():
+            if tree & bit:
+                self.assertIn(cl, self.covered())
+        self.assertEqual(tree & simuconf_int("no_tree_climates"), 0)
 
 
 class SpecialColorsTest(unittest.TestCase):
