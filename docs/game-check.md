@@ -16,10 +16,11 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 |---|---|
 | `--env` | 本体の検証環境（環境変数 `PAK256_GAME_ENV` でも渡せる）。個人の絶対パスはリポジトリに書かない |
 | `--save` | 保存データの名前（拡張子なし）。指定した 1 つだけ写す |
-| `--port` | MCP のポート。47800〜47899（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）の中で必ず明示する。作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
+| `--port` | MCP のポート。47800〜47999（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）の中で必ず明示する。作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
 | `--extra-pak` | 足りない物を別の pak から借りる（試験のときだけ。コミットしない） |
 | `--night` | 昼夜の切り替えを止めない（夜の灯りを確かめるとき） |
 | `--keep` | 閉じた後も作業フォルダ（既定は `work/game/<ポート>/`）を残す |
+| `--interactive` | 起動して命令を待つ（下の「開いたまま使う」） |
 | `--mcp-client` | OTRP 本体のリポジトリの `mcp_client.py`（環境変数 `MCP_CLIENT`。既定は pak256 の checkout の隣の `simutrans/` の中） |
 
 ## やること・やらないこと
@@ -52,6 +53,37 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 - 配布の zip の中身だけで起動するときは、zip を展開して `*.pak`（と `ami_license.txt`）を 1 つのフォルダに集め、`Game(..., build=<その pak のフォルダの親>, root=<config/ と text/ のある所>)` を渡す。手元で組んだ物（`build/pak/`）や作業フォルダの `config/` を混ぜずに確かめられる（2026-11-25、#70。手順は `records/2026-11-25_alpha03-check.md` の 1）。
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
+
+## 開いたまま使う（`--interactive`・`--send`、#85）
+
+窓を `gui.click` で順に開いて撮るなど、結果を見ながら 1 つずつ進めたいときの入口。自作の枠は要らない。AMI の `ingame/game.sh`（起動 / `RUN` / `CAPTURE` / `STOP`）と同じ形で、`game.py` が起動・見張り・閉じるまでを持つ。
+
+```
+# 1) 起動して待つ（長く動くので背景で。起動は 30〜90 秒かかり、[interactive] 待っている と出たら流せる）
+python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47900 --interactive
+# 2) 別の呼び出しから、命令を 1 つずつ流す（結果が標準出力に出る。失敗は終了コード 1）
+python -X utf8 tools/game.py --port 47900 --send "return world.get_time().year"
+python -X utf8 tools/game.py --port 47900 --send "@dialog finances"
+python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"
+python -X utf8 tools/game.py --port 47900 --send-file course.nut
+# 3) 終わったら閉じる
+python -X utf8 tools/game.py --port 47900 --send "@quit"
+```
+
+| 命令 | 意味 |
+|---|---|
+| 普通の文 | Squirrel として流し、戻り値を返す（`gui.click(x, y)` もここ） |
+| `@capture <PNG>` | 画面を撮る（パスは送る側の今のフォルダからの相対） |
+| `@dialog <名前か番号>` | 窓を開く（下の表） |
+| `@settle [秒]` | 建設中の絵が終わるまで進める（既定 15 秒） |
+| `@quit` | ゲームを閉じて終わる |
+
+- 仕組み: 見張る側は作業フォルダ（既定 `work/game/<ポート>/`）の `inbox/` に置かれた命令のファイルを番号順に 1 つずつ流し、結果を `.out` に書く。`--send` は同じポート（`--work` を使ったなら同じ値）を渡す。
+- 命令の失敗（Squirrel の誤り・知らない指示）では見張りは止まらず、次の命令を受ける。
+- **必ず閉じる**: 終わったら `@quit` を送る。見張りの Ctrl+C、命令が `--idle-limit` 秒（既定 3600）来ないとき、ゲームが落ちたときも、起動した PID で閉じて作業フォルダを消す（`--keep` なら残す）。見張りの Python が強制終了されても、Job Object で閉じる。起動は `-load` と写した作業フォルダなので、自動保存は失わない。
+- 同じポートで 2 台は起動できない。ポートは割り当てられた範囲の中。
+- 複数の `--send` を同時に流さない（順に流す）。
+- 1 つの Squirrel は最大 300 秒（`CMD_TIMEOUT`）待つ。`--send` の `--timeout`（既定 120）は送る側の待ちで、超えると命令を取り下げる（見張りが取った後なら「実行された可能性がある」と出る）。見張りやゲームが閉じると、送る側はすぐ失敗する。
 
 ## 窓の番号（`Game.dialog`）
 
@@ -109,4 +141,4 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 ## 検査
 
-`tools/test_game.py`（ゲームは起動しない）: 窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: 開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
