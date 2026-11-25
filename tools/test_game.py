@@ -115,7 +115,9 @@ class GameToolTest(Base):
     def test_port_range(self):
         game.check_port(47880)
         game.check_port(47899)
-        for p in (47800, 47900):
+        game.check_port(47800)
+        self.assertEqual((game.PORT_MIN, game.PORT_MAX), (47800, 47899))
+        for p in (47799, 47900):
             with self.assertRaises(RuntimeError):
                 game.check_port(p)
 
