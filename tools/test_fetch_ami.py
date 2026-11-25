@@ -1,0 +1,190 @@
+"""vendor/ami/ami.env の値の形と、fetch_ami.py の検査（SHA-256 の照合と展開）。取得は差し替えるので、外のネットには出ない。
+    python -X utf8 -m unittest discover -s tools -p "test_*.py"
+"""
+import hashlib
+import io
+import os
+import re
+import sys
+import tempfile
+import unittest
+import zipfile
+from unittest import mock
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fetch_ami  # noqa: E402
+
+URL_RE = re.compile(r"^https://github\.com/128na/simutrans-addon-dev/releases/download/([^/\s]+)/[^/\s]+\.zip$")
+
+
+def make_zip(files):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for name, data in files.items():
+            z.writestr(name, data)
+    return buf.getvalue()
+
+
+class AmiEnvTest(unittest.TestCase):
+    def test_values_shape(self):
+        env = fetch_ami.read_env()
+        keys = ("AMI_VERSION", "AMI_ZIP_URL", "AMI_ZIP_SHA256")
+        if not any(env.get(k) for k in keys):
+            return  # AMI 抜きで組む（3 つとも空）
+        for k in keys:
+            self.assertTrue(env.get(k), f"ami.env に {k} が無い")
+        m = URL_RE.match(env["AMI_ZIP_URL"])
+        self.assertTrue(m, f"AMI_ZIP_URL の形が違う: {env['AMI_ZIP_URL']}")
+        self.assertEqual(m.group(1), env["AMI_VERSION"], "URL のタグと AMI_VERSION が違う")
+        self.assertRegex(env["AMI_ZIP_SHA256"], r"^[0-9a-f]{64}$")
+
+    def test_license_file_exists(self):
+        self.assertTrue(os.path.isfile(fetch_ami.LICENSE_FILE))
+
+    def test_read_env_parses(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "x.env")
+            with open(p, "w", encoding="utf-8") as f:
+                f.write("# コメント\n\nA=1\n B = http://x/y=z \n")
+            self.assertEqual(fetch_ami.read_env(p), {"A": "1", "B": "http://x/y=z"})
+
+
+class FetchTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.vendor = os.path.join(self.tmp.name, "vendor")
+        os.makedirs(self.vendor)
+        self.license = os.path.join(self.vendor, "ami_license.txt")
+        with open(self.license, "w", encoding="utf-8") as f:
+            f.write("CC BY 4.0")
+        self.cache = os.path.join(self.tmp.name, "cache")
+        self.out = os.path.join(self.tmp.name, "build", "ami")
+        self.env_file = os.path.join(self.vendor, "ami.env")
+        self.zip = make_zip({"ami/a.pak": b"AAA", "ami/sub/b.PAK": b"BBB", "ami/readme.txt": b"x"})
+        self.sha = hashlib.sha256(self.zip).hexdigest()
+        self.write_env(sha=self.sha)
+        env = mock.patch.dict(os.environ)
+        env.start()
+        self.addCleanup(env.stop)
+        os.environ.pop("AMI_DIST", None)
+        # relpath が別のドライブで失敗しないよう、ROOT も一時の場所へ
+        for name, value in (("ROOT", self.tmp.name), ("LICENSE_FILE", self.license), ("CACHE", self.cache)):
+            p = mock.patch.object(fetch_ami, name, value)
+            p.start()
+            self.addCleanup(p.stop)
+        # read_env の既定の引数は定義のときに決まるので、ENV_FILE の差し替えでは効かない。呼び出しごと差し替える
+        real_read_env = fetch_ami.read_env
+        p = mock.patch.object(fetch_ami, "read_env", lambda path=None: real_read_env(self.env_file))
+        p.start()
+        self.addCleanup(p.stop)
+        self.urlopen_calls = []
+
+    def write_env(self, sha=None, url="https://example.invalid/ami.zip"):
+        lines = ["AMI_VERSION=test.1"]
+        if url:
+            lines.append(f"AMI_ZIP_URL={url}")
+        if sha:
+            lines.append(f"AMI_ZIP_SHA256={sha}")
+        with open(self.env_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+
+    def fake_urlopen(self, data):
+        def opener(url, timeout=None):
+            self.urlopen_calls.append(url)
+            return io.BytesIO(data)
+        return mock.patch.object(fetch_ami.urllib.request, "urlopen", opener)
+
+    def test_download_extracts_paks_and_license(self):
+        with self.fake_urlopen(self.zip):
+            paks = fetch_ami.fetch(self.out)
+        self.assertEqual(sorted(os.path.basename(p) for p in paks), ["a.pak", "b.PAK"])
+        with open(os.path.join(self.out, "a.pak"), "rb") as f:
+            self.assertEqual(f.read(), b"AAA")
+        self.assertFalse(os.path.exists(os.path.join(self.out, "readme.txt")))
+        self.assertTrue(os.path.isfile(os.path.join(os.path.dirname(self.out), "ami_license.txt")))
+        self.assertEqual(self.urlopen_calls, ["https://example.invalid/ami.zip"])
+
+    def test_sha_mismatch_exits_and_leaves_no_cache(self):
+        with self.fake_urlopen(self.zip + b"tampered"):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("SHA-256 が合わない", str(cm.exception))
+        self.assertEqual(os.listdir(self.cache) if os.path.isdir(self.cache) else [], [])
+        self.assertEqual(os.listdir(self.out), [])
+
+    def test_sha_is_case_insensitive(self):
+        self.write_env(sha=self.sha.upper())
+        with self.fake_urlopen(self.zip):
+            self.assertEqual(len(fetch_ami.fetch(self.out)), 2)
+
+    def test_cache_is_used_and_bad_cache_is_dropped(self):
+        with self.fake_urlopen(self.zip):
+            fetch_ami.fetch(self.out)
+        self.assertEqual(len(self.urlopen_calls), 1)
+        with self.fake_urlopen(b"must not be read"):
+            fetch_ami.fetch(self.out)  # キャッシュから
+        self.assertEqual(len(self.urlopen_calls), 1)
+        cached = os.path.join(self.cache, "test.1.zip")
+        with open(cached, "wb") as f:
+            f.write(b"broken")
+        with self.fake_urlopen(self.zip):
+            with self.assertRaises(SystemExit):
+                fetch_ami.fetch(self.out)  # 合わないキャッシュは失敗にして、捨てる
+            self.assertFalse(os.path.exists(cached))
+            fetch_ami.fetch(self.out)  # 次は取り直す
+        self.assertEqual(len(self.urlopen_calls), 2)
+
+    def test_missing_sha_exits(self):
+        self.write_env(sha=None)
+        with self.assertRaises(SystemExit) as cm:
+            fetch_ami.fetch(self.out)
+        self.assertIn("AMI_ZIP_SHA256", str(cm.exception))
+
+    def test_no_url_does_nothing(self):
+        self.write_env(url=None, sha=None)
+        self.assertEqual(fetch_ami.fetch(self.out), [])
+        self.assertFalse(os.path.exists(os.path.join(os.path.dirname(self.out), "ami_license.txt")))
+
+    def test_zip_without_pak_exits(self):
+        data = make_zip({"readme.txt": b"x"})
+        self.write_env(sha=hashlib.sha256(data).hexdigest())
+        with self.fake_urlopen(data):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("pak が無い", str(cm.exception))
+
+    def test_missing_license_exits(self):
+        os.remove(self.license)
+        with self.fake_urlopen(self.zip):
+            with self.assertRaises(SystemExit) as cm:
+                fetch_ami.fetch(self.out)
+        self.assertIn("許諾の文", str(cm.exception))
+
+    def test_ami_dist_dir_has_priority_over_env(self):
+        src = os.path.join(self.tmp.name, "dist")
+        os.makedirs(src)
+        for n, d in (("x.pak", b"X"), ("note.txt", b"n")):
+            with open(os.path.join(src, n), "wb") as f:
+                f.write(d)
+        os.environ["AMI_DIST"] = src
+        with self.fake_urlopen(b"unused"):
+            paks = fetch_ami.fetch(self.out)
+        self.assertEqual([os.path.basename(p) for p in paks], ["x.pak"])
+        self.assertEqual(self.urlopen_calls, [])
+
+    def test_ami_dist_zip(self):
+        p = os.path.join(self.tmp.name, "local.zip")
+        with open(p, "wb") as f:
+            f.write(self.zip)
+        os.environ["AMI_DIST"] = p
+        self.assertEqual(len(fetch_ami.fetch(self.out)), 2)
+
+    def test_ami_dist_invalid_exits(self):
+        os.environ["AMI_DIST"] = os.path.join(self.tmp.name, "nothing")
+        with self.assertRaises(SystemExit):
+            fetch_ami.fetch(self.out)
+
+
+if __name__ == "__main__":
+    unittest.main()
