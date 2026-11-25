@@ -60,6 +60,20 @@ class GuiTest(unittest.TestCase):
             if nums:
                 self.assertGreater(found[("menu", draw_gui.MENU_NAME[kind])], max(nums), kind)
 
+    def test_cursors_of_tools_without_own_cursor(self):
+        """本体が道具の cursor を menuconf.tab の 2 つめの番号でしか決めない道具に、番号がある（#77）。
+
+        12・13 はダイヤの編集の「駅を追加」「駅を挿入」、39 は気候の塗り替え。無いとカーソルが出ない。
+        """
+        found = read_dats()
+        count = found[("cursor", "GeneralTools")]
+        with open(os.path.join(draw_gui.ROOT, "config", "menuconf.tab"), encoding="utf-8") as f:
+            text = f.read()
+        for n in (12, 13, 39):
+            m = re.search(r"^general_tool\[%d\]\s*=[^,\n]*,\s*(\d+)" % n, text, re.M)
+            self.assertIsNotNone(m, f"general_tool[{n}] にカーソルの番号が無い")
+            self.assertLess(int(m.group(1)), count, f"general_tool[{n}] のカーソルが GeneralTools の枚数に収まらない")
+
     def test_every_used_icon_has_a_picture(self):
         """使っているアイコンがすべて、番号でなく専用の絵を持つ（#66）。"""
         used = {(kind, n) for kind, nums in draw_gui.used_icons().items() for n in nums}
