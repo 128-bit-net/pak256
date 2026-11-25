@@ -159,14 +159,13 @@ class LintConfigTest(unittest.TestCase):
 
     # ---- #21: 大文字・小文字、範囲の書き方、.chance の値 ----
 
-    def test_current_config_has_no_range_or_uppercase(self):
-        # 今の config/ は範囲の書き方を使わず、小文字だけ。展開しても行は変わらない
+    def test_normalize_keeps_current_config_lines(self):
+        # 今の config/ は範囲の書き方も大文字も使わないので、直しても行は変わらない
         for name in ("menuconf.tab", "cityrules.tab"):
             lines = lint_config.read_lines(os.path.join(CONFIG, name))
             norm, errs = lint_config.normalize(lines)
             self.assertEqual(errs, [])
-            self.assertEqual([l.lower().split("=")[0] for _, l in norm if "=" in l and not l.startswith("#")],
-                             [l.lower().split("=")[0] for _, l in lines if "=" in l and not l.startswith("#") and not l[:1] == " "])
+            self.assertEqual(norm, lines)
 
     def test_key_case_is_ignored_like_engine(self):
         # 本体はキーを小文字にして読むので、大文字のキーの menuconf も同じ検査を受け、通る
@@ -189,10 +188,9 @@ class LintConfigTest(unittest.TestCase):
         self.assertFails("道具の名前は小文字")
 
     def test_range_expansion_position(self):
-        # [10-11] は 2 つの位置に展開される。連番に入れば通る
-        self.edit("menuconf.tab", lambda t: t + "toolbar[2][9-10]=general_tool[2]\n")
-        errors = lint_config.lint(self.dir)
-        self.assertTrue(any("重なり" in e or "抜け" in e for e in errors), errors)
+        # toolbar[2] には位置 9・10 が既にある。範囲 [9-10] は両方に重なる（終端の 10 も展開される）
+        self.edit("menuconf.tab", lambda t: t + "toolbar[2][9-10]=general_tool[2]" + chr(10))
+        self.assertFails("重なり [9, 10]")
 
     def test_range_expansion_fills_positions(self):
         # 範囲で書いた位置が、連番を埋める（展開しないと「抜け」になる）
@@ -216,9 +214,23 @@ class LintConfigTest(unittest.TestCase):
         self.assertEqual(lint_config.expand_key("a[ 3 - 4 ]")[0], ["a[3]", "a[4]"])
         self.assertEqual(lint_config.expand_key("a[5]")[0], ["a[5]"])
 
+    def test_range_limit_boundary(self):
+        # 本体は 1 つの範囲で値が 256 個以上になると止まる（255 個までは通る）
+        self.assertEqual(lint_config.expand_key("a[0-254]")[1], None)
+        self.assertIn("256", lint_config.expand_key("a[0-255]")[1])
+
+    def test_ribi_names_not_expanded(self):
+        self.assertEqual(lint_config.expand_key("a[n,s]")[0], ["a[n,s]"])
+
+    def test_chance_sint16_bounds(self):
+        for v, ok in (("-32768", True), ("32767", True), ("-32769", False), ("32768", False)):
+            with self.subTest(v=v):
+                errors = lint_config.check_cityrules([(1, "house_1 = ... .n. sss"), (2, "house_1.chance = " + v)])
+                self.assertEqual(not any("chance の値" in e for e in errors), ok)
+
     def test_range_too_large(self):
         self.edit("menuconf.tab", lambda t: t + "toolbar[2][0-300]=general_tool[2]\n")
-        self.assertFails("256 個を超える")
+        self.assertFails("256 個以上になる")
 
     def test_chance_not_integer(self):
         self.edit("cityrules.tab", lambda t: t.replace("house_1.chance = -2", "house_1.chance = abc"))

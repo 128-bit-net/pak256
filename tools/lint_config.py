@@ -57,7 +57,7 @@ def is_comment(line):
     return s == "" or s.startswith("#") or line[:1] in (" ", "	")
 
 
-RANGE_LIMIT = 256  # 本体は 1 つの [] の値を 256 個までしか持てない（tabfile.cc）
+RANGE_LIMIT = 256  # 本体は 1 つの [] の値が 256 個以上になる範囲で止まる（255 個まで。tabfile.cc）
 
 
 def expand_key(key):
@@ -94,7 +94,7 @@ def expand_key(key):
             else:
                 values.extend(range(values[-1] + 1, num + 1))
             if len(values) >= RANGE_LIMIT:
-                return [], f"[{body}] の値が {RANGE_LIMIT} 個を超える（本体は止まる）"
+                return [], f"[{body}] の値が {RANGE_LIMIT} 個以上になる（本体は止まる、または黙って捨てる）"
         choices.append(values)
     out = [""]
     for part, values in zip(parts, choices):
