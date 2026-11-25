@@ -11,12 +11,14 @@ build: vendor/ami/build.env の AMI_COMMIT（--ref で一度だけ別のコミ�
     3. render ../../tools/blender/render_parallel.py で catalog.SCALED_TARGETS を描く。先に描いた物の絵を読む物（踏切のシート・
               跨座式のトンネル）は、2 回目にまとめて描く（AMI README の「pak の大きさ」の描く順序）
     4. icons  blender/icons.py を全部のシートに（render.py は描いたシートの分しか書かない。試しでは飛ばす）
-    5. check  AMI の 256 の検査（check_scaled・check_icons・check_cells・check_crossing・check_depot・check_embankment）
+    5. check  AMI の check.sh の 256 の検査（check_scaled・check_icons・check_cells・check_crossing・check_depot・check_embankment・
+              dat_lint_extra・dat_linter の src256）
     6. build  build.py（dist256/ に pak。makeobj の警告で止まる）
     7. release release.py --version <版> --paks <PAKS>（work/release/ami-256-<版>.zip）
     8. dist/ami-256-<版>.zip と、組んだ元を書いた dist/ami-256-<版>.json に写す
     --only <対象 ...> は試し: その対象だけを描き、絵のある物だけを組む（BUILD_SKIP_MISSING=1）。置き場には上げられない。
-    止まったら worktree を残すので、直してから --resume --from <段> で続ける。
+    止まったら worktree を残すので、直してから --resume --from <段> で続ける（済んだ段は worktree の隣の .steps.json に控える）。
+    zip の隣の .json に、組んだ元のコミット・済んだ段・AMI の追跡ファイルの変更・Blender と makeobj の版を書く。
 compare: 2 つの zip の pak の名前・大きさ・物（makeobj list）を比べる。
 upload: dist/ami-256-<版>.zip を pak256 の非公開の Release（タグ vendor-ami-256-<版>、プレリリース）に上げ、vendor/ami/ami.env を書き換える。
 
@@ -53,8 +55,15 @@ PAKS = ("ami_rail", "ami_road", "ami_tram", "ami_extra", "ami_monorail", "ami_ca
 STEPS = ("dat", "render", "icons", "check", "build", "release")
 # 子に渡さない環境変数（残っていると、絵の無い物を黙って飛ばしたり、別のモードで描いたりする）
 SCRUB = ("BUILD_SKIP_MISSING", "CHECK_SKIP_MISSING", "CHECK_256_FULL", "SHEET_LAYOUT", "SHEET_ONLY", "AMI_ROUND", "AMI_FAMILY", "AMI_SURFACE")
-CHECKS_FULL = ("check_scaled.py", "check_icons.py", "check_cells.py", "check_crossing.py", "check_depot.py", "check_embankment.py")
-CHECKS_PARTIAL = ("check_icons.py", "check_cells.py")
+# AMI の check.sh の 256 の検査（CHECK_256_FULL=1 の分）。アドオンのディレクトリからの相対で流す
+CHECKS_FULL = (
+    ("check_scaled.py",), ("check_icons.py",), ("check_cells.py", "--self-test"), ("check_cells.py",),
+    ("check_crossing.py",), ("check_depot.py",), ("check_embankment.py",),
+    ("../../tools/dat_lint_extra/dat_lint_extra.py", "--self-test"), ("../../tools/dat_lint_extra/dat_lint_extra.py", "src256"),
+)
+CHECKS_PARTIAL = (("check_icons.py",), ("check_cells.py",))
+# dat_linter（AMI の check.sh が ci.env の版を TOOLS_DIR に取る）の場所。環境変数 DAT_LINTER_BIN → PATH → check.sh の既定の置き場
+DAT_LINTER_CACHE = os.path.join(os.path.expanduser("~"), ".cache", "simutrans-addon-dev", "ci-tools", "dat_linter")
 VERSION_RE = re.compile(r"^[a-z0-9][a-z0-9.\-]*$")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 DEFAULT_BLENDER = r"D:\bin\blender\blender.exe"
@@ -207,13 +216,25 @@ def step_icons(ami, env, blender):
         die(f"icons.py が失敗（ログ {path}）")
 
 
+def find_dat_linter():
+    for path in (os.environ.get("DAT_LINTER_BIN"), shutil.which("dat_linter"),
+                 os.path.join(DAT_LINTER_CACHE, "dat_linter.exe"), os.path.join(DAT_LINTER_CACHE, "dat_linter")):
+        if path and os.path.isfile(path):
+            return path
+    die("dat_linter が無い（AMI の clone で bash addons/ami/check.sh を一度流すと "
+        f"{DAT_LINTER_CACHE} に入る。ほかの場所なら DAT_LINTER_BIN で渡す）")
+
+
 def step_check(ami, env, partial):
     env = dict(env)
     if partial:
         env["CHECK_SKIP_MISSING"] = "1"
     for c in CHECKS_PARTIAL if partial else CHECKS_FULL:
-        log(f"検査: {c}")
-        run([sys.executable, "-X", "utf8", c], cwd=ami, env=env)
+        log(f"検査: {' '.join(c)}")
+        run([sys.executable, "-X", "utf8", *c], cwd=ami, env=env)
+    if not partial:
+        log("検査: dat_linter lint --tile-size 512 src256")
+        run([find_dat_linter(), "lint", "--tile-size", "512", "."], cwd=os.path.join(ami, "src256"), env=env)
 
 
 def step_build(ami, env, partial):
@@ -235,13 +256,54 @@ def zip_paks(path):
         return {os.path.basename(i.filename): i.file_size for i in z.infolist() if i.filename.lower().endswith(".pak")}
 
 
-def collect(ami, version, commit, partial):
+def steps_file(wt):
+    """worktree で済んだ段の控え（worktree の外、隣に置く）。"""
+    return wt + ".steps.json"
+
+
+def read_steps(wt):
+    try:
+        with open(steps_file(wt), encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+
+def write_steps(wt, steps):
+    with open(steps_file(wt), "w", encoding="utf-8") as f:
+        json.dump(steps, f)
+
+
+def tree_changes(wt):
+    """AMI の追跡しているファイルのうち、組む途中で変わってよい src256/ 以外の変更（手で直した道具など）。行末の違いは数えない。"""
+    out = git(wt, "diff", "--ignore-cr-at-eol", "--numstat", "HEAD").splitlines()
+    names = [line.split("\t")[-1] for line in out if not line.startswith("0\t0\t")]
+    return [n for n in names if not n.startswith("addons/ami/src256/")]
+
+
+def tool_versions(blender):
+    """組んだ道具の版（絵や pak が変わりうるので記録する）。"""
+    def first(cmd, pat):
+        try:
+            r = subprocess.run(cmd, capture_output=True, timeout=120)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return ""
+        text = r.stdout.decode(errors="replace") + r.stderr.decode(errors="replace")
+        return next((line.strip() for line in text.splitlines() if pat in line), "")
+    return {"blender": first([blender, "--version"], "Blender"),
+            "makeobj": first([os.environ.get("MAKEOBJ", "makeobj")], "Makeobj version")}
+
+
+def collect(ami, wt, version, commit, partial, blender):
     src = os.path.join(ami, "work", "release", f"ami-256-{version}.zip")
     if not os.path.isfile(src):
         die(f"zip が無い: {src}")
     paks = zip_paks(src)
     if not partial and sorted(paks) != sorted(p + ".pak" for p in PAKS):
         die(f"zip の pak が同梱する 7 つと違う: {sorted(paks)}")
+    changes = tree_changes(wt)
+    if changes:
+        log(f"AMI の追跡しているファイルが {len(changes)} 個変わっている（この zip は置き場に上げられない）: {' '.join(changes[:10])}")
     os.makedirs(DIST, exist_ok=True)
     dst = os.path.join(DIST, f"ami-256-{version}.zip")
     shutil.copyfile(src, dst)
@@ -249,6 +311,9 @@ def collect(ami, version, commit, partial):
         "version": f"ami-256-{version}",
         "ami_commit": commit,
         "partial": partial,
+        "steps": read_steps(wt),
+        "tree_changes": changes,
+        "tools": tool_versions(blender),
         "zip_sha256": sha256_file(dst),
         "paks": paks,
     }
@@ -281,6 +346,12 @@ def cmd_build(a):
     ami = os.path.join(wt, "addons", "ami")
     env = child_env(a.blender)
     start = STEPS.index(a.from_step)
+    done = read_steps(wt) if a.resume else []
+    missing = [s for s in STEPS[:start] if s not in done]
+    if missing:
+        die(f"--from {a.from_step} の前の段が済んでいない: {' '.join(missing)}（その段から続ける）")
+    done = [s for s in done if STEPS.index(s) < start]  # この段から後は流し直す
+    write_steps(wt, done)
     for step in STEPS[start:]:
         log(f"== {step}")
         if step == "dat":
@@ -298,12 +369,16 @@ def cmd_build(a):
             step_build(ami, env, partial)
         elif step == "release":
             step_release(ami, env, version, partial)
-    collect(ami, version, commit, partial)
+        done.append(step)
+        write_steps(wt, done)
+    collect(ami, wt, version, commit, partial, a.blender)
     if a.keep:
         log(f"worktree を残した: {wt}")
     else:
         r = subprocess.run(["git", "-C", repo, "worktree", "remove", "--force", wt], timeout=TIMEOUT_GIT)
         if r.returncode == 0:
+            if os.path.isfile(steps_file(wt)):
+                os.remove(steps_file(wt))
             log("worktree を消した")
         else:  # zip はできているので止めない（中のファイルを開いているプロセスがあると消せない）
             log(f"worktree を消せなかった。後でフォルダ {wt} を消し、git -C {repo} worktree prune を流す")
@@ -410,6 +485,10 @@ def cmd_upload(a):
         die("試し（--only）で組んだ zip は上げない")
     if m.get("ami_commit") != build_commit():
         die(f"zip の元のコミット {m.get('ami_commit')} が build.env の AMI_COMMIT と違う（build.env を直す PR を先に入れる）")
+    if m.get("steps") != list(STEPS):
+        die(f"全部の段を通して組んだ zip でない（済んだ段: {m.get('steps')}）。組み直す")
+    if m.get("tree_changes") != []:
+        die(f"AMI の道具などを変えて組んだ zip は上げない（{m.get('tree_changes')}）。AMI の側で直してもらう")
     sha = sha256_file(zpath)
     if sha != m.get("zip_sha256"):
         die("zip の SHA-256 が .json と違う。組み直す")
@@ -418,6 +497,7 @@ def cmd_upload(a):
         die(f"Release {tag} は既にある。版の名前を変える（上書きしない）")
     notes = (f"同梱用の AMI の 256 版（配布物ではない）。tools/build_ami256.py で組んだ。\n\n"
              f"- AMI: 128na/simutrans-addon-dev@{m['ami_commit']}\n"
+             f"- 道具: {m.get('tools', {}).get('blender', '?')} / {m.get('tools', {}).get('makeobj', '?')}\n"
              f"- SHA-256: {sha}\n")
     values = {"AMI_VERSION": name, "AMI_ZIP_URL": release_url(tag, name + ".zip"), "AMI_ZIP_SHA256": sha,
               "AMI_COMMIT": m["ami_commit"]}

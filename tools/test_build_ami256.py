@@ -36,12 +36,45 @@ class SettingsTest(unittest.TestCase):
         self.assertNotIn("ami_rail_old", B.PAKS)
 
     def test_child_env_scrubs(self):
-        with mock.patch.dict(os.environ, {"BUILD_SKIP_MISSING": "1", "CHECK_SKIP_MISSING": "1", "SHEET_PAK_SIZE": "128"}):
+        names = ("BUILD_SKIP_MISSING", "CHECK_SKIP_MISSING", "CHECK_256_FULL", "SHEET_LAYOUT", "SHEET_ONLY",
+                 "AMI_ROUND", "AMI_FAMILY", "AMI_SURFACE")
+        with mock.patch.dict(os.environ, {**{n: "1" for n in names}, "SHEET_PAK_SIZE": "128", "KEEP_ME": "x"}):
             env = B.child_env("blender.exe")
-        self.assertNotIn("BUILD_SKIP_MISSING", env)
-        self.assertNotIn("CHECK_SKIP_MISSING", env)
+        for n in names:
+            self.assertNotIn(n, env)
+        self.assertEqual(env["KEEP_ME"], "x")
         self.assertEqual(env["SHEET_PAK_SIZE"], "256")
         self.assertEqual(env["SHEET_BLENDER"], "blender.exe")
+
+
+class StepTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def icons(self, log_text, code=0):
+        def fake_run(cmd, cwd, env, stdout, stderr, timeout):
+            stdout.write(log_text)
+            return mock.Mock(returncode=code)
+        with mock.patch.object(B.subprocess, "run", side_effect=fake_run):
+            B.step_icons(self.tmp.name, {}, "blender.exe")
+
+    def test_icons_ok(self):
+        self.icons("[icon] ok\nBlender quit\n")
+
+    def test_icons_traceback_with_exit_0(self):
+        with self.assertRaises(SystemExit):
+            self.icons("Traceback (most recent call last):\nRuntimeError: x\nBlender quit\n")
+
+    def test_icons_exit_code(self):
+        with self.assertRaises(SystemExit):
+            self.icons("", code=1)
+
+    def test_steps_roundtrip(self):
+        wt = os.path.join(self.tmp.name, "wt")
+        self.assertEqual(B.read_steps(wt), [])
+        B.write_steps(wt, ["dat", "render"])
+        self.assertEqual(B.read_steps(wt), ["dat", "render"])
 
 
 class StagesTest(unittest.TestCase):
@@ -117,7 +150,8 @@ class UploadTest(unittest.TestCase):
             self.addCleanup(p.stop)
 
     def manifest(self, **over):
-        m = {"version": "ami-256-alpha.9", "ami_commit": self.commit, "partial": False,
+        m = {"version": "ami-256-alpha.9", "ami_commit": self.commit, "partial": False, "steps": list(B.STEPS),
+             "tree_changes": [], "tools": {"blender": "Blender 4", "makeobj": "Makeobj version 60"},
              "zip_sha256": B.sha256_file(self.zip), "paks": {}}
         m.update(over)
         with open(os.path.join(self.dist, "ami-256-alpha.9.json"), "w", encoding="utf-8") as f:
@@ -159,6 +193,21 @@ class UploadTest(unittest.TestCase):
 
     def test_refuses_other_commit(self):
         self.manifest(ami_commit="0" * 40)
+        with self.assertRaises(SystemExit):
+            self.upload()
+
+    def test_refuses_skipped_steps(self):
+        self.manifest(steps=["build", "release"])
+        with self.assertRaises(SystemExit):
+            self.upload()
+
+    def test_refuses_old_manifest_without_steps(self):
+        self.manifest(steps=None)
+        with self.assertRaises(SystemExit):
+            self.upload()
+
+    def test_refuses_tree_changes(self):
+        self.manifest(tree_changes=["tools/blender/sheetlib/core.py"])
         with self.assertRaises(SystemExit):
             self.upload()
 

@@ -105,7 +105,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_stations.py` | 仮の駅の表の検査: `type: stop`・`waytype`（`rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
-| `test_build_ami256.py` | `build_ami256.py` の検査: 描く順の分け方・`ami.env` の書き換え・比べ方・上げる前の止め（試し・別のコミット・変わった zip・既にあるタグ）。AMI・Blender・gh は使わない |
+| `test_build_ami256.py` | `build_ami256.py` の検査: 描く順の分け方・子の環境から外す変数・アイコンの段の失敗（終了コード 0 の `Traceback`）・済んだ段の控え・`ami.env` の書き換え・比べ方・上げる前の止め（試し・別のコミット・飛ばした段・AMI の道具の変更・変わった zip・既にあるタグ）。AMI・Blender・gh は使わない |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
 | `vehicles.py` | 車両の長さと描画位置の決まり（[standards.md](standards.md) の 4 章）の計算。車両を描くスクリプトと検査が使う |
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
@@ -176,18 +176,18 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
   - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3 は pak256 の置き場の Release にだけある）。
   - 256 の組み立て（このツール）と、ゲームでの見た目の確かめは pak256 が受け持つ。
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
-- **組む段**（`build`。止まったら worktree を残すので、直して `--resume --from <段>` で続ける）:
+- **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:
   1. `dat`: `blender/ami_dat.py` で `src256/` の dat を書く。コミット済みの dat と（行末を除いて）違えば知らせる（AMI の書き忘れ。組む pak はこの dat で作る）。
-  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（250 名）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
+  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（8801a1e で 215 対象。`SCALED_SHEETS` の 252 名から、基盤の版と一緒に描かれる壁と絵を持たない dat を除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
   3. `icons`: `blender/icons.py` を全部のシートに流す（`render.py` は描いたシートの分しか書かない）。Blender は例外でも終了コード 0 なので、ログ（`work/icons.log`）の `Traceback` でも止める。
-  4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。AMI の `CHECK_256_FULL=1` と同じ物）。
+  4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。`check_cells.py --self-test`、`dat_lint_extra.py`（`--self-test` と `src256`）、`dat_linter lint --tile-size 512`（`src256`）。AMI の `check.sh` の `CHECK_256_FULL=1` の 256 の分。`dat_linter` は環境変数 `DAT_LINTER_BIN`・`PATH`・`check.sh` の既定の置き場（`~/.cache/simutrans-addon-dev/ci-tools/dat_linter/`。AMI の clone で `check.sh` を一度流すと入る）の順に探し、無ければ止まる）。
   5. `build`: `build.py`（`dist256/` に pak。makeobj の警告で止まる。makeobj は `PATH` のもの）。
   6. `release`: `release.py --version <版> --paks <7 つ>`。7 つ（`ami_rail`・`ami_road`・`ami_tram`・`ami_extra`・`ami_monorail`・`ami_canal`・`ami_scenery`）がそろわなければ止まる。
   
-  組んだ zip は `dist/ami-256-<版>.zip`、組んだ元（AMI のコミット・zip の SHA-256・pak の大きさ）は `dist/ami-256-<版>.json` に置く。子の環境から `BUILD_SKIP_MISSING`・`CHECK_SKIP_MISSING`・`SHEET_LAYOUT`・`SHEET_ONLY` などを外す（残っていると、絵の無い物を黙って飛ばす）。
+  組んだ zip は `dist/ami-256-<版>.zip`、組んだ元（AMI のコミット・済んだ段・AMI の追跡しているファイルのうち `src256/` 以外の変更・Blender と makeobj の版・zip の SHA-256・pak の大きさ）は `dist/ami-256-<版>.json` に置く。子の環境から `BUILD_SKIP_MISSING`・`CHECK_SKIP_MISSING`・`SHEET_LAYOUT`・`SHEET_ONLY` などを外す（残っていると、絵の無い物を黙って飛ばす）。
 - **試し**: `--only <対象 ...>`（例 `ami_road_local`。約 2 分）は、その対象だけを描いて、絵のある物だけを組む（`BUILD_SKIP_MISSING=1`。アイコンの全体の段は飛ばす）。道具の確かめや、AMI の道具の直し方を早く見るのに使う（手元の AMI の worktree で直した物は、`--keep` と `--resume --from render` で描き直す）。置き場には上げられない。
 - **比べる**: `compare <zip A> <zip B>` が、pak の名前・数・大きさと、物（`makeobj list` の種類と名前）の違いを出す。名前と数が違うと終了コード 1。前の版（`build/cache/` や `gh release download` で取った zip）と比べて、PR に書く。
-- **置き場に上げる**: `upload --version <版>`（先に `--dry-run` で確かめる）。`build.env` の `AMI_COMMIT` から組んだ、試しでない zip で、組んだ後に zip が変わっていないときだけ、Release `vendor-ami-256-<版>`（プレリリース・latest にしない）を作って zip を置き、`vendor/ami/ami.env` の `AMI_VERSION`・`AMI_ZIP_URL`・`AMI_ZIP_SHA256` と `AMI_COMMIT`（組んだ元。`fetch_ami.py` は読まない）を書き換える。同じタグの Release が既にあれば止まる（上書きしない。版の名前を変える）。上げた後、`ami.env` の変更を PR にする。
+- **置き場に上げる**: `upload --version <版>`（先に `--dry-run` で確かめる）。`build.env` の `AMI_COMMIT` から組んだ、試しでない zip で、全部の段を通して組み、AMI の道具などを手で変えておらず、組んだ後に zip が変わっていないときだけ、Release `vendor-ami-256-<版>`（プレリリース・latest にしない）を作って zip を置き、`vendor/ami/ami.env` の `AMI_VERSION`・`AMI_ZIP_URL`・`AMI_ZIP_SHA256` と `AMI_COMMIT`（組んだ元。`fetch_ami.py` は読まない）を書き換える。同じタグの Release が既にあれば止まる（上書きしない。版の名前を変える）。上げた後、`ami.env` の変更を PR にする。
 
 ```
 python -X utf8 tools/build_ami256.py build --version alpha.4
