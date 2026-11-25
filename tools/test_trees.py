@@ -1,7 +1,7 @@
 """温帯の木の絵の検査（docs/trees.md）。高さ・幅が表の値の ±5% に収まり、特別な色が混じらないことを確かめる。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 
-縮尺は docs/trees.md の「縮尺」（高さ 1m = 5.9px、地面の距離 1m = 6.9px）。育ち age 0〜4 は成木の 0.2〜1.0 倍。
+縮尺は docs/standards.md の 1 章（高さ 1m = 5.9px、地面の距離 1m = 6.9px）。育ち age 0〜4 は成木の 0.2〜1.0 倍。
 Pillow が要る（tools/requirements.txt）。
 """
 import os

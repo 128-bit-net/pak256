@@ -1,7 +1,7 @@
-"""車両の長さと描画位置の決まり（docs/vehicles.md）の検査。
+"""車両の長さと描画位置の決まり（docs/standards.md の 4 章）の検査。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 
-- tools/vehicles.py の換算と横の位置が、docs/vehicles.md の数と合うこと。
+- tools/vehicles.py の換算と横の位置が、docs/standards.md の数と合うこと。
 - 見本のバス（objects/vehicle/road/sample_bus/）の表の length が換算どおりで、絵の 8 方向が決まりの位置に描かれていること
   （車体の外接枠が、決まりから計算した枠と ±2px で合う）。特別な色が混じらないこと。
 - 石炭のトラック（objects/vehicle/road/coal_truck/）の表（length・貨物・freightimage）と、空・積んだ 2 行の絵が決まりの位置に描かれていること。
@@ -52,7 +52,7 @@ class TestRules(unittest.TestCase):
         self.assertEqual(V.length_units(4.125), 3)  # 2.5
 
     def test_fixed_numbers(self):
-        # docs/vehicles.md に書いた数。変えるときは文書と一緒に直す
+        # docs/standards.md に書いた数。変えるときは文書と一緒に直す
         self.assertEqual(V.FRONT_UNITS, 0)
         self.assertEqual(V.ORIGIN, (128, 192))
         self.assertEqual(V.CELL, 256)
