@@ -1,7 +1,7 @@
 """pak256.LongScale のロゴの絵（BigLogo・Logo）。MIT License。
 
 draw_gui.py から使う。自分で描いた絵（他の pak の絵は使わない）。
-意匠: 1 タイルの菱形（256px のタイル）から、はみ出して長く伸びる先頭車 1 両（大きさはゲームと同じ比。長さを実物に比例させる = LongScale）。
+意匠: 1 タイルの菱形（256px のタイル）の上に、ゲームの気動車と同じ長さの比で車両 1 両を置く（長さを実物に比例させる = LongScale）。
 下に「LongScale」を大きく。
 本体は BigLogo を 4 枚（左上・右上・左下・右下）で 2×2 に並べる（simloadingscreen.cc）。
 絵は全面が不透明な四角（makeobj が透明な縁を切って 4 枚の位置がずれないように）。
@@ -104,8 +104,9 @@ def draw_big():
     d = ImageDraw.Draw(im)
     _background(d, w)
     p = _iso(w / 2, 195 * s, 78 * s)
-    _tile(d, p, -1, 1, -1, 1, (46, 110, 120), TEAL, 3 * s)
-    _track(d, p, -1.0, 1.0)
+    half = TILE_EDGE / 2
+    _tile(d, p, -half, half, -half, half, (46, 110, 120), TEAL, 3 * s)
+    _track(d, p, -half, half)
     _railcar(d, p, -CAR_U / 2, CAR_U / 2, 0.0, 0.3)
     _text(d, (w / 2, 50 * s), "pak256", 64 * s, WHITE)
     # LongScale は大きく、太く（縁取りで太らせる）、明るい金で

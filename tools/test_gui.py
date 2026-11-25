@@ -118,6 +118,9 @@ class GuiTest(unittest.TestCase):
         with open(os.path.join(ROOT, "objects", "vehicle", "rail", "railcar", "railcar.yaml"), encoding="utf-8") as f:
             length = int(re.search(r"^length:\s*(\d+)", f.read(), re.M).group(1))
         self.assertEqual(length, draw_gui.logo_art.RAILCAR_LENGTH)
+        # 1 タイル = 16 単位（docs/standards.md）。菱形の 1 辺は 2 単位なので、車体は 2 × length / 16
+        self.assertEqual(draw_gui.logo_art.TILE_LENGTH_UNITS, 16)
+        self.assertAlmostEqual(draw_gui.logo_art.CAR_U, draw_gui.logo_art.TILE_EDGE * length / 16)
         with open(os.path.join(GUI, "sym_biglogo.dat"), encoding="utf-8") as f:
             self.assertIn(f"cell_size={draw_gui.logo_art.BIG // 2}", f.read())
 
