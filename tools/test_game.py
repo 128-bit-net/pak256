@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import game  # noqa: E402
@@ -14,7 +15,7 @@ def put(path, text="x"):
         f.write(text)
 
 
-class GameToolTest(unittest.TestCase):
+class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         t = self.tmp.name
@@ -47,6 +48,9 @@ class GameToolTest(unittest.TestCase):
         with open(os.path.join(self.work, *p), encoding="utf-8", newline="") as f:
             return f.read()
 
+
+
+class GameToolTest(Base):
     def test_copies_only_what_is_needed(self):
         placed = self.prepare()
         self.assertEqual(sorted(placed), ["config/simuconf.tab", "own.one.pak", "text/ja.tab"])
@@ -104,6 +108,9 @@ class GameToolTest(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("-objects") + 1], "pak/")
         self.assertEqual(cmd[cmd.index("-mcp-port") + 1], "47880")
         self.assertEqual(cmd[cmd.index("-set_workdir") + 1], "W")
+        self.assertEqual(cmd[cmd.index("-load") + 1], "map")
+        for flag in ("-freeplay", "-mute", "-screensize"):
+            self.assertIn(flag, cmd)
 
     def test_port_range(self):
         game.check_port(47880)
@@ -111,6 +118,89 @@ class GameToolTest(unittest.TestCase):
         for p in (47800, 47900):
             with self.assertRaises(RuntimeError):
                 game.check_port(p)
+
+
+SLEEPER = [sys.executable, "-c", "import time; time.sleep(60)"]
+
+
+class LifecycleTest(Base):
+    """ゲームの代わりに眠るだけのプロセスを起動して、閉じ方と片付けを見る（本物のゲームは起動しない）。"""
+
+    def make(self, **kw):
+        g = game.Game(self.env, "map", 47880, work=self.work, client=__file__, root=self.root, build=self.build, **kw)
+        return g
+
+    def patches(self, sq):
+        return (mock.patch.object(game, "launch_command", lambda *a, **k: SLEEPER),
+                mock.patch.object(game, "port_in_use", lambda p: False),
+                mock.patch.object(game.Game, "sq", sq),
+                mock.patch.object(game.Game, "alive_mcp", lambda self_: False),
+                mock.patch.object(game.time, "sleep", lambda s: None))
+
+    def run_with(self, sq, **kw):
+        g = self.make(**kw)
+        ps = self.patches(sq)
+        for p in ps:
+            p.start()
+        self.addCleanup(lambda: [p.stop() for p in ps])
+        return g
+
+    def test_normal_close_kills_pid_and_removes_workdir(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1")
+        with g:
+            pid = g.proc.pid
+            self.assertTrue(game.alive(pid))
+            self.assertTrue(os.path.isdir(self.work))
+        self.assertFalse(game.alive(pid))
+        self.assertFalse(os.path.exists(self.work))
+        self.assertFalse(g.left_over)
+
+    def test_keep_leaves_workdir(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1", keep=True)
+        with g:
+            pass
+        self.assertTrue(os.path.isdir(self.work))
+
+    def test_failed_start_still_closes_game(self):
+        def never(self_, code, timeout=30):
+            raise RuntimeError("no answer")
+        g = self.run_with(never)
+        pids = []
+        orig = game.subprocess.Popen
+
+        def spy(*a, **k):
+            p = orig(*a, **k)
+            if a and a[0] == SLEEPER:
+                pids.append(p.pid)
+            return p
+        with mock.patch.object(game.subprocess, "Popen", spy), mock.patch.object(game.time, "monotonic", mock.Mock(side_effect=[0, 0, 1, 999])):
+            with self.assertRaises(RuntimeError):
+                with g:
+                    pass
+        self.assertEqual(len(pids), 1)
+        self.assertFalse(game.alive(pids[0]))
+        self.assertFalse(os.path.exists(self.work))
+
+    def test_busy_port_does_not_touch_foreign_workdir(self):
+        put(os.path.join(self.work, "theirs.txt"))
+        g = self.make()
+        with mock.patch.object(game, "port_in_use", lambda p: True):
+            with self.assertRaises(RuntimeError):
+                with g:
+                    pass
+        self.assertTrue(os.path.isfile(os.path.join(self.work, "theirs.txt")))
+
+    def test_check_work_rejects_overlap_and_foreign(self):
+        with self.assertRaises(RuntimeError):
+            game.check_work(self.env, self.env, self.root)
+        with self.assertRaises(RuntimeError):
+            game.check_work(os.path.dirname(self.env), self.env, self.root)
+        with self.assertRaises(RuntimeError):
+            game.check_work(os.path.join(self.env, "sub"), self.env, self.root)
+        put(os.path.join(self.work, "x.txt"))
+        with self.assertRaises(RuntimeError):
+            game.check_work(self.work, self.env, self.root)
+        game.check_work(os.path.join(self.tmp.name, "fresh"), self.env, self.root)
 
 
 if __name__ == "__main__":

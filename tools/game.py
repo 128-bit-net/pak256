@@ -17,7 +17,7 @@
         g.capture("a.png")
 
 決まり:
-- 検証環境（F:\\Simutrans\\addon_check など）には書かない。写した作業フォルダ（既定は work/game/<ポート>/）だけを使う。
+- 検証環境には書かない。写した作業フォルダ（既定は work/game/<ポート>/）だけを使う。
 - settings.xml は写さない（本体が送信用の記録を持っていて、起動のたびに使用状況を外へ送るため）。
 - config/simuconf.tab の末尾に day_night_shift = 0 を足して昼夜の切り替えを止める（夜の絵になって撮り直すのを防ぐ）。
   夜の灯りを見るときだけ --night。
@@ -31,6 +31,7 @@ import glob
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -45,6 +46,7 @@ EXE = "sim-WinGDI64-OTRPv64.exe"
 ENV_DIRS = ("config", "font", "themes", "text", "script", "music")
 PAK_DIR = "pak"
 DAY_NIGHT_OFF = "day_night_shift = 0"
+MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
 
 
@@ -119,6 +121,8 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
     if os.path.exists(work):
         shutil.rmtree(work)
     os.makedirs(os.path.join(work, "save"))
+    with open(os.path.join(work, MARK), "w", encoding="utf-8") as f:
+        f.write("tools/game.py\n")
     shutil.copyfile(os.path.join(env, exe), os.path.join(work, exe))
     for dll in glob.glob(os.path.join(env, "*.dll")):
         shutil.copyfile(dll, os.path.join(work, os.path.basename(dll)))
@@ -145,6 +149,28 @@ def check_port(port):
         raise RuntimeError(f"MCP のポートは 47880〜47899 の中で明示する: {port}")
 
 
+def port_in_use(port):
+    """そのポートに誰かがつながるか（他のゲームが使っている）。"""
+    for host in ("127.0.0.1", "::1"):
+        fam = socket.AF_INET6 if ":" in host else socket.AF_INET
+        with socket.socket(fam, socket.SOCK_STREAM) as sk:
+            sk.settimeout(1)
+            if sk.connect_ex((host, port)) == 0:
+                return True
+    return False
+
+
+def check_work(work, env, root):
+    """作業フォルダが、検証環境・その中・その親・リポジトリそのものでないこと。空でなければ、この道具の物（目印あり）であること（rmtree で消すため）。"""
+    w = os.path.normcase(os.path.realpath(work))
+    e = os.path.normcase(os.path.realpath(env))
+    r = os.path.normcase(os.path.realpath(root))
+    if w == r or w == e or e.startswith(w + os.sep) or r.startswith(w + os.sep) or w.startswith(e + os.sep):
+        raise RuntimeError(f"作業フォルダが検証環境かリポジトリと重なる: {work}")
+    if os.path.exists(work) and os.listdir(work) and not os.path.isfile(os.path.join(work, MARK)):
+        raise RuntimeError(f"作業フォルダが空でなく、この道具の物でもない: {work}")
+
+
 def alive(pid):
     """tasklist で PID のプロセスが残っているか。"""
     out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"], capture_output=True)
@@ -165,10 +191,15 @@ class Game:
         self.client = client or os.environ.get("MCP_CLIENT") or default_client()
         self.keep, self.root, self.build = keep, root, build
         self.proc = None
+        self.prepared = False  # この Game が作業フォルダを用意した（他人の物を消さない）
         self.left_over = False  # 閉じた後も PID が残ったか
 
     def __enter__(self):
-        self.start()
+        try:
+            self.start()
+        except BaseException:  # 起動の途中の失敗・Ctrl+C でも、起動した物を閉じて片付ける（with は __enter__ の失敗で __exit__ を呼ばない）
+            self.stop()
+            raise
         return self
 
     def __exit__(self, *exc):
@@ -177,16 +208,19 @@ class Game:
     def start(self, limit=120):
         if not os.path.isfile(self.client):
             raise RuntimeError(f"MCP のクライアントが無い: {self.client}（--mcp-client か環境変数 MCP_CLIENT で渡す）")
-        if self.alive_mcp():
-            raise RuntimeError(f"ポート {self.port} で既にゲームが動いている")
+        if port_in_use(self.port) or self.alive_mcp():
+            raise RuntimeError(f"ポート {self.port} は他で使われている（他のゲームが動いている）")
+        check_work(self.work, self.env, self.root)
+        self.prepared = True
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
-        self.proc = subprocess.Popen(cmd, cwd=self.work, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        with open(os.path.join(self.work, "game.log"), "wb") as log:
+            self.proc = subprocess.Popen(cmd, cwd=self.work, stdout=log, stderr=subprocess.STDOUT)
         print(f"[game] pid={self.proc.pid} port={self.port} work={self.work}", flush=True)
-        end, last = time.time() + limit, None
-        while time.time() < end:
+        end, last = time.monotonic() + limit, None
+        while time.monotonic() < end:
             if self.proc.poll() is not None:
-                raise RuntimeError(f"ゲームが終わった（終了コード {self.proc.returncode}）")
+                raise RuntimeError(f"ゲームが終わった（終了コード {self.proc.returncode}。ログは {self.work}/game.log）")
             try:
                 if self.sq("return 1", timeout=5) == "1":
                     return
@@ -222,6 +256,8 @@ class Game:
     def capture(self, path, timeout=30):
         """画面を PNG に撮る（capture_screen）。"""
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+        if os.path.isfile(path):
+            os.remove(path)  # 古い物で成功と見誤らない
         out = self._client("--capture", path, timeout=timeout)
         if out.returncode != 0 or not os.path.isfile(path):
             raise RuntimeError(f"撮れなかった: {out.stderr[-300:]}")
@@ -238,17 +274,19 @@ class Game:
         """起動した PID で閉じ、残りを確かめ、作業フォルダを消す（keep なら残す）。残ったら知らせる。"""
         if self.proc is not None:
             pid = self.proc.pid
-            subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
-            try:
-                self.proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                pass
+            if self.proc.poll() is None:  # 終わった PID は別のプロセスに再利用されうるので撃たない
+                subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
+                try:
+                    self.proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    pass
             self.left_over = alive(pid)
             print(f"[game] stopped pid={pid}" if not self.left_over else
                   f"[game] pid={pid} が残っている（Windows を再起動するまで消えないことがある。{self.work} は消せない）", flush=True)
             self.proc = None
-        if not self.keep and not self.left_over:
-            shutil.rmtree(self.work, ignore_errors=True)
+        if self.prepared and not self.keep and not self.left_over:
+            shutil.rmtree(self.work, onerror=lambda f, p, e: print(f"[game] 消せなかった: {p}", flush=True))
+            self.prepared = False
 
 
 def main():

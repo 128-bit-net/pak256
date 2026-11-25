@@ -147,6 +147,8 @@ def main():
             if len(dirs) >= 11 and sum(1 for (n, _, _) in seen if n == 2) >= 5:
                 break
         print("[done] directions:", sorted({d for (_, d, _) in seen}), flush=True)
+    if game.left_over:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
