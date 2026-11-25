@@ -184,25 +184,147 @@ CLIMATES = [
 ]
 
 
+def fbm(a, b, seed, octaves=((4, 0.45), (8, 0.30), (16, 0.17), (32, 0.08))):
+    """周期つきの雑音を重ねる（0..1）。"""
+    return sum(w * vnoise(a, b, n, n, seed + i) for i, (n, w) in enumerate(octaves))
+
+
+def worley(a, b, n, seed):
+    """周期 n の細胞雑音。(最も近い点までの距離, 2 番目までの距離, 最も近い細胞の乱数) を返す（細胞の大きさが 1）。"""
+    fa, fb = (a % 1.0) * n, (b % 1.0) * n
+    ia, ib = math.floor(fa), math.floor(fb)
+    best = [9.0, 9.0, 0.0]
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            ci, cj = ia + di, ib + dj
+            hi, hj = ci % n, cj % n
+            px = ci + 0.15 + 0.7 * _hash(hi, hj, seed)
+            py = cj + 0.15 + 0.7 * _hash(hi, hj, seed + 1)
+            d = math.hypot(fa - px, fb - py)
+            if d < best[0]:
+                best[1] = best[0]
+                best[0], best[2] = d, _hash(hi, hj, seed + 2)
+            elif d < best[1]:
+                best[1] = d
+    return best[0], best[1], best[2]
+
+
+def mix(c0, c1, t):
+    t = min(1.0, max(0.0, t))
+    return tuple(c0[i] + (c1[i] - c0[i]) * t for i in range(3))
+
+
+def grain(x, y, seed, amp=0.07):
+    """細かい粒（周期は斜め格子と同じ）。明るさの倍率を返す。"""
+    f = _hash((x + 2 * y) % 256, (x - 2 * y) % 256, seed + 9)
+    return 1.0 - amp + 2 * amp * f
+
+
+def tex_temperate(x, y, seed):
+    dark, light = (72, 120, 52), (118, 160, 76)
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed)
+    n = min(1.0, max(0.0, (n - 0.5) * 1.5 + 0.5))
+    return [c * grain(x, y, seed, 0.07) for c in mix(dark, light, n)]
+
+
+def tex_desert(x, y, seed):
+    """砂丘のさざ波（うねる縞）と、ところどころの小石。"""
+    a, b = warp(*lattice(x, y), seed)
+    w = fbm(a, b, seed, ((2, 0.6), (4, 0.4)))
+    ripple = 0.5 + 0.5 * math.sin(2 * math.pi * (5 * (a + b) + 9 * w))
+    big = fbm(a, b, seed + 20, ((3, 0.4), (6, 0.3), (12, 0.2), (24, 0.1)))
+    sand = mix((206, 178, 114), (232, 208, 148), 0.25 * ripple + 0.75 * big)
+    d1, d2, r = worley(*lattice(x, y), 14, seed + 40)
+    if d1 < 0.2 and r > 0.78:
+        sand = mix(sand, (150, 124, 90), 0.8 - d1 * 3)
+    return [c * grain(x, y, seed, 0.06) for c in sand]
+
+
+def tex_tropic(x, y, seed):
+    """濃い緑の下草。暗い茂みの塊と、明るい若葉の点。"""
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed, ((4, 0.35), (8, 0.3), (16, 0.2), (32, 0.15)))
+    col = mix((34, 98, 40), (86, 160, 58), (n - 0.35) * 2.2)
+    d1, d2, r = worley(*lattice(x, y), 20, seed + 30)
+    if d1 < 0.28:
+        col = mix(col, (116, 188, 66) if r > 0.5 else (22, 74, 34), 0.45 * (1 - d1 / 0.28))
+    return [c * grain(x, y, seed, 0.08) for c in col]
+
+
+def tex_mediterran(x, y, seed):
+    """乾いたオリーブ色の草地に、赤茶の土と石のまだら。"""
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed)
+    grass = mix((112, 134, 64), (170, 168, 88), (n - 0.3) * 2.0)
+    soil_m = fbm(a, b, seed + 20, ((6, 0.45), (12, 0.35), (24, 0.2)))
+    col = mix(grass, (176, 124, 84), (soil_m - 0.6) * 3.5)
+    d1, d2, r = worley(*lattice(x, y), 16, seed + 40)
+    if d1 < 0.18 and r > 0.7:
+        col = mix(col, (196, 188, 170), 0.7)
+    return [c * grain(x, y, seed, 0.07) for c in col]
+
+
+def tex_tundra(x, y, seed):
+    """灰緑のこけ・地衣類と、茶色の湿った土、残った雪の斑点。"""
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed)
+    moss = mix((92, 108, 78), (146, 152, 112), (n - 0.3) * 2.0)
+    m2 = fbm(a, b, seed + 20, ((6, 0.45), (12, 0.35), (24, 0.2)))
+    col = mix(moss, (96, 80, 62), (m2 - 0.6) * 3.5)
+    d1, d2, r = worley(*lattice(x, y), 18, seed + 40)
+    if d1 < 0.2:
+        col = mix(col, (176, 176, 140) if r > 0.55 else (70, 80, 66), 0.5 * (1 - d1 / 0.2))
+    sn = fbm(a, b, seed + 60, ((5, 0.5), (10, 0.3), (20, 0.2)))
+    if sn > 0.74:
+        col = mix(col, (226, 230, 236), (sn - 0.74) * 4)
+    return [c * grain(x, y, seed, 0.07) for c in col]
+
+
+def tex_rocky(x, y, seed):
+    """割れ目のある岩盤。板状の石が並び、板ごとに色が違う。"""
+    a, b = warp(*lattice(x, y), seed)
+    d1, d2, r = worley(a, b, 6, seed)
+    edge = d2 - d1
+    base = mix((104, 98, 92), (158, 150, 138), 0.2 + 0.7 * r)
+    base = mix(base, (130, 118, 104), 0.4 * vnoise(a, b, 8, 8, seed + 5))
+    fine = fbm(a, b, seed + 10, ((12, 0.5), (24, 0.3), (48, 0.2)))
+    col = mix(base, (74, 70, 66), (fine - 0.5) * 1.2 + 0.2)
+    if edge < 0.09:
+        col = mix(col, (50, 46, 44), 1.0 - edge / 0.09)
+    return [c * grain(x, y, seed, 0.08) for c in col]
+
+
+def tex_arctic(x, y, seed):
+    """雪原。ゆるい吹きだまりの青い影と、きらめく粒。"""
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed, ((2, 0.5), (4, 0.3), (8, 0.2)))
+    # 明るさに余裕を残す（坂の明るい面は光の絵で明るくなるので、白く飛ばない上限にする）
+    col = mix((190, 204, 226), (228, 236, 248), (n - 0.25) * 1.9)
+    r = 0.5 + 0.5 * math.sin(2 * math.pi * (3 * (a - b) + 3 * n))
+    col = mix(col, (172, 190, 218), 0.25 * r)
+    f = _hash((x + 2 * y) % 256, (x - 2 * y) % 256, seed + 9)
+    if f > 0.985:
+        return (240, 244, 252)
+    return [c * (0.97 + 0.06 * f) for c in col]
+
+
+def tex_water_base(x, y, seed):
+    """気候番号 0（水）の下絵。本体は水に Water を使うので見えない。"""
+    a, b = warp(*lattice(x, y), seed)
+    n = fbm(a, b, seed)
+    return [c * grain(x, y, seed, 0.07) for c in mix((60, 110, 160), (76, 128, 176), n)]
+
+
+CLIMATE_FUNCS = [tex_water_base, tex_desert, tex_tropic, tex_mediterran, tex_temperate,
+                 tex_tundra, tex_rocky, tex_arctic]
+
+
 def climate_texture(index):
-    _, dark, light = CLIMATES[index]
     seed = 11 + index * 7
-
-    def color(x, y):
-        a, b = warp(*lattice(x, y), seed)
-        n = (0.45 * vnoise(a, b, 4, 4, seed) + 0.30 * vnoise(a, b, 8, 8, seed + 1)
-             + 0.17 * vnoise(a, b, 16, 16, seed + 2) + 0.08 * vnoise(a, b, 32, 32, seed + 3))
-        n = min(1.0, max(0.0, (n - 0.5) * 1.5 + 0.5))
-        r = dark[0] + (light[0] - dark[0]) * n
-        g = dark[1] + (light[1] - dark[1]) * n
-        bl = dark[2] + (light[2] - dark[2]) * n
-        # 細かい粒（周期は斜め格子と同じ）
-        f = _hash((x + 2 * y) % 256, (x - 2 * y) % 256, seed + 9)
-        k = 0.93 + 0.14 * f
-        return rgba(r * k, g * k, bl * k)
-
+    fn = CLIMATE_FUNCS[index]
     im = Image.new("RGBA", (CELL, CELL))
-    im.putdata([color(x, y) for y in range(CELL) for x in range(CELL)])
+    im.putdata([rgba(*fn(x, y, seed)) for y in range(CELL) for x in range(CELL)])
     return im
 
 
