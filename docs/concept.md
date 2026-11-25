@@ -120,7 +120,7 @@ CC BY-SA 4.0 で足りること（`https://creativecommons.org/licenses/by-sa/4.
 
 ### H. 作り方
 
-- 絵は Blender の元データから描く。手元の道具（`simutrans-addon-dev` の `sheetlib`）の `CELL = 256` は pak128 の 2 タイル分の絵の大きさで、pak256 のことではない。タイルの大きさを引数にして描けるようにする。→ 倍率を 1 つ足せば、AMI の在来線を 256px のタイルで描けた（2026-11-24、[記録](records/2026-11-24_ami-rail-at-256.md)）。道具は `simutrans-addon-dev` に置いたまま、AMI の側で任意の pak の大きさに対応する（2026-11-24、ユーザー。[128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)）。
+- 絵は Blender の元データから描く。手元の道具（`simutrans-addon-dev` の `sheetlib`）の `CELL = 256` は pak128 の 2 タイル分の絵の大きさで、pak256 のことではない。タイルの大きさを引数にして描けるようにする。→ 倍率を 1 つ足せば、AMI の在来線を 256px のタイルで描けた（2026-11-24、[記録](records/2026-11-24_ami-rail-at-256.md)）。道具は `simutrans-addon-dev` に置いたまま、AMI の側で任意の pak の大きさに対応する（2026-11-24、ユーザー。[128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)）。→ AMI は 128 用で、256 は本来 AMI の範囲外。256 のことは pak256 で引き受け、128 に影響するものだけ AMI の側で合わせる（2026-11-25、ユーザー。roadmap.md の「進め方」）。
 - dat は表（YAML）から作り、CI で makeobj を回して pak を作る。自前の物は 256 のセル（`pak256`）、AMI は 2 タイル分のセル（`pak512`）で組む。置き場と作り方は [layout.md](layout.md)（2026-11-25、ユーザー。#1）。
 
 ## 4. 最初の試し（案）
