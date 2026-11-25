@@ -7,7 +7,7 @@
 書き出すもの（dat の Obj と Name ＝ 本体が探す名前）:
     menu    GeneralTools / SimpleTools / DialogeTools / BarTools   ツールバーのアイコン（128px）
     cursor  GeneralTools / Builder / Marked                        タイルの上のカーソル（256px）
-    symbol  Seasons / MessageOptions / ColorOptions / Logo / NewYear / NewWorld / Flags /
+    symbol  Seasons / MessageOptions / ColorOptions / Logo / BigLogo / NewYear / NewWorld / Flags /
             Message / Electricity / InTown / Passagiere / Post / Waren
     misc    RibiArrow / PowerSource / PowerDest / Construction / Sidewalk / TunnelTexture
 
@@ -28,11 +28,11 @@ import draw_ground as dg  # noqa: E402  タイルの形（column_span など）�
 
 sys.path.insert(0, HERE)
 import gui_icons  # noqa: E402  ツールバーのアイコンの絵
+import logo as logo_art  # noqa: E402  起動のロゴ（BigLogo・Logo）
 
 COPYRIGHT = dg.COPYRIGHT
 ICON = 128          # アイコンの元の絵
 TILE = 256
-GUI_BLUE = (36, 84, 140)
 # 本体は GeneralTools のカーソルを Z_PLAN（4/64 タイル = 16px）下げて描く。タイルの強調表示に重なるよう、絵を 16px 上に描く
 CURSOR_DY = -16
 
@@ -349,9 +349,6 @@ def glyph(kind, size):
     elif kind == "newyear":
         d.rectangle((0, 0, s, s), fill=c(30, 30, 80))
         d.text((s / 2, s / 2), "+1", font=font(max(8, size // 2)), fill=c(255, 220, 0), anchor="mm")
-    elif kind == "logo":
-        d.rectangle((0, 0, s, s), fill=c(*GUI_BLUE))
-        d.text((s / 2, s / 2), "pak256", font=font(max(8, size // 6)), fill=c(255, 255, 255), anchor="mm")
     return im
 
 
@@ -375,7 +372,16 @@ def build_symbols(outdir):
     single("sym_message", "Message", glyph("news", 64), 64)
     single("sym_newworld", "NewWorld", glyph("world", 64), 64)
     single("sym_newyear", "NewYear", glyph("newyear", 64), 64)
-    single("sym_logo", "Logo", glyph("logo", 128), 128)
+    single("sym_logo", "Logo", logo_art.small(128), 128)
+    # BigLogo: 起動の読み込み中の画面（本体は 4 枚を 2×2 に並べる。simloadingscreen.cc）
+    cells = logo_art.big_cells()
+    cell = logo_art.BIG // 2
+    s = Sheet("sym_biglogo", 4, cell, cols=2)
+    for i, im in enumerate(cells):
+        s.put(i, im)
+    s.save(outdir)
+    write_dat(outdir, "sym_biglogo.dat", "symbol", "BigLogo", image_lines(s, {i: True for i in range(4)}, True), cell,
+              "0 左上・1 右上・2 左下・3 右下")
 
     # 駅・車庫の窓が NULL を確かめずに使う記号（本体は無くても起動するが、窓を開くと落ちる）。仮の同じ絵
     for name in ("TrainStop", "CarStop", "ShipStop", "BusStop", "AirStop", "MonorailStop", "MaglevStop",

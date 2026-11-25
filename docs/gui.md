@@ -27,13 +27,14 @@
 | symbol | `Flags` | `sym_flags` | 32px | 旗 1 枚 |
 | symbol | `TrainStop`・`CarStop`・`BusStop`・`ShipStop`・`AirStop`・`MonorailStop`・`MaglevStop`・`NarrowgaugeStop`・`TramStop` | `sym_*stop` | 16px | 駅の種類の記号（仮は全部同じ絵） |
 | symbol | `Message`・`NewWorld`・`NewYear` | `sym_message` など | 64px | ニュースの窓に出る絵 |
-| symbol | `Logo` | `sym_logo` | 128px | 起動画面の絵 |
+| symbol | `Logo` | `sym_logo` | 128px | バナー（起動後の最初の窓）の絵。`BigLogo` と同じ意匠 |
+| symbol | `BigLogo` | `sym_biglogo` | 192px × 4 | 読み込み中の大きなロゴ。4 枚（左上・右上・左下・右下）を 2×2 に並べる。意匠は `logo.py`（#78、記録は [records/2026-11-25_logo-screens.md](records/2026-11-25_logo-screens.md)） |
 | misc | `Construction` | `construction` | 256px | 工事中の地面 10 枚（0 基礎の穴・1 観光地(街)・2 観光地(田舎)・3 記念物・4 工場・5 役場・6 その他・7 住宅・8 商業・9 工業）。縞の菱形 |
 | misc | `Sidewalk`・`TunnelTexture` | `sidewalk`・`tunnel_texture` | 256px | 坂ごとの地面 27 枚（下の「坂の番号」） |
 | misc | `RibiArrow` | `ribi_arrow` | 256px | 一方通行の矢印。番号 = ribi（北 1・東 2・南 4・西 8） |
 | misc | `PowerSource`・`PowerDest` | `power_source`・`power_dest` | 256px | 送電網の印の円。0 止まっている・1 動いている（本体は動作中を 1 番で引く）。冬の絵（2）は無い |
 
-本体が無くても動く物（fakultative: `BigLogo`・`Mouse`・`ToolsBackground`・コンパス・`Happy` など）は、まだ描いていない。
+本体が無くても動く物（fakultative: `Mouse`・`ToolsBackground`・コンパス・`Happy` など）は、まだ描いていない。
 
 ### 一覧の数え方（本体の読み方）
 
@@ -63,4 +64,4 @@
 
 ## 確かめたこと・確かめていないこと
 
-ゲームでの確認は [records/2026-11-25_gui-screens.md](records/2026-11-25_gui-screens.md)。ツールバー（`menuconf.tab`）が出ること、カーソル、`Flags`・`ColorOptions`・`Seasons` を見た。カーソルの 16px 上げは、直した後の画面で確かめた（記録の 1）。`Message`・`NewWorld`・`NewYear`・`Logo`・`MessageOptions`・`Electricity`・`InTown`・記号（`Passagiere` など）・`Construction`・`Sidewalk`・`TunnelTexture`・`RibiArrow`・`Power*`・駅の種類の記号は、起動して読み込まれる（警告が出ない）ことだけで、画面では見ていない。
+ゲームでの確認は [records/2026-11-25_gui-screens.md](records/2026-11-25_gui-screens.md)。ツールバー（`menuconf.tab`）が出ること、カーソル、`Flags`・`ColorOptions`・`Seasons` を見た。カーソルの 16px 上げは、直した後の画面で確かめた（記録の 1）。`Message`・`NewWorld`・`NewYear`・`MessageOptions`・`Electricity`・`InTown`・記号（`Passagiere` など）・`Construction`・`Sidewalk`・`TunnelTexture`・`RibiArrow`・`Power*`・駅の種類の記号は、起動して読み込まれる（警告が出ない）ことだけで、画面では見ていない。`BigLogo`（読み込み中）と `Logo`（バナー）は画面で見た（[records/2026-11-25_logo-screens.md](records/2026-11-25_logo-screens.md)）。ロゴの絵の文字は Pillow が同梱するフォントで描いて、絵に焼き込んである。

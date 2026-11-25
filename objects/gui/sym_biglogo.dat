@@ -1,0 +1,9 @@
+# 0 左上・1 右上・2 左下・3 右下
+Obj=symbol
+Name=BigLogo
+copyright=pak256.LongScale チーム
+cell_size=192
+Image[0]=> sym_biglogo.0.0
+Image[1]=> sym_biglogo.0.1
+Image[2]=> sym_biglogo.1.0
+Image[3]=> sym_biglogo.1.1
