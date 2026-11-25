@@ -151,14 +151,14 @@ CI は `.github/workflows/ci.yml`。
 - CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.3`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.5`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
 
 ## AMI の 256 版を同梱する
 
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- 版は `ami.env` で固定してある（`ami-256-alpha.3`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
+- 版は `ami.env` で固定してある（`ami-256-alpha.5`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、下の「AMI の 256 版を組む」の手順で zip を組んで上げ、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
@@ -175,7 +175,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
 - **どこで動かすか**: AMI の手元の clone（`--ami-repo`・環境変数 `AMI_REPO`。既定は pak256 の本体の checkout の隣の `simutrans-addon-dev`）に、組む間だけ detached の worktree を `build/ami256/<SHA の頭 12 桁>/` に足し、終わったら消す。AMI のリポジトリにはコミット・push をせず、共有の checkout のブランチも切り替えない（`git fetch origin` と worktree の出し入れだけ）。
 - **AMI の側との分担**（2026-11-25、pak256 と AMI の進捗管理で決めた）:
   - 大きさを選ぶ道具（`SHEET_PAK_SIZE`・`sheet_settings.SCALE`・256 の検査）は AMI のリポジトリに残る。AMI が守るのは、道具を壊さないことまで（AMI の今の CI の範囲）。道具の使い方を変えるときは、AMI から知らせが来る。
-  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3 は pak256 の置き場の Release にだけある）。
+  - AMI の issue は、256 で組めることを受け入れ条件にしない。AMI の側では、256 の描き直しと `CHECK_256_FULL` をしない。AMI からは 256 の zip を出さない（alpha.2・alpha.3・alpha.5 は pak256 の置き場の Release にだけある）。
   - 256 の組み立て（このツール）と、ゲームでの見た目の確かめは pak256 が受け持つ。
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
 - **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:
