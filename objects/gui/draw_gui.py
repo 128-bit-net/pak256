@@ -28,6 +28,7 @@ import draw_ground as dg  # noqa: E402  タイルの形（column_span など）�
 
 sys.path.insert(0, HERE)
 import gui_icons  # noqa: E402  ツールバーのアイコンの絵
+import logo as logo_art  # noqa: E402  起動のロゴ（BigLogo・Logo）
 
 COPYRIGHT = dg.COPYRIGHT
 ICON = 128          # アイコンの元の絵
@@ -375,7 +376,17 @@ def build_symbols(outdir):
     single("sym_message", "Message", glyph("news", 64), 64)
     single("sym_newworld", "NewWorld", glyph("world", 64), 64)
     single("sym_newyear", "NewYear", glyph("newyear", 64), 64)
-    single("sym_logo", "Logo", glyph("logo", 128), 128)
+    variant = os.environ.get("LOGO_VARIANT", logo_art.DEFAULT_VARIANT)
+    single("sym_logo", "Logo", logo_art.small(variant, 128), 128)
+    # BigLogo: 起動の読み込み中の画面（本体は 4 枚を 2×2 に並べる。simloadingscreen.cc）
+    cells = logo_art.big_cells(variant)
+    cell = logo_art.BIG // 2
+    s = Sheet("sym_biglogo", 4, cell, cols=2)
+    for i, im in enumerate(cells):
+        s.put(i, im)
+    s.save(outdir)
+    write_dat(outdir, "sym_biglogo.dat", "symbol", "BigLogo", image_lines(s, {i: True for i in range(4)}, True), cell,
+              "0 左上・1 右上・2 左下・3 右下")
 
     # 駅・車庫の窓が NULL を確かめずに使う記号（本体は無くても起動するが、窓を開くと落ちる）。仮の同じ絵
     for name in ("TrainStop", "CarStop", "ShipStop", "BusStop", "AirStop", "MonorailStop", "MaglevStop",

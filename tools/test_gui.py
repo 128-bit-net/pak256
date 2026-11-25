@@ -20,7 +20,7 @@ import gui_icons  # noqa: E402
 
 REQUIRED = {
     "cursor": ["Builder", "GeneralTools", "Marked"],
-    "symbol": ["Seasons", "MessageOptions", "ColorOptions", "Logo", "NewYear", "NewWorld", "Flags", "Message",
+    "symbol": ["Seasons", "MessageOptions", "ColorOptions", "Logo", "BigLogo", "NewYear", "NewWorld", "Flags", "Message",
                "Electricity", "InTown", "Passagiere", "Post", "Waren",
                # 本体は無くても起動するが、窓を開くと落ちる（halt_info.cc・depotlist_frame.cc）
                "TrainStop", "CarStop", "ShipStop", "BusStop", "AirStop", "MonorailStop", "MaglevStop",
