@@ -8,7 +8,7 @@
 objects/<種類>/<物>/   物。表・描く元・描いた PNG を一緒に置く
 config/               設定ファイル（simuconf.tab など。#3）
 text/                 物の名前の訳と街の名前（#10）
-vendor/ami/           同梱する AMI の版の指定と許諾の文（下の「AMI の 256 版を同梱する」）
+vendor/ami/           同梱する AMI の版の指定・組む元・256 だけの直しと許諾の文（下の「AMI の 256 版を同梱する」）
 tools/                道具（下の「道具」）
 docs/                 文書
 build/                作った dat・pak（git に入れない）
@@ -104,6 +104,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_trees.py` | 温帯の木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないことの検査（Pillow が要る） |
 | `test_stations.py` | 仮の停留所・駅の表の検査: `type: stop`・`waytype`（道路は `road_stops/`、線路は `rail_stops/` の `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の控えに全部載っていること（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
+| `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
+| `test_build_ami256.py` | `build_ami256.py` の検査: 描く順の分け方・`ami.env` の書き換え・比べ方・上げる前の止め（試し・別のコミット・変わった zip・既にあるタグ）。AMI・Blender・gh は使わない |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
 | `vehicles.py` | 車両の長さと描画位置の決まり（[vehicles.md](vehicles.md)）の計算。車両を描くスクリプトと検査が使う |
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
@@ -155,13 +157,42 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
 - 版は `ami.env` で固定してある（`ami-256-alpha.2`。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 7 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）を書き換える。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
-- **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、新しいタグの Release を作って zip を置き（`gh release create vendor-<版> <zip> -R 128-bit-net/pak256 --prerelease --latest=false`）、`ami.env` を書き換える。
+- **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、下の「AMI の 256 版を組む」の手順で zip を組んで上げ、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
 - 帰属の書き方（#7 で `ami-256-alpha.1` を同梱したときに入れた。AMI の版を変えても同じ）:
   - [CREDITS.md](../CREDITS.md) に 1 行: 物 `AMI（vendor/ami）`、作者 128na、連絡先 `128na/simutrans-addon-dev`、許諾 CC BY 4.0。
   - [LICENSE.md](../LICENSE.md) に例外を書く: 同梱する AMI の pak と絵は CC BY 4.0（CC BY-SA ではない）。今の「配布物（`.pak`）にも同じ許諾が及びます」の例外にする。
   - 配布の zip に、`build/ami_license.txt` を `ami_license.txt` の名前で入れる（`tools/package.py`）。
+
+### AMI の 256 版を組む
+
+AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roadmap.md](roadmap.md) の「進め方」）。256 版の zip は pak256 の側で組む（#83。alpha.3 までは AMI の進捗管理が手元で組んでいた）。組むのは `tools/build_ami256.py`。AMI の描く道具の 256 の倍率（`SHEET_PAK_SIZE=256`。AMI の `addons/ami/README.md` の「pak の大きさ」）をそのまま使う。
+
+- **どの版から組むか**: `vendor/ami/build.env` の `AMI_COMMIT`（AMI のコミットの SHA）。AMI の新しい直しを取り込むときは、ここを書き換える PR を先に入れる。`--ref` で一度だけ別のコミットから組めるが、その zip は置き場に上げられない（`upload` が止まる）。
+- **どこで動かすか**: AMI の手元の clone（`--ami-repo`・環境変数 `AMI_REPO`。既定は pak256 の本体の checkout の隣の `simutrans-addon-dev`）に、組む間だけ detached の worktree を `build/ami256/<SHA の頭 12 桁>/` に足し、終わったら消す。AMI のリポジトリにはコミット・push をせず、共有の checkout のブランチも切り替えない（`git fetch origin` と worktree の出し入れだけ）。
+- **256 だけの直し**（128 に影響しないもの。#81 など）: AMI の道具への直しを `vendor/ami/patches/*.patch`（`git diff` の形、AMI のリポジトリの直下からのパス）に置く。`build_ami256.py` が worktree に名前の順で当て（`git apply`）、当たらなければ止まる。128 に影響する直しは、進捗管理を通して AMI の側で直してもらい、`AMI_COMMIT` を上げる。直しの中身は AMI の道具（MIT）を変えた物なので、最初の直しを入れるときに、許諾の書き方（`LICENSE.md`・`CREDITS.md`）を決める（まだ直しは無い）。
+- **組む段**（`build`。止まったら worktree を残すので、直して `--resume --from <段>` で続ける）:
+  1. `dat`: `blender/ami_dat.py` で `src256/` の dat を書く。コミット済みの dat と（行末を除いて）違えば知らせる（直しを当てていないのに出たら AMI の書き忘れ）。
+  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（250 名）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
+  3. `icons`: `blender/icons.py` を全部のシートに流す（`render.py` は描いたシートの分しか書かない）。Blender は例外でも終了コード 0 なので、ログ（`work/icons.log`）の `Traceback` でも止める。
+  4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。AMI の `CHECK_256_FULL=1` と同じ物）。
+  5. `build`: `build.py`（`dist256/` に pak。makeobj の警告で止まる。makeobj は `PATH` のもの）。
+  6. `release`: `release.py --version <版> --paks <7 つ>`。7 つ（`ami_rail`・`ami_road`・`ami_tram`・`ami_extra`・`ami_monorail`・`ami_canal`・`ami_scenery`）がそろわなければ止まる。
+  
+  組んだ zip は `dist/ami-256-<版>.zip`、組んだ元（AMI のコミット・直しの SHA-256・zip の SHA-256・pak の大きさ）は `dist/ami-256-<版>.json` に置く。子の環境から `BUILD_SKIP_MISSING`・`CHECK_SKIP_MISSING`・`SHEET_LAYOUT`・`SHEET_ONLY` などを外す（残っていると、絵の無い物を黙って飛ばす）。
+- **試し**: `--only <対象 ...>`（例 `ami_road_local`。約 2 分）は、その対象だけを描いて、絵のある物だけを組む（`BUILD_SKIP_MISSING=1`。アイコンの全体の段は飛ばす）。道具の確かめや、直しの見た目を早く見るのに使う。置き場には上げられない。
+- **比べる**: `compare <zip A> <zip B>` が、pak の名前・数・大きさと、物（`makeobj list` の種類と名前）の違いを出す。名前と数が違うと終了コード 1。前の版（`build/cache/` や `gh release download` で取った zip）と比べて、PR に書く。
+- **置き場に上げる**: `upload --version <版>`（先に `--dry-run` で確かめる）。`build.env` の `AMI_COMMIT` から組んだ、試しでない zip で、組んだ後に直しや zip が変わっていないときだけ、Release `vendor-ami-256-<版>`（プレリリース・latest にしない）を作って zip を置き、`vendor/ami/ami.env` の `AMI_VERSION`・`AMI_ZIP_URL`・`AMI_ZIP_SHA256` と `AMI_COMMIT`（組んだ元。`fetch_ami.py` は読まない）を書き換える。同じタグの Release が既にあれば止まる（上書きしない。版の名前を変える）。上げた後、`ami.env` の変更を PR にする。
+
+```
+python -X utf8 tools/build_ami256.py build --version alpha.4
+python -X utf8 tools/build_ami256.py compare dist/ami-256-alpha.4.zip build/cache/ami-256-alpha.3.zip
+python -X utf8 tools/build_ami256.py upload --version alpha.4 --dry-run
+python -X utf8 tools/build_ami256.py upload --version alpha.4
+```
+
+要るもの: AMI の clone、Blender（`SHEET_BLENDER` か `--blender`。既定 `D:\bin\blender\blender.exe`）、makeobj（`PATH`）、Python と numpy・Pillow（AMI の検査）、`gh`（上げるとき）。pak の物の作りは AMI の版で決まるので、組んだ zip はゲームで道路・線路・車庫などを置いて確かめてから上げる（[game-check.md](game-check.md)）。
 
 ## 物の名前の訳と街の名前
 
