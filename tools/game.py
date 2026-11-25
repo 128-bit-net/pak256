@@ -153,10 +153,13 @@ def port_in_use(port):
     """そのポートに誰かがつながるか（他のゲームが使っている）。"""
     for host in ("127.0.0.1", "::1"):
         fam = socket.AF_INET6 if ":" in host else socket.AF_INET
-        with socket.socket(fam, socket.SOCK_STREAM) as sk:
-            sk.settimeout(1)
-            if sk.connect_ex((host, port)) == 0:
-                return True
+        try:
+            with socket.socket(fam, socket.SOCK_STREAM) as sk:
+                sk.settimeout(1)
+                if sk.connect_ex((host, port)) == 0:
+                    return True
+        except OSError:  # IPv6 が使えない環境
+            continue
     return False
 
 
@@ -220,14 +223,22 @@ class Game:
         end, last = time.monotonic() + limit, None
         while time.monotonic() < end:
             if self.proc.poll() is not None:
-                raise RuntimeError(f"ゲームが終わった（終了コード {self.proc.returncode}。ログは {self.work}/game.log）")
+                raise RuntimeError(f"ゲームが終わった（終了コード {self.proc.returncode}）。ログの末尾: {self.log_tail()}")
             try:
                 if self.sq("return 1", timeout=5) == "1":
                     return
             except Exception as e:  # 起動中は答えない
                 last = e
             time.sleep(3)
-        raise RuntimeError(f"ゲームが MCP に答えない: {last}")
+        raise RuntimeError(f"ゲームが MCP に答えない: {last}。ログの末尾: {self.log_tail()}")
+
+    def log_tail(self, n=600):
+        """起動のログ（game.log）の末尾。作業フォルダは失敗の後に消えるので、メッセージに入れて残す。"""
+        try:
+            with open(os.path.join(self.work, "game.log"), "rb") as f:
+                return f.read()[-n:].decode("utf-8", errors="replace").strip() or "（空）"
+        except OSError:
+            return "（無し）"
 
     def alive_mcp(self):
         try:

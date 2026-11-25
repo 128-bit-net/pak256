@@ -190,6 +190,57 @@ class LifecycleTest(Base):
                     pass
         self.assertTrue(os.path.isfile(os.path.join(self.work, "theirs.txt")))
 
+    def test_failed_start_message_has_log_tail(self):
+        g = self.make()
+        with mock.patch.object(game, "launch_command", lambda *a, **k: [sys.executable, "-c", "print('boom')"]),                 mock.patch.object(game, "port_in_use", lambda p: False),                 mock.patch.object(game.Game, "alive_mcp", lambda self_: False),                 mock.patch.object(game.Game, "sq", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x"))):
+            with self.assertRaises(RuntimeError) as cm:
+                with g:
+                    pass
+        self.assertIn("boom", str(cm.exception))
+
+    def test_left_over_pid_is_reported_and_workdir_kept(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1")
+        with mock.patch.object(game, "alive", lambda pid: True):
+            with g:
+                pass
+        self.assertTrue(g.left_over)
+        self.assertTrue(os.path.isdir(self.work))
+        g.proc = None
+        # 後始末（テストのゲームの代わりのプロセスは stop で閉じてある）
+
+    def test_port_in_use_sees_listener(self):
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
+            srv.bind(("127.0.0.1", 0))
+            srv.listen(1)
+            self.assertTrue(game.port_in_use(srv.getsockname()[1]))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
+            srv.bind(("127.0.0.1", 0))
+            free = srv.getsockname()[1]
+        self.assertFalse(game.port_in_use(free))
+
+    def test_foreign_workdir_untouched_when_port_free(self):
+        put(os.path.join(self.work, "theirs.txt"))
+        g = self.run_with(lambda self_, code, timeout=30: "1")
+        with self.assertRaises(RuntimeError):
+            with g:
+                pass
+        self.assertTrue(os.path.isfile(os.path.join(self.work, "theirs.txt")))
+
+    def test_keep_then_reuse(self):
+        g = self.run_with(lambda self_, code, timeout=30: "1", keep=True)
+        with g:
+            pass
+        g2 = self.make()
+        with g2:
+            pass  # 目印のある作業フォルダは作り直せる（例外にならない）
+
+    def test_check_work_rejects_repo(self):
+        with self.assertRaises(RuntimeError):
+            game.check_work(self.root, self.env, self.root)
+        with self.assertRaises(RuntimeError):
+            game.check_work(os.path.dirname(self.root), self.env, self.root)
+
     def test_check_work_rejects_overlap_and_foreign(self):
         with self.assertRaises(RuntimeError):
             game.check_work(self.env, self.env, self.root)
