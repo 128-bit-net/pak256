@@ -116,10 +116,10 @@ class GameToolTest(Base):
 
     def test_port_range(self):
         game.check_port(47880)
-        game.check_port(47899)
+        game.check_port(47919)
         game.check_port(47800)
-        self.assertEqual((game.PORT_MIN, game.PORT_MAX), (47800, 47899))
-        for p in (47799, 47900):
+        self.assertEqual((game.PORT_MIN, game.PORT_MAX), (47800, 47919))
+        for p in (47799, 47920):
             with self.assertRaises(RuntimeError):
                 game.check_port(p)
 
@@ -406,6 +406,74 @@ class JobObjectTest(unittest.TestCase):
             parent.stdout.close()
             if "pid" in locals() and game.alive(pid):
                 subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
+
+
+class InboxTest(unittest.TestCase):
+    """開いたままのゲームへ命令を流す入口（#85）。ゲームは偽物。"""
+
+    class Fake:
+        proc = None
+
+        def __init__(self):
+            self.calls = []
+
+        def sq(self, code):
+            self.calls.append(("sq", code))
+            if code == "boom":
+                raise RuntimeError("bad")
+            return "r:" + code
+
+        def capture(self, path):
+            self.calls.append(("capture", path))
+
+        def dialog(self, which):
+            self.calls.append(("dialog", which))
+            return "d"
+
+        def settle(self, sec):
+            self.calls.append(("settle", sec))
+
+    def test_run_command(self):
+        g = self.Fake()
+        self.assertEqual(game.run_command(g, "return 1"), "r:return 1")
+        game.run_command(g, "@capture a.png")
+        game.run_command(g, "@dialog 5")
+        game.run_command(g, "@dialog finances")
+        game.run_command(g, "@settle")
+        game.run_command(g, "@settle 3")
+        self.assertEqual(g.calls[1:], [("capture", "a.png"), ("dialog", 5), ("dialog", "finances"),
+                                       ("settle", 15), ("settle", 3)])
+        with self.assertRaises(ValueError):
+            game.run_command(g, "@nothing")
+        with self.assertRaises(ValueError):
+            game.run_command(g, "@capture")
+
+    def test_serve_and_send_round_trip(self):
+        import threading
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            g = self.Fake()
+            th = threading.Thread(target=game.serve_inbox, args=(g, inbox, 30, 0.02, lambda *_: None))
+            th.start()
+            while not os.path.isdir(inbox):
+                time.sleep(0.01)
+            self.assertEqual(game.send_command(inbox, "return 1", 5), (True, "r:return 1"))
+            ok, body = game.send_command(inbox, "boom", 5)
+            self.assertFalse(ok)
+            self.assertIn("RuntimeError: bad", body)
+            self.assertEqual(game.send_command(inbox, "return 2", 5), (True, "r:return 2"))  # 失敗の後も続く
+            self.assertEqual(game.send_command(inbox, "@quit", 5), (True, "bye"))
+            th.join(5)
+            self.assertFalse(th.is_alive())
+
+    def test_idle_limit_stops(self):
+        with tempfile.TemporaryDirectory() as t:
+            game.serve_inbox(self.Fake(), os.path.join(t, "inbox"), 0.1, 0.02, lambda *_: None)
+
+    def test_send_without_game_fails(self):
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(RuntimeError):
+                game.send_command(os.path.join(t, "inbox"), "return 1", 1)
 
 
 if __name__ == "__main__":

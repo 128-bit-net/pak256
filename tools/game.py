@@ -10,6 +10,11 @@
     --env は環境変数 PAK256_GAME_ENV でも渡せる（個人の絶対パスはリポジトリに書かない）。
     --build を付けると、起動の前に tools/build.py を流す。無ければ build/pak/ の物を使う。
 
+開いたままのゲームへ命令を 1 つずつ流す（#85。docs/game-check.md の「開いたまま使う」）:
+    python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47900 --interactive   # 起動して待つ（背景で動かす）
+    python -X utf8 tools/game.py --port 47900 --send "return 1"            # Squirrel を流して結果を見る
+    python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"  # 撮る（@dialog 名前・@settle 秒・@quit も）
+
 別の道具（tools/vehicle_check/run.py など）から使う:
     from game import Game, prepare_workdir
     with Game(env, save, port) as g:
@@ -25,7 +30,7 @@
   夜の灯りを見るときだけ --night。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
-- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47899）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
+- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47919）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
@@ -57,7 +62,7 @@ PAK_DIR = "pak"
 DAY_NIGHT_OFF = "day_night_shift = 0"
 MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
-PORT_MIN, PORT_MAX = 47800, 47899  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
+PORT_MIN, PORT_MAX = 47800, 47919  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
 # gui.open_dialog_tool(番号) の窓の番号（OTRP 本体の simmenu.h の DIALOG_*。順に 0 から）。使う物だけ。docs/game-check.md に表
 DIALOGS = {
     "help": 0, "options": 1, "minimap": 2, "lineoverview": 3, "messages": 4, "finances": 5, "players": 6,
@@ -517,10 +522,96 @@ class Game:
             self.prepared = False
 
 
+# --- 開いたままのゲームへ命令を流す（#85） ---
+# 作業フォルダの inbox/ に <番号>.cmd を置くと、見張っている側（--interactive）が流して <番号>.out に結果を書く。
+# .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@quit）。
+INBOX = "inbox"
+IDLE_LIMIT = 3600  # 命令が来ないまま続いたら閉じる秒（閉じ忘れの保険）
+
+
+def default_work(port, root=ROOT):
+    return os.path.abspath(os.path.join(root, "work", "game", str(port)))
+
+
+def run_command(g, text):
+    """命令 1 つを Game で実行して、結果の文字列を返す（@quit は呼び出し側で扱う）。"""
+    text = text.strip()
+    if not text.startswith("@"):
+        return g.sq(text)
+    name, _, arg = text[1:].partition(" ")
+    arg = arg.strip()
+    if name == "capture":
+        if not arg:
+            raise ValueError("@capture には PNG のパスを渡す")
+        g.capture(arg)
+        return arg
+    if name == "dialog":
+        return g.dialog(int(arg) if arg.isdigit() else arg)
+    if name == "settle":
+        g.settle(float(arg) if arg else 15)
+        return "settled"
+    raise ValueError(f"知らない指示: @{name}（@capture・@dialog・@settle・@quit）")
+
+
+def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
+    """inbox/ の .cmd を番号順に 1 つずつ流して .out に結果を書く。@quit か idle_limit 秒の無音か、ゲームが落ちたら戻る。"""
+    os.makedirs(inbox, exist_ok=True)
+    last = time.monotonic()
+    while True:
+        if g.proc is not None and g.proc.poll() is not None:
+            log("[game] ゲームが終わった。見張りをやめる")
+            return
+        pending = sorted(n for n in os.listdir(inbox) if n.endswith(".cmd"))
+        if not pending:
+            if time.monotonic() - last > idle_limit:
+                log(f"[game] {idle_limit} 秒、命令が無い。閉じる")
+                return
+            time.sleep(poll)
+            continue
+        last = time.monotonic()
+        cmd = os.path.join(inbox, pending[0])
+        with open(cmd, encoding="utf-8") as f:
+            text = f.read()
+        os.remove(cmd)
+        out = os.path.join(inbox, pending[0][:-4] + ".out")
+        quit_ = text.strip() == "@quit"
+        try:
+            body = "ok\n" + ("bye" if quit_ else run_command(g, text))
+        except Exception as e:  # 1 つの失敗で見張りを止めない
+            body = f"error\n{type(e).__name__}: {e}"
+        with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
+            f.write(body)
+        os.replace(out + ".tmp", out)  # 送る側が書きかけを読まない
+        if quit_:
+            return
+
+
+def send_command(inbox, text, timeout=120, poll=0.2):
+    """見張っているゲームへ命令を 1 つ送り、(成功か, 結果) を返す。"""
+    if not os.path.isdir(inbox):
+        raise RuntimeError(f"見張っているゲームが無い（{inbox} が無い。--interactive で起動する）")
+    stamp = f"{time.time_ns()}"
+    tmp, cmd, out = (os.path.join(inbox, stamp + ext) for ext in (".tmp", ".cmd", ".out"))
+    with open(tmp, "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+    os.replace(tmp, cmd)
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if os.path.isfile(out):
+            with open(out, encoding="utf-8") as f:
+                head, _, body = f.read().partition("\n")
+            os.remove(out)
+            return head == "ok", body
+        time.sleep(poll)
+    if os.path.isfile(cmd):
+        os.remove(cmd)  # 見張りが取らなかった命令は取り下げる
+    raise RuntimeError(f"{timeout} 秒、答えが無い（見張りが止まっている？）")
+
+
 def main():
     ap = argparse.ArgumentParser(description="ゲームを起動して Squirrel を流し、撮って、閉じる")
     ap.add_argument("--env", default=os.environ.get("PAK256_GAME_ENV"), help="検証環境（環境変数 PAK256_GAME_ENV）")
-    ap.add_argument("--save", required=True, help="保存データの名前（拡張子なし）")
+    ap.add_argument("--save", help="保存データの名前（拡張子なし）")
     ap.add_argument("--port", type=int, required=True, help=f"MCP のポート（{PORT_MIN}〜{PORT_MAX}。割り当てられた範囲の中）")
     ap.add_argument("--script", action="append", default=[], help="流す Squirrel のファイル（順に流す）")
     ap.add_argument("--capture", help="撮る PNG のパス（Squirrel の後）")
@@ -530,13 +621,37 @@ def main():
     ap.add_argument("--keep", action="store_true", help="閉じた後も作業フォルダを残す")
     ap.add_argument("--work", help="作業フォルダ（既定は work/game/<ポート>/）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    ap.add_argument("--interactive", action="store_true", help="起動して、命令を待つ（--send で流す）。@quit・無音・Ctrl+C で閉じる")
+    ap.add_argument("--idle-limit", type=int, default=IDLE_LIMIT, help="--interactive で命令が来ない秒（超えたら閉じる）")
+    ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@quit")
+    ap.add_argument("--send-file", help="--send の代わりに、Squirrel のファイルを流す")
+    ap.add_argument("--timeout", type=int, default=120, help="--send の答えを待つ秒")
     args = ap.parse_args()
+    if args.send is not None or args.send_file:
+        text = args.send
+        if args.send_file:
+            with open(args.send_file, encoding="utf-8") as f:
+                text = f.read()
+        if text.lstrip().startswith("@capture "):  # 見張る側の作業フォルダでなく、ここからの相対で読む
+            text = "@capture " + os.path.abspath(text.lstrip()[len("@capture "):].strip())
+        ok, body = send_command(os.path.join(os.path.abspath(args.work) if args.work else default_work(args.port), INBOX),
+                                text, args.timeout)
+        print(body)
+        sys.exit(0 if ok else 1)
+    if not args.save:
+        sys.exit("--save（保存データの名前）を渡す")
     if not args.env:
         sys.exit("検証環境を --env か環境変数 PAK256_GAME_ENV で渡す")
     if args.build:
         subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
     with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
               client=args.mcp_client, keep=args.keep) as g:
+        if args.interactive:
+            print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
+            try:
+                serve_inbox(g, os.path.join(g.work, INBOX), args.idle_limit)
+            except KeyboardInterrupt:
+                pass
         for s in args.script:
             print("[script]", g.sq_file(s), flush=True)
         if args.capture:
