@@ -3,12 +3,12 @@
 用意したゲームの作業フォルダで本体を起動し、tools/vehicle_check/course.nut で道路の輪と車庫と編成を置き、
 編成が走る間に、編成ごとに画面の真ん中へ飛んで撮る（本体はスクリプトから止めると戻せないので、止めずに撮る）。向き（8 方向）ごとに 1 枚ずつ残す。
 
-    python -X utf8 tools/vehicle_check/run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> \n        --port 47880 --vehicle pak256_sample_bus --extra-pak <借りる pak>
+    python -X utf8 tools/vehicle_check/run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> \n        --port 47880 --vehicle pak256_sample_bus
 
 - ゲームの用意・起動・閉じ方・後片付けは tools/game.py（docs/game-check.md）。検証環境を写した作業フォルダで走らせ、pak256 の
   pak は build/pak/ の物（先に tools/build.py）を入れる。昼夜は止めてある。
-- 道路の車庫は、pak256 にも AMI の 256 版（ami-256-alpha.1）にもまだ無いので、試験のときだけ別の pak から借りる
-  （--extra-pak で pak のファイルを渡し、--depot で名前を渡す。借りた物はコミットしない）。
+- 道路の車庫は pak256 の仮の物（pak256_road_depot。#58）を使う。別の車庫を試すときは --depot で名前を渡し、
+  足りない物は --extra-pak で別の pak から借りる（借りた物はコミットしない）。
 - MCP のクライアント（OTRP 本体のリポジトリの mcp_client.py）は --mcp-client か環境変数 MCP_CLIENT。
 - Windows で動かす前提。
 - 通行の向きは保存データで決まる（本体の設定。スクリプトからは変えられない）。左側通行と右側通行の保存データを 1 つずつ流す。
