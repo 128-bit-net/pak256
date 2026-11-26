@@ -54,9 +54,9 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 | 足りない物 | ログ |
 |---|---|
 | 道路の way | `No road found at all!` |
-| 線路の種類の way（線路か路面軌道） | `schiene_t::schiene_t() - No rail way available!` |
+| 線路の種類の way | `schiene_t::schiene_t() - No rail way available!` |
 
-`tools/build.py --no-ami` で組む pak には、どちらの way も無い。AMI の 256 版の `ami_road.pak` と `ami_rail.pak` を `--extra-pak` で足すと読める（手元で組んだ道路を試すときは、線路の側だけ足せばよい）。2 つは次のように取り出す。
+`tools/build.py --no-ami` で組む pak には、どちらの way も無い。AMI の 256 版の `ami_road.pak` と `ami_rail.pak` を `--extra-pak` で足すと読める。道路の way が 1 つだけのときは、`ami_rail.pak` を足すと読めた（AMI の `ami_road_local` を抜き出して確かめた。手元で組んだ道路では試していない）。2 つは次のように取り出す。
 
 ```
 python -X utf8 tools/fetch_ami.py work/ami
@@ -64,7 +64,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
     --extra-pak work/ami/ami_road.pak --extra-pak work/ami/ami_rail.pak --capture work/shot.png
 ```
 
-`ami_road.pak` だけでも読める（路面表示の way が路面軌道の種類のため）。道路の way を 1 つだけ抜き出して足した場合は、`No rail way available!` で止まった。
+`ami_road.pak` だけを足しても読めた。AMI の路面表示の way は路面軌道（`tram_track`）なので、それが線路の種類の way になっていると見ている（本体の処理は追っていない）。道路の way を 1 つだけ抜き出して足した場合は、`No rail way available!` で止まった。`ami_rail.pak` だけでは、道路が無いので止まった。
 
 ## スクリプトで物を置くときの癖
 
