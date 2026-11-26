@@ -1,0 +1,37 @@
+# 貨物船（絵は仮）。この表と PNG は draw_ships.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 36m。船は実物比例で、length 22（docs/standards.md の 4 章「船・飛行機」）。
+# 値は pak128 の同じ種類の船の機能上の数値に合わせた（docs/vehicles.md の「船」）。
+obj: vehicle
+name: pak256_cargo_ship
+copyright: pak256.LongScale チーム
+waytype: water
+freight: Kohle
+payload: 165
+engine_type: diesel
+power: 1050
+speed: 25
+gear: 100
+intro_year: 1930
+cost: 2101315
+runningcost: 573
+weight: 122
+length: 22
+cell_size: 512
+emptyimage:       # 向きごとの絵（0 行 = 空）
+  s: cargo_ship.0.0,-128,-128
+  w: cargo_ship.0.1,-128,-128
+  sw: cargo_ship.0.2,-128,-128
+  se: cargo_ship.0.3,-128,-128
+  n: cargo_ship.0.4,-128,-128
+  e: cargo_ship.0.5,-128,-128
+  ne: cargo_ship.0.6,-128,-128
+  nw: cargo_ship.0.7,-128,-128
+freightimage:     # 積み荷を積んだ絵（1 行）
+  s: cargo_ship.1.0,-128,-128
+  w: cargo_ship.1.1,-128,-128
+  sw: cargo_ship.1.2,-128,-128
+  se: cargo_ship.1.3,-128,-128
+  n: cargo_ship.1.4,-128,-128
+  e: cargo_ship.1.5,-128,-128
+  ne: cargo_ship.1.6,-128,-128
+  nw: cargo_ship.1.7,-128,-128

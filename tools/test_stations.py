@@ -16,8 +16,10 @@ FOLDER_WAYTYPE = {"road_stops": "road", "rail_stops": "track", "tram_stops": "tr
 
 
 def stops():
-    """objects/station/ の全部の表。停留所（type: stop）でない表があれば、検査で落とす。"""
+    """objects/station/ の全部の表。停留所（type: stop）でない表があれば、検査で落とす。港（objects/station/ports/）は PortTest が見る。"""
     for p in sorted(glob.glob(os.path.join(ROOT, "objects", "station", "**", "*.yaml"), recursive=True)):
+        if os.path.basename(os.path.dirname(p)) == "ports":
+            continue
         with open(p, encoding="utf-8") as f:
             yield p, yaml.safe_load(f)
 
@@ -142,6 +144,44 @@ class StationTest(unittest.TestCase):
             self.assertEqual(cells[1:4], [f"`{d['obj']}`", f"`{d['type']}`", f"`{d['waytype']}`"], p)
             for key in ("enables_pax", "enables_post", "enables_ware"):
                 self.assertEqual(key in cells[4], bool(d.get(key)), f"{p}: 表の扱う貨物と {key} が合わない")
+
+
+class PortTest(unittest.TestCase):
+    """港（objects/station/ports/。#154）の表・シート・draw_ports.py が書く物・stations.md の表。"""
+
+    PORTS = {"pier": ("habour", 4), "quay": ("dock", 4), "canal_wharf": ("stop", 8)}
+    DIR = os.path.join(ROOT, "objects", "station", "ports")
+
+    def script(self):
+        spec = importlib.util.spec_from_file_location("draw_ports", os.path.join(self.DIR, "draw_ports.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_tables_and_sheets(self):
+        from PIL import Image
+        mod = self.script()
+        self.assertEqual(set(mod.PORTS), set(self.PORTS))
+        for key, (kind, layouts) in self.PORTS.items():
+            with open(os.path.join(self.DIR, key + ".yaml"), encoding="utf-8", newline="") as f:
+                raw = f.read().replace("\r\n", "\n")
+            self.assertEqual(raw, mod.table(key, mod.PORTS[key]), key)
+            d = yaml.safe_load(raw)
+            self.assertEqual((d["obj"], d["type"], str(d["dims"])), ("building", kind, f"1,1,{layouts}"), key)
+            self.assertEqual(d.get("waytype"), "water" if kind == "stop" else None, key)
+            self.assertEqual(sorted(d["backimage"]), list(range(layouts)), key)
+            with Image.open(os.path.join(self.DIR, key + ".png")) as im:
+                self.assertEqual(im.size, (256 * layouts, 256 * 3), key)
+                im = im.convert("RGB")
+                for i in range(layouts):
+                    cell = im.crop((i * 256, 0, i * 256 + 256, 256))
+                    self.assertGreater(len(set(cell.getdata())), 1, f"{key}: 向き {i} が空")
+
+    def test_documented(self):
+        with open(os.path.join(ROOT, "docs", "stations.md"), encoding="utf-8") as f:
+            text = f.read()
+        for key in self.PORTS:
+            self.assertIn(f"`pak256_{key}`", text)
 
 
 if __name__ == "__main__":
