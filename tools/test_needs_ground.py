@@ -1,8 +1,9 @@
 """道の上でない建物に needs_ground があることの検査（docs/buildings.md の「下の地面」。#126）。MIT License。
 
-本体は、needs_ground の無い建物の下の地面を描かない（gebaeude_t::calc_image が地面の絵を空にする）。
+本体は、needs_ground の無い建物が基礎の升（fundament_t）にあると、地面を描かない（gebaeude_t::calc_image が地面の絵を空にする）。
 絵に地面の無い建物でこれを忘れると、その升に何も描かれず、スクロールすると前の画面が残る。
-道の上に建てる停留所・車庫は、下が道の升なので地面は道の側が描く。
+道の上に建てる停留所・車庫は、今ある道の升に載るだけで基礎の升にならない。
+検査は、type が stop・depot で waytype のある建物を除き、ほかの建物と産業のすべてに needs_ground を求める。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
@@ -22,7 +23,7 @@ def tables():
     """objects/ の表（.yaml）の物を (パス, 表) で返す。"""
     for p in sorted(glob.glob(os.path.join(OBJECTS, "**", "*.yaml"), recursive=True)):
         with open(p, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+            data = yaml.safe_load(f) or []
         for d in data if isinstance(data, list) else [data]:
             yield p, d
 
@@ -33,7 +34,7 @@ def problem(d):
         return None
     if d.get("obj") == "building" and d.get("type") in ON_WAY_TYPES and d.get("waytype"):
         return None
-    if d.get("needs_ground") != 1:
+    if int(d.get("needs_ground", 0)) <= 0:  # makeobj は 0 より大きければ有効
         return "needs_ground: 1 が無い（本体が下の地面を描かない）"
     return None
 

@@ -43,7 +43,7 @@
 
 **街の建物の表には `needs_ground: 1` を書く**（[#126](https://github.com/128-bit-net/pak256/issues/126)）。本体は、`needs_ground` の無い建物の下の地面を描かない（`gebaeude_t::calc_image` が、建物の基礎の升の地面の絵を空にする）。絵に地面を含める作りの pak のための決まりで、pak256 の建物の絵は地面を持たないので、忘れると升に何も描かれず、スクロールすると前の画面が残る。本体に描かせる地面は、気候と雪に合わせて変わる。
 
-道の上でない建物（街の建物・役場・産業・今後の記念物など）には要る。道の上に建てる停留所・駅・車庫は、下が道の升で、地面と道を本体が描くので要らない（AMI の車庫と操車場は `needs_ground=1` を持つ）。道から離して置く停留所の拡張の建物（`type: extension`）を作るときは要る。`tools/test_needs_ground.py` が表を検査する（[記録](records/2026-11-26_building-ground.md)）。
+要るのは、本体が基礎の升（`fundament_t`）に作り替えて建てる物。本体の `hausbauer_t::build` を通る物で、街の建物・役場・産業・記念物などと、道から離して置く停留所の拡張の建物（`type: extension`。`tool_station_building_aux`）・港が当たる。道の上に建てる停留所・駅・車庫は、今ある道の升に載せるだけ（`build_station_extension_depot_with_complete_layout_bits`）で基礎の升にならないので、地面は道の升の物がそのまま描かれ、要らない（コードを読んだ判断。AMI の車庫と操車場は `needs_ground=1` を持つ）。`tools/test_needs_ground.py` が表を検査する（[記録](records/2026-11-26_building-ground.md)）。
 
 ## 季節の絵（冬）
 
