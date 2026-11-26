@@ -1,0 +1,28 @@
+# 旅客船（絵は仮）。この表と PNG は draw_ships.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 30m。船は実物比例で、length 18（docs/standards.md の 4 章「船・飛行機」）。
+# 値は pak128 の同じ種類の船の機能上の数値に合わせた（docs/vehicles.md の「船」）。
+obj: vehicle
+name: pak256_ferry
+copyright: pak256.LongScale チーム
+waytype: water
+freight: Passagiere
+payload: 300
+engine_type: diesel
+power: 2400
+speed: 37
+gear: 100
+intro_year: 1930
+cost: 800000
+runningcost: 915
+weight: 70
+length: 18
+cell_size: 512
+emptyimage:       # 向きごとの絵
+  s: ferry.0.0,-128,-128
+  w: ferry.0.1,-128,-128
+  sw: ferry.0.2,-128,-128
+  se: ferry.0.3,-128,-128
+  n: ferry.0.4,-128,-128
+  e: ferry.0.5,-128,-128
+  ne: ferry.0.6,-128,-128
+  nw: ferry.0.7,-128,-128

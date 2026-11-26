@@ -85,6 +85,16 @@ pak256_railcar_trailer
 Railcar Trailer
 pak256_tram
 Tram
+pak256_ferry
+Passenger Ship
+pak256_cargo_ship
+Cargo Ship
+pak256_pier
+Pier
+pak256_quay
+Quay
+pak256_canal_wharf
+Canal Wharf
 pak256_runway
 Runway
 pak256_taxiway
