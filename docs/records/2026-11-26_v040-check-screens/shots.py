@@ -1,5 +1,5 @@
 """Release の説明に付ける画面を、今の配布の zip の中身だけで撮る。MIT License。
-使い方（リポジトリの直下から）: python -X utf8 shots.py <検証環境> <ポート> <配布の zip を展開して並べたフォルダ（build/ と x/pak256/）> <出力フォルダ>
+使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-26_v040-check-screens/shots.py <検証環境> <ポート> <配布の zip を展開して並べたフォルダ（build/ と x/pak256/）> <出力フォルダ>
 撮る物: 乗り物と停留所（transport.png）、気候ごとの森の夏（forest_<気候>.png）と温帯の冬、街の商業・工業の夏と冬（town_*.png）。
 昼夜は止めてある。街の建物は道具で置く（街の育ちは待たない）。"""
 import os

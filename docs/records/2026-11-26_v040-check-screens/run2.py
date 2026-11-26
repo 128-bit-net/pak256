@@ -1,5 +1,5 @@
 """v0.3.1 の保存データ compat031 を v0.4.0 の pak で読み込む。MIT License。
-使い方（リポジトリの直下から）: python -X utf8 run2.py <compat031 を置いた環境の写し> <ポート>"""
+使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-26_v040-check-screens/run2.py <compat031 を置いた環境の写し> <ポート>"""
 import os
 import sys
 import time

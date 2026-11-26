@@ -1,5 +1,5 @@
 """run2 の追加: 本体の起動のログを取り（起動に -log -debug 3 を足す）、跡の名札を撮り直す。MIT License。
-使い方: python -X utf8 run2_log.py <compat031 を置いた環境の写し> <ポート> <pak の名前: v031 か ci>"""
+使い方: python -X utf8 docs/records/2026-11-26_v040-check-screens/run2_log.py <compat031 を置いた環境の写し> <ポート> <pak の名前: v031 か ci>"""
 import os
 import sys
 import time

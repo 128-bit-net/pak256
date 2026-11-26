@@ -1,5 +1,5 @@
 """shots.py が撮った画像から、Release の説明に付ける画像を並べる。MIT License（Pillow が要る）。
-使い方: python -X utf8 montage.py <shots.py の出力フォルダ> <出力フォルダ>"""
+使い方: python -X utf8 docs/records/2026-11-26_v040-check-screens/montage.py <shots.py の出力フォルダ> <出力フォルダ>"""
 import os
 import sys
 

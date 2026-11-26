@@ -1,5 +1,5 @@
 """今の配布の zip の中身だけで新しい場面を作り、運送を走らせる。MIT License。
-使い方（リポジトリの直下から）: python -X utf8 run3.py <検証環境> <ポート>"""
+使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-26_v040-check-screens/run3.py <検証環境> <ポート>"""
 import os
 import sys
 import time

@@ -1,6 +1,10 @@
 """MIT License。zip を展開して build/pak の形に並べ、pak の物（makeobj list）の名前を比べる。
-使い方: python -X utf8 prep_zips.py <v0.3.1 の zip> work/a04/v031 <今の zip> work/a04/ci"""
-import hashlib, pathlib, shutil, subprocess, sys, zipfile
+使い方: python -X utf8 docs/records/2026-11-26_v040-check-screens/prep_zips.py <v0.3.1 の zip> work/a04/v031 <今の zip> work/a04/ci"""
+import pathlib
+import shutil
+import subprocess
+import sys
+import zipfile
 
 
 def prep(zp, out):

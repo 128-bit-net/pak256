@@ -1,5 +1,5 @@
 """v0.3.1 の配布の zip の中身で場面を作り、compat031 として保存する。MIT License。
-使い方（リポジトリの直下から）: python -X utf8 run1.py <検証環境> <ポート>"""
+使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-26_v040-check-screens/run1.py <検証環境> <ポート>"""
 import os
 import sys
 import time

@@ -1,5 +1,5 @@
 """検証環境の写し（本体と保存データ 1 つ）を作る。検証環境には書かない。MIT License。
-使い方: python -X utf8 mkenv.py <検証環境> <保存データ> <作る場所>"""
+使い方: python -X utf8 docs/records/2026-11-26_v040-check-screens/mkenv.py <検証環境> <保存データ> <作る場所>"""
 import glob
 import os
 import shutil
