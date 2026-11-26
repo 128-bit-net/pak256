@@ -30,6 +30,7 @@
 - settings.xml は写さない（本体が送信用の記録を持っていて、起動のたびに使用状況を外へ送るため）。
 - config/simuconf.tab の末尾に day_night_shift = 0 を足して昼夜の切り替えを止める（夜の絵になって撮り直すのを防ぐ）。
   夜の灯りを見るときだけ --night。
+- ほかの設定を足すときは Game(..., simuconf_extra=["show_names = 0"])（本体と pak の simuconf.tab の先頭に足す。#122）。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
 - MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
@@ -200,11 +201,43 @@ def append_day_night_off(simuconf):
         f.write(text + nl + DAY_NIGHT_OFF + nl)
 
 
-def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=ROOT, build=None):
+def check_simuconf_lines(lines):
+    """simuconf_extra が「キー = 値」の行の並びであることを確かめて、一覧にして返す。"""
+    if isinstance(lines, str):
+        raise ValueError(f"simuconf_extra は行の一覧で渡す（文字列 1 つではなく）: {lines!r}")
+    lines = list(lines)
+    for line in lines:
+        s = line.strip()
+        if "\n" in line or "\r" in line or s.startswith(("#", "-", "=")) or "=" not in s:
+            raise ValueError(f"simuconf_extra の行は「キー = 値」の 1 行にする: {line!r}")
+    return lines
+
+
+def prepend_lines(simuconf, lines):
+    """simuconf.tab の先頭に行を足す（無ければファイルを作る）。
+
+    本体は 1 つのファイルの中の同じキーを先に書いた行から取る（tabfile.cc の tabfileobj_t::put）ので、
+    末尾でなく先頭に足して、ファイルに元からある行より足した行を効かせる。
+    """
+    if not lines:
+        return
+    text = ""
+    if os.path.isfile(simuconf):
+        with open(simuconf, encoding="utf-8", newline="") as f:
+            text = f.read()
+    nl = "\r\n" if "\r\n" in text else "\n"
+    os.makedirs(os.path.dirname(simuconf), exist_ok=True)
+    with open(simuconf, "w", encoding="utf-8", newline="") as f:
+        f.write("".join(line + nl for line in lines) + text)
+
+
+def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=ROOT, build=None, simuconf_extra=()):
     """検証環境 env の一部を作業フォルダ work に写し、pak と保存データを入れる。work が既にあれば作り直す。
 
     写す物: 実行ファイル・DLL・ENV_DIRS（settings.xml は写さない）・指定の保存データ 1 つ。pak は work/pak/ に install_pak で入れる。
+    simuconf_extra は、本体と pak の config/simuconf.tab の両方に足す行の一覧（例: ["show_names = 0"]。night でも足す）。
     """
+    simuconf_extra = check_simuconf_lines(simuconf_extra)  # 作業フォルダを消す前に止める
     if not os.path.isfile(os.path.join(env, exe)):
         raise RuntimeError(f"検証環境に {exe} が無い: {env}")
     sve = os.path.join(env, "save", save + ".sve")
@@ -223,10 +256,11 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
             shutil.copytree(os.path.join(env, d), os.path.join(work, d))
     shutil.copyfile(sve, os.path.join(work, "save", save + ".sve"))
     placed = install_pak(os.path.join(work, PAK_DIR), root, build, extra_paks)
-    if not night:
-        # 本体の config/ と pak の config/ の両方に足す（どちらが後に読まれても止まる）
-        append_day_night_off(os.path.join(work, "config", "simuconf.tab"))
-        append_day_night_off(os.path.join(work, PAK_DIR, "config", "simuconf.tab"))
+    # 本体の config/ と pak の config/ の両方に足す（pak の物が後に読まれる）
+    for simuconf in (os.path.join(work, "config", "simuconf.tab"), os.path.join(work, PAK_DIR, "config", "simuconf.tab")):
+        if not night:
+            append_day_night_off(simuconf)
+        prepend_lines(simuconf, simuconf_extra)
     return placed
 
 
@@ -387,8 +421,9 @@ class Game:
     """作業フォルダを用意して本体を起動し、MCP で操作し、with を抜けるときに PID で閉じて作業フォルダを消す。"""
 
     def __init__(self, env, save, port, work=None, night=False, extra_paks=(), client=None, exe=EXE,
-                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None):
+                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=()):
         check_port(port)
+        self.simuconf_extra = check_simuconf_lines(simuconf_extra)
         self.env, self.save, self.port = os.path.abspath(env), save, port
         self.work = os.path.abspath(work or os.path.join(root, "work", "game", str(port)))
         self.night, self.extra_paks, self.exe, self.screensize = night, extra_paks, exe, screensize
@@ -417,7 +452,8 @@ class Game:
             raise RuntimeError(f"ポート {self.port} は他で使われている（他のゲームが動いている）")
         check_work(self.work, self.env, self.root)
         self.prepared = True
-        prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build)
+        prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build,
+                        simuconf_extra=self.simuconf_extra)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
             try:

@@ -71,6 +71,51 @@ class GameToolTest(Base):
         self.assertEqual(self.read("config", "simuconf.tab"), "base = 1")
         self.assertEqual(self.read("pak", "config", "simuconf.tab"), "a = 1\n")
 
+    def test_simuconf_extra_goes_before_existing_lines_in_both_files(self):
+        # 本体は同じキーを先に書いた行から取るので、足した行はファイルの先頭に来る
+        put(os.path.join(self.env, "config", "simuconf.tab"), "show_names = 3\r\n")
+        self.prepare(simuconf_extra=["show_names = 0", "tile_height = 8"])
+        self.assertEqual(self.read("config", "simuconf.tab"),
+                         "show_names = 0\r\ntile_height = 8\r\nshow_names = 3\r\n\r\nday_night_shift = 0\r\n")
+        self.assertEqual(self.read("pak", "config", "simuconf.tab"),
+                         "show_names = 0\ntile_height = 8\na = 1\n\nday_night_shift = 0\n")
+
+    def test_simuconf_extra_applies_at_night(self):
+        self.prepare(night=True, simuconf_extra=("show_names = 0",))
+        self.assertEqual(self.read("config", "simuconf.tab"), "show_names = 0\nbase = 1")
+        self.assertEqual(self.read("pak", "config", "simuconf.tab"), "show_names = 0\na = 1\n")
+
+    def test_simuconf_extra_is_not_doubled_by_rebuild(self):
+        self.prepare(night=True, simuconf_extra=["show_names = 0"])
+        self.prepare(night=True, simuconf_extra=["show_names = 0"])
+        self.assertEqual(self.read("pak", "config", "simuconf.tab"), "show_names = 0\na = 1\n")
+
+    def test_prepend_creates_missing_file(self):
+        p = os.path.join(self.tmp.name, "sub", "s.tab")
+        game.prepend_lines(p, ["show_names = 0"])
+        with open(p, encoding="utf-8") as f:
+            self.assertEqual(f.read(), "show_names = 0\n")
+
+    def test_simuconf_extra_rejects_bad_lines_before_touching_workdir(self):
+        put(os.path.join(self.work, "old.txt"))
+        for bad in ("show_names = 0", ["show_names"], ["a = 1\nb = 2"], ["# a = 1"], ["= 1"], ["-"]):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                self.prepare(simuconf_extra=bad)
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                game.Game("e", "m", 47880, work="w", client=__file__, simuconf_extra=bad)
+        self.assertTrue(os.path.isfile(os.path.join(self.work, "old.txt")))
+
+    def test_game_passes_simuconf_extra_to_prepare(self):
+        g = game.Game(self.env, "map", 47880, work=self.work, client=__file__, root=self.root, build=self.build,
+                      simuconf_extra=["show_names = 0"])
+        with mock.patch.object(game, "port_in_use", lambda p: False), \
+                mock.patch.object(game.Game, "alive_mcp", lambda self_: False), \
+                mock.patch.object(game.subprocess, "Popen", side_effect=OSError("起動しない")):
+            with self.assertRaises(OSError):
+                g.start()
+        self.assertTrue(self.read("pak", "config", "simuconf.tab").startswith("show_names = 0\n"))
+        g.stop()
+
     def test_append_is_idempotent_and_keeps_crlf(self):
         p = os.path.join(self.tmp.name, "s.tab")
         put(p, "a = 1\r\n")

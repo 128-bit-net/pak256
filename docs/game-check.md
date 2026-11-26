@@ -57,7 +57,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 街の建物を置く道具（`tool_build_house`）の引数は、建物の名前の前に 2 文字を付ける。1 文字目は気候の制限を外すか（`0` は外さない）、2 文字目は向き（`00<name>` は向き 0）。街の建物は、近くに街が無いと置けない（2026-11-26、#104。形は本体の `simtool.cc` の `tool_build_house_t::work_on_ground`）。
 - 木を植える道具は、公共のプレーヤーで呼ぶ（2026-11-26、#104）。地図の木の設定が「無し」だと、ほかのプレーヤーは植えられない（本体の `tool_plant_tree_t::work`）。森は `tool_forest`（`tools/tree_check.py`）。
 - 地形は `command_x.grid_raise`・`command_x.grid_lower` で作る。`grid_lower` は地下水位 −3 まで（2026-11-25、#5）。水は `command_x(tool_change_water_height).work(pl, pos, "1")`（#5）。
-- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。`Game` は起動のたびに作業フォルダを作り直し、足す引数は無いので、`game.append_day_night_off` を包んで足す（[例](records/2026-11-26_stop-overlap-screens/run.py)。`--night` ではこの関数が呼ばれない）。
+- 画面に出る名札を消すには、`Game(..., simuconf_extra=["show_names = 0"])` で起動する（下の「設定を足す」。2026-11-26、#122）。
 - 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。強制終了するとゲームが閉じられず、ポートを握ったまま残ることがある（Job Object に入れられた場合は閉じる。下の「別の道具から使う」）。止めたときは、起動した PID を `tasklist` で探して閉じる（2026-11-25、#30）。
 
 ## 別の道具から使う
@@ -82,6 +82,18 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 - 配布の zip の中身だけで起動するときは、zip を展開して `*.pak`（と `ami_license.txt`）を 1 つのフォルダに集め、`Game(..., build=<その pak のフォルダの親>, root=<config/ と text/ のある所>)` を渡す。手元で組んだ物（`build/pak/`）や作業フォルダの `config/` を混ぜずに確かめられる（2026-11-25、#70。手順は `records/2026-11-25_alpha03-check.md` の 1）。
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
+
+## 設定を足す（`simuconf_extra`、#122）
+
+```python
+with Game(env, "flat_512_left_v64", 47880, simuconf_extra=["show_names = 0"]) as g:
+    ...
+```
+
+- 起動の前に、作業フォルダの本体と pak の両方の `config/simuconf.tab` の**先頭**へ、渡した行を足す。1 要素が「キー = 値」の 1 行（違う形は `ValueError`）。`--night` でも足す。`prepare_workdir` にも同じ引数がある。コマンドの引数は無い。
+- 先頭に足すのは、本体が 1 つのファイルの中の同じキーを先に書いた行から取るため（`tabfile.cc` の `tabfileobj_t::put`）。末尾に足すと、元からその行があるファイル（検証環境の本体の `simuconf.tab` の `show_names = 3` など）では効かない。
+- 保存データが持つ設定は、保存データの値が使われることがある（足した行が効いたかは画面で確かめる）。
+- `docs/records/` の古いスクリプトは `game.append_day_night_off` を包んで足している。記録はそのままで、新しいスクリプトはこの引数を使う。
 
 ## 気候と月（`Game.climate`・`Game.wait_month`、#109）
 
@@ -200,4 +212,4 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 `tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

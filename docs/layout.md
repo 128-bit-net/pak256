@@ -155,7 +155,7 @@ CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.gi
 
 - PR と main への push: `tools/test_*.py` の検査（`test_datgen.py` など）→ `tools/build.py`（pak を組む）→ `tools/package.py`。zip は artifact `pak256-zip` に置く。
 - makeobj は警告（`Warning`）でも終了コード 0 なので、`build.py` がログの `Warning`・`ERROR` の行で失敗にする。CI も同じ。
-- CI の makeobj は本家 125.0 の Linux 版（60.10）で、手元の Windows 版（60.12）と版が違う。Release の pak は 60.10 で組まれる。
+- CI の makeobj は本家 125.0 の Linux 版で、版は手元の Windows 版と同じ 60.12（CI のログの「Makeobj version」。2026-11-26 に確かめた）。Release の pak も CI のこの makeobj で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
 - AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.6`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
