@@ -5,8 +5,9 @@
 ## 結論
 
 - 雪の画像の下の端の 1〜2 行に、路面のような暗い色が出ている。ゲームでは、タイルの下の縁に沿う 1px の暗い線になる（縮小して見ると薄い点線に見える）。
-- 出るのは AMI の `ami_road_<local・general・trunk・expressway>_base_*` の雪の画像。通常の版（`ami_road_local` など）と高架（`_elev_*`）には出ない。
-- 保存データ `flat_512_left_v64` では、街の道路の道具も街が建てた道も `ami_road_local_base_single` になるので、雪の街の道路に出る。
+- ゲームで線を確かめたのは `ami_road_local_base_single`（出る）と `ami_road_local`（出ない）。
+- pak の画像を数えると、同じ形の画像は `ami_road_<local・general・trunk・expressway>_base_*` にあり、通常の版と高架（`_elev_*`）には無い。`local_base_single` 以外はゲームで撮っていない。
+- 保存データ `flat_512_left_v64` では、街の道路の道具も街が建てた道も `ami_road_local_base_single` になるので、この保存データの雪の街の道路に出る（新しい地図では確かめていない）。
 - `Sidewalk`（pak256 の歩道の下の地面）と地面の絵は原因ではない。
 
 ## ゲームでの切り分け
@@ -18,8 +19,8 @@ OTRP v64（`sim-WinGDI64-OTRPv64.exe`）、保存データ `flat_512_left_v64`�
 ![下の縁の拡大](2026-11-26_snow-road-seam-screens/variants_zoom.png)
 
 - 歩道の有無に関係なく、way が `ami_road_local_base_single` のときに線が出る。手で敷いた `ami_road_local` には出ない。
-- `Sidewalk` の雪の絵をマゼンタにした pak でも、線は同じ所に同じように出た（記録の画像は無い）。
-- 温帯（同じ道・夏）の画面では線は見えない。道の縁が暗い路面なので、夏の絵に同じ行があるかは画面からは分からない。
+- `Sidewalk` の雪の絵をマゼンタにした pak でも、線は同じ所に同じように出た（補足。このときの画像とスクリプトは残していない）。
+- 温帯（街の道路の道具・夏）の画面では線は見えない（[#136 の温帯の画像](2026-11-26_sidewalk-snow-screens/temperate_flat.png)）。道の縁が暗い路面なので、夏の絵に同じ行があるかは画面からは分からない。
 
 街が建てた道（`tool_add_city`。数えた way はすべて `ami_road_local_base_single`・歩道つき）:
 
@@ -44,7 +45,7 @@ OTRP v64（`sim-WinGDI64-OTRPv64.exe`）、保存データ `flat_512_left_v64`�
 
 `local`・`general` の `base_front`・`base_back`・`base_center` は、この pak の way の一覧に無かった。
 
-128 版も、手元の AMI の `dist/ami_road.pak`（2026-11-22 の組み。元のコミットは確かめていない）を読むと、`local`・`general`・`expressway` の `base_single` に同じ形の画像があった（平らな 16 枚中 3・3・9 枚）。
+参考値: 128 版も、手元の AMI の `dist/ami_road.pak`（2026-11-22 の組み。元のコミットは確かめていない）を読むと、`local`・`general`・`expressway` の `base_single` に同じ形の画像があった（平らな 16 枚中 3・3・9 枚）。
 
 ## 確かめのための置き換え
 
@@ -53,7 +54,7 @@ pak の写しで、下の端の暗い画素をすぐ上の色に置き換えて�
 ![置き換えの前後](2026-11-26_snow-road-seam-screens/patched.png)
 
 - 暗い線は消えた。薄い灰色の点は残る。下から 2 行目も路面の色と混ざっていて、置き換えがその色を写すため。
-- 温帯の平らと台地の画面は、置き換えの前後で大きく違う画素（明るさの差 40 超）が 0。
+- 温帯の平らと台地の画面は、置き換えの前後で大きく違う画素（明るさの差 40 超）が 0（`pakimg.py diff`）。
 
 画像の組み立ては [figures.py](2026-11-26_snow-road-seam-screens/figures.py)。
 
@@ -66,7 +67,9 @@ pak の写しで、下の端の暗い画素をすぐ上の色に置き換えて�
 
 ## 別の点線（白い点線）
 
-分かれ目のタイルの境目に、道を横切る白い点線がある。温帯にも、`ami_road_local` にも同じ位置に出るので、雪とは関係のない AMI の路面の絵と見ている。#141 の対象ではないと判断した。
+分かれ目のタイルの境目に、道を横切る白い点線がある。温帯の画面（[#136 の温帯の画像](2026-11-26_sidewalk-snow-screens/temperate_flat.png)）にも、上の 3 枚の `ami_road_local` にも同じように出るので、雪とは関係のない AMI の路面の絵と見ている。
+
+#141 の「薄い点線」は、雪の気候だけに出る暗い線の方と判断した（issue が「雪の気候の道路」と書いていて、白い点線は温帯にも出るため）。起票のもとの画像で指していたのが白い点線なら、この調べの対象と違う。
 
 ## 確かめていないこと
 

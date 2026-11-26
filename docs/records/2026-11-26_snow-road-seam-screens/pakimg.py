@@ -6,13 +6,16 @@
       雪の直線の画像（子 6 の 8 番）を ami_road_local と ami_road_local_base_single で並べる
   python -X utf8 docs/records/2026-11-26_snow-road-seam-screens/pakimg.py patch <build のフォルダ> <出力の build のフォルダ>
       確かめ用（直しではない）: ami_road.pak の写しで、雪の画像の下端の暗い画素をすぐ上の色に置き換える
+      （数えるときより条件が広い。すぐ上が明るく、下端がそれより 40 を超えて暗い画素）
+  python -X utf8 docs/records/2026-11-26_snow-road-seam-screens/pakimg.py diff <今の pak の撮影> <置き換えた pak の撮影>
+      2 つの撮影で大きく違う画素を数える
 子の番号は、読んだ pak の WAY の子の並び（0・1 が名前と著作者の文字、2 が夏の平ら、3 が夏の坂、6 が雪の平ら、7 が雪の坂と見ている）。"""
 import os
 import shutil
 import struct
 import sys
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 
 def load(path):
@@ -150,5 +153,13 @@ def patch(build, out):
     print("置き換えた画素", changed)
 
 
+def diff(before, after):
+    """2 つの撮影のフォルダで、明るさの差が 40 を超える画素を数える（1600x900 の撮影から、上の道具の帯と下の状態の行を除く）。"""
+    for name in ("snow_flat", "snow_hill", "temperate_flat", "temperate_hill"):
+        a, b = (Image.open(os.path.join(d, name + ".png")).convert("RGB").crop((0, 48, 1600, 878)) for d in (before, after))
+        gray = ImageChops.difference(a, b).convert("L")
+        print(name, sum(gray.histogram()[41:]))
+
+
 if __name__ == "__main__":
-    {"count": count, "figure": figure, "patch": patch}[sys.argv[1]](*sys.argv[2:])
+    {"count": count, "figure": figure, "patch": patch, "diff": diff}[sys.argv[1]](*sys.argv[2:])
