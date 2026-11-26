@@ -910,7 +910,7 @@ def main():
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
     ap.add_argument("--interactive", action="store_true", help="起動して、命令を待つ（--send で流す）。@quit・無音・Ctrl+C で閉じる")
     ap.add_argument("--idle-limit", type=int, default=IDLE_LIMIT, help="--interactive で命令が来ない秒（超えたら閉じる）")
-    ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@month <月>・@quit")
+    ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@month <月>・@player <番号> <Squirrel>・@quit")
     ap.add_argument("--player-nr", type=int, help=f"Squirrel（--script・--send・--send-file）を流すプレーヤー（公共は {PUBLIC_PLAYER}。省くと 0）")
     ap.add_argument("--send-file", help="--send の代わりに、Squirrel のファイルを流す")
     ap.add_argument("--timeout", type=int, default=120, help="--send の答えを待つ秒")
