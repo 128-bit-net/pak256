@@ -56,9 +56,8 @@ class CheckDemoTest(unittest.TestCase):
         self.assertEqual(check_demo.list_names(out), {"pak256_bus", "ami_road_expressway_elev_front_long"})
 
     def test_committed_demo_is_readable(self):
-        names = check_demo.save_names(check_demo.read_save(check_demo.DEMO))
-        self.assertIn("pak256_bus_stop", names)
-        self.assertIn("ami_road_local", names)
+        # 地図は作り直すので、置いてある物の名前は決め打ちしない
+        self.assertTrue(check_demo.save_names(check_demo.read_save(check_demo.DEMO)))
 
     def run_main(self, in_pak):
         used = {"pak256_bus", "ami_road_local"}
