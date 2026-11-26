@@ -42,13 +42,13 @@ CARS = [
     },
     {
         "name": "pak256_citycar_sedan", "stem": "sedan", "title": "セダンの街の車",
-        "reference": "ms_1932_dodge_green", "ref_px": (27, 11, 8), "target_px": (54, 22, 16),
+        "reference": "ms_1932_dodge_green", "ref_px": (27, 11, 7.5), "target_px": (54, 22, 15),
         "color": (58, 78, 128), "cabin": (0.30, 0.74),
         "distributionweight": 3, "speed": 50, "intro_year": 1930,
     },
     {
         "name": "pak256_citycar_large", "stem": "large", "title": "大型の街の車",
-        "reference": "MS_28_mercedes_brown", "ref_px": (32, 11, 7.5), "target_px": (64, 22, 16),
+        "reference": "MS_28_mercedes_brown", "ref_px": (32, 11, 7.5), "target_px": (64, 22, 15),
         "color": (112, 70, 52), "cabin": (0.40, 0.80),
         "distributionweight": 3, "speed": 50, "intro_year": 1930,
     },
