@@ -70,9 +70,9 @@ def shoot(proc, capture, log_path, out, wait=FIRST_WAIT, retries=RETRIES, sleep=
             raise RuntimeError(f"ゲームが終わった（終了コード {proc.returncode}）")
         if capture(proc.pid, out):
             return
-        print("[title_shot] 黒い画面。撮り直す", flush=True)
+        print("[title_shot] 撮れない（窓が無い・読めない・黒一色）。撮り直す", flush=True)
         sleep(RETRY_WAIT)
-    raise RuntimeError("撮った画面が黒いまま")
+    raise RuntimeError("撮れないまま（窓が無い・読めない・黒一色）")
 
 
 def capture_window(pid, path):
@@ -157,7 +157,8 @@ def title_shot(env, out, work, root=game.ROOT, build=None, zip_path=None, exe=ga
                wait=FIRST_WAIT, keep=False):
     """作業フォルダを作り、起動して撮り、起動した PID で閉じる。"""
     out, work = os.path.abspath(out), os.path.abspath(work)
-    if out.startswith(work + os.sep):
+    real = [os.path.normcase(os.path.realpath(p)) for p in (out, work)]  # 大文字小文字やリンクの違いでもすり抜けない
+    if real[0].startswith(real[1] + os.sep):
         raise RuntimeError(f"出力が作業フォルダの中（撮った後に消える）: {out}")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     if os.path.isfile(out):
@@ -176,6 +177,8 @@ def title_shot(env, out, work, root=game.ROOT, build=None, zip_path=None, exe=ga
             job.assign(proc)
         print(f"[title_shot] pid={proc.pid} work={work}", flush=True)
         shoot(proc, capture_window, log_path, out, wait)
+        if not os.path.isfile(out):
+            raise RuntimeError(f"撮った PNG が無い: {out}")
     finally:
         if proc is not None:
             if proc.poll() is None:

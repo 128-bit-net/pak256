@@ -90,18 +90,42 @@ class TitleShotTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             title_shot.title_shot(self.env, os.path.join(self.work, "a.png"), self.work, root=self.root)
 
-    def test_closes_game_and_removes_work_on_failure(self):
+    def run_tool(self, shoot, left=False):
+        """ゲームの起動と撮影を差し替えて title_shot を流し、起動の代わりの物を返す。"""
         proc = mock.Mock(pid=123)
         proc.poll.return_value = None
+        self.out = os.path.join(self.tmp.name, "a.png")
         with mock.patch.object(title_shot.subprocess, "Popen", return_value=proc), \
                 mock.patch.object(title_shot.game, "JobObject"), \
-                mock.patch.object(title_shot.game, "alive", return_value=False), \
-                mock.patch.object(title_shot, "shoot", side_effect=RuntimeError("黒いまま")), \
+                mock.patch.object(title_shot.game, "alive", return_value=left), \
+                mock.patch.object(title_shot, "shoot", side_effect=shoot), \
                 contextlib.redirect_stdout(io.StringIO()):
-            with self.assertRaises(RuntimeError):
-                title_shot.title_shot(self.env, os.path.join(self.tmp.name, "a.png"), self.work, root=self.root)
-        proc.kill.assert_called_once()
+            title_shot.title_shot(self.env, self.out, self.work, root=self.root)
+        return proc
+
+    def write_out(self, proc, capture, log_path, out, wait):
+        put(out, "new")
+
+    def test_success_closes_game_and_removes_work(self):
+        self.run_tool(self.write_out).kill.assert_called_once()
+        self.assertTrue(os.path.isfile(self.out))
         self.assertFalse(os.path.exists(self.work))
+
+    def test_old_output_is_not_taken_for_success(self):
+        put(os.path.join(self.tmp.name, "a.png"), "old")
+        with self.assertRaises(RuntimeError):
+            self.run_tool(lambda *a: None)  # 何も書かない
+        self.assertFalse(os.path.exists(self.out))
+
+    def test_removes_work_on_failure(self):
+        with self.assertRaises(RuntimeError):
+            self.run_tool(RuntimeError("撮れない"))
+        self.assertFalse(os.path.exists(self.work))
+
+    def test_keeps_work_when_process_remains(self):
+        with self.assertRaises(RuntimeError):
+            self.run_tool(self.write_out, left=True)
+        self.assertTrue(os.path.isdir(self.work))
 
 
 if __name__ == "__main__":

@@ -73,7 +73,7 @@ python -X utf8 tools/title_shot.py --env <検証環境> --out work/title.png --z
 
 - 保存データの無い作業フォルダ（既定は `work/title_shot/`）を作る。写すのは実行ファイル・DLL・`config/` などで、`save/` と `settings.xml` は写さない。pak は `pak256/` に入れる（`demo.sve` を含む）。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak256/ -lang ja -mute -screensize 1600x900`。`-load` と `-mcp-port` は付けないので、ポートは使わない。
-- 起動から 30 秒（`--wait`）待って撮る。真っ黒なら撮り直す（描き直しの前に読むことがある）。本体が終わったとき・`FATAL ERROR` や通知の窓のときは失敗にする。
+- 起動から 30 秒（`--wait`）待って撮る。真っ黒なら撮り直す（描き直しの前に読むことがある）。本体が終わったときと、起動のログに `FATAL ERROR` か `dr_fatal_notify: ERROR:` が出たときは失敗にする（`game.py` と同じ印）。この印の出ない窓は見分けないので、撮った画像は開いて見る。
 - 撮ったら起動した PID を閉じ、作業フォルダを消す（`--keep` で残す）。
 
 ## 道路と線路の道が無い pak では起動できない
