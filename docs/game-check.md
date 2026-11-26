@@ -236,17 +236,17 @@ python -X utf8 tools/game.py --port 47900 --send "@quit"
 手元で組んだ pak、または配布の zip を、テストプレイのフォルダ（本体の実行ファイルの横）の `pak256/` に入れる。ゲームは起動しない。
 
 ```
-python -X utf8 tools/install_local.py <テストプレイのフォルダ> --build           # build.py で組んでから、build/pak/ と config/・text/ を入れる
+python -X utf8 tools/install_local.py <テストプレイのフォルダ> --build           # build.py で組んでから、build/pak/ と config/・text/・demo.sve を入れる
 python -X utf8 tools/install_local.py <テストプレイのフォルダ>                    # 組み済みの build/pak/ を入れる
 python -X utf8 tools/install_local.py <テストプレイのフォルダ> --zip <配布の zip>  # Release の zip などを直接入れる
 ```
 
 - 入れ先の形: `<dest>/<本体の実行ファイル>`・`<dest>/pak256/`（この道具が入れる）・`<dest>/play.bat`（無ければ作る。`-singleuser -objects pak256/` を付けて起動する。既にあれば触らない）。`save/`・`settings.xml` には触らない。
 - `pak256/VERSION` に入れた物の版の名前を書く（手元で組んだ物は `local-<短いコミット>`、作業ツリーに変更があれば `-dirty`。zip は `zip-<zip のファイル名>`）。
-- `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/` を、配布の zip と同じ一覧から直接入れる）。
-- 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`config/`・`text/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
+- `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/`・`demo/demo.sve` を、配布の zip と同じ一覧から直接入れる）。
+- 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`demo.sve`・`config/`・`text/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
 - 入れ先に本体の実行ファイルが無い・このリポジトリの中なら止まる（間違った場所へ入れない）。
-- zip は、消す前に壊れていないか・危ない名前が無いかを調べる。先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`config/`・`text/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
+- zip は、消す前に壊れていないか・危ない名前が無いかを調べる。先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`demo.sve`・`config/`・`text/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
 - 配布用の許諾の文の検査（`LICENSE.md` の例外など）は通さない。ゲームで試すだけで、配るわけではない。配るのは `package.py`。
 
 pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で、`Game` の作業フォルダ（`<作業フォルダ>/pak/`）も同じ関数で入れる。配布の zip の一覧のうち、ゲームが読む物だけを返す `package.collect_runtime` を土台にしていて、許諾の検査（`package.collect`）とは切り離してある。
@@ -316,6 +316,8 @@ python -X utf8 docs/records/2026-11-26_passengers/stats.py <出力.jsonl>
 
 `tools/test_frames.py`: 地面の印・格子の線・タイルのカーソルの枠が地面の縁の画素と一致する（[ground.md](ground.md) の「枠の線」）。`tools/test_ground.py`: コミットしてある `ClimateTexture` の模様 8 枚が、斜め格子の周期（(128,64)・(128,-64)）でずらしても同じで、透明な画素が無い（Water は菱形なので見ない）。`tools/test_town_buildings.py`: 街の建物の `backimage` の季節の添字が 4 枚（夏・秋・冬・春）で、冬だけが右の絵を指し、右の絵が左と違う。
 
-`tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
+`tools/test_check_demo.py`: `check_demo.py` の保存データの名前の読み方（長さつきの名前・圧縮の形）と `makeobj list` の読み方、コミットしてある `demo/demo.sve` が読めること。
+
+`tools/test_package.py`: `package.py` の入れる物（`demo/demo.sve` が無ければ止まること）と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
 `tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、保存データの写しの道路名の書き換え（合成の保存データ。gzip・bzip2・無圧縮、元のファイルが変わらないこと、扱えない形・一覧が無い・2 か所のとき触らないこと、止める指定）、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

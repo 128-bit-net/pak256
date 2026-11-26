@@ -4,6 +4,7 @@ zip の中身（先頭のフォルダ名は pak256。本体の pak のフォル�
     pak256/*.pak              build/pak/ の pak（自前の物と、あれば AMI）
     pak256/config/            config/ の中身（.gitkeep は除く）
     pak256/text/              text/ の中身（同上）
+    pak256/demo.sve           demo/demo.sve（保存データが無いときに本体が読む初期マップ。docs/layout.md の「初期マップ」）
     pak256/LICENSE.md
     pak256/LICENSES/          許諾の本文（CC BY-SA 4.0・MIT）
     pak256/CREDITS.md
@@ -26,11 +27,12 @@ BUILD = os.path.join(ROOT, "build")
 DIST = os.path.join(ROOT, "dist")
 TOP = "pak256"
 SKIP = {".gitkeep"}
+DEMO = "demo.sve"  # 本体が pak のフォルダから読む初期マップの名前。元はリポジトリの demo/demo.sve
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)  # 同じ中身なら同じ zip になるように
 
 
 def collect_runtime(root=ROOT, build=BUILD):
-    """(zip の中の名前, 元のファイル) のうち、ゲームが読む物（pak・config・text）だけ。許諾の文の検査はしない。
+    """(zip の中の名前, 元のファイル) のうち、ゲームが読む物（pak・config・text・初期マップ）だけ。許諾の文の検査はしない。
 
     配布の zip（collect）も、ゲームに入れる道具（game.install_pak・install_local.py。#38）も、ここから取る。
     pak が 1 つも無ければ止まる。
@@ -51,12 +53,17 @@ def collect_runtime(root=ROOT, build=BUILD):
                 path = os.path.join(dirpath, name)
                 rel = os.path.relpath(path, root).replace(os.sep, "/")
                 files.append((f"{TOP}/{rel}", path))
+    demo = os.path.join(root, "demo", DEMO)
+    if os.path.isfile(demo):
+        files.append((f"{TOP}/{DEMO}", demo))
     return files
 
 
 def collect(root=ROOT, build=BUILD):
     """配布の zip に入れる (zip の中の名前, 元のファイル) の一覧を返す。許諾の文の検査を含む。"""
     files = collect_runtime(root, build)
+    if f"{TOP}/{DEMO}" not in (arc for arc, _ in files):  # 配布物から黙って抜けないように
+        sys.exit(f"[package] demo/{DEMO} が無い")
     for name in ("LICENSE.md", "CREDITS.md"):
         files.append((f"{TOP}/{name}", os.path.join(root, name)))
     # LICENSE.md が相対リンクで引く許諾の本文。zip の中でリンクが切れないように入れる
