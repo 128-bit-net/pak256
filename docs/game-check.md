@@ -33,6 +33,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
 - ゲームは**起動したときの PID で閉じる**（実行ファイルの名前では止めない）。閉じた後に `tasklist` で残りを確かめ、残ったら知らせて終了コード 1 で終わる（その作業フォルダは消せないので残す）。
+- **本体が FATAL ERROR で止まったら、待たずに閉じて失敗で終わる**（[#132](https://github.com/128-bit-net/pak256/issues/132)）。本体は「PRESS ANY KEY」の画面のまま残って MCP に答えないので、`game.py` は MCP の答えを待つ間も起動のログ（`game.log`）を見て、`FATAL ERROR` が出ていたら、起動した PID を閉じ、その行から後ろのエラーの文を出して終了コード 1 で終わる。起動の待ち・Squirrel・撮影・`--interactive` の見張りで同じ。ほかの道具から `Game` を使うときは `game.GameFatalError`（`RuntimeError` の一種）が上がる。見るのは `FATAL ERROR` の文だけで、本体がこの文を出さずに止まる形（`No fonts found!` などの通知の窓）は、これまでどおり時間切れになる。
 
 - 画面は `Game.capture`（本体の `capture_screen`）で撮る。PowerShell の画面全体の撮影は真っ黒になる。
 
@@ -49,7 +50,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 
 ## 道路と線路の道が無い pak では起動できない
 
-`flat_512_left_v64` を指定して起動するとき、pak に次の 2 つが無いと本体が止まる（理由は `game.py` が出すログの末尾の `FATAL ERROR`。2026-11-26、OTRP v64、[#128](https://github.com/128-bit-net/pak256/issues/128)）。
+`flat_512_left_v64` を指定して起動するとき、pak に次の 2 つが無いと本体が止まる（理由は `game.py` が出す `FATAL ERROR` の文。`game.py` は待たずに閉じる。2026-11-26、OTRP v64、[#128](https://github.com/128-bit-net/pak256/issues/128)・[#132](https://github.com/128-bit-net/pak256/issues/132)）。
 
 | 足りない物 | ログ |
 |---|---|
@@ -166,7 +167,7 @@ python -X utf8 tools/game.py --port 47900 --send "@quit"
 
 - 仕組み: 見張る側は作業フォルダ（既定 `work/game/<ポート>/`）の `inbox/` に置かれた命令のファイルを番号順に 1 つずつ流し、結果を `.out` に書く。`--send` は同じポート（`--work` を使ったなら同じ値）を渡す。
 - 命令の失敗（Squirrel の誤り・知らない指示）では見張りは止まらず、次の命令を受ける。
-- **必ず閉じる**: 終わったら `@quit` を送る。見張りの Ctrl+C、命令が `--idle-limit` 秒（既定 3600）来ないとき、ゲームが落ちたときも、起動した PID で閉じて作業フォルダを消す（`--keep` なら残す）。見張りの Python が強制終了されても、Job Object で閉じる。起動は `-load` と写した作業フォルダなので、自動保存は失わない。
+- **必ず閉じる**: 終わったら `@quit` を送る。見張りの Ctrl+C、命令が `--idle-limit` 秒（既定 3600）来ないとき、ゲームが落ちたときも、起動した PID で閉じて作業フォルダを消す（`--keep` なら残す）。本体が FATAL ERROR で止まったときは、命令の途中ならその `--send` にエラーの文を返し（終了コード 1）、見張りの側もエラーの文を出して終了コード 1 で終わる。見張りの Python が強制終了されても、Job Object で閉じる。起動は `-load` と写した作業フォルダなので、自動保存は失わない。
 - 同じポートで 2 台は起動できない。ポートは割り当てられた範囲の中。
 - 複数の `--send` を同時に流さない（順に流す）。
 - **`--send-file` では、変数を先頭に足せない**（`Game.sq_file` の `head=` に当たる物が無い）。流す `.nut` に、変数の定義を直に書く（例: 先頭に `OX <- 40; OY <- 60; CARS <- 4;`）。値を変えて流すときは、`sed` で写しを作って流す（`sed 's/OY <- 60/OY <- 110/' a.nut > work/b.nut`）。同じ `.nut` を `Game.sq_file(path, head=…)` から流すなら、先頭に同じ名前の変数を足し、`.nut` の定義の行を消す（二重に定義すると後の値が勝つ）。`tools/vehicle_check/signal.nut`・`road_stop_coal.nut` がこの形（`road_stop_bus.nut` は変数が `WAY`・`DEPOT` だけで、座標は中に書いてある）。
@@ -245,4 +246,4 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 `tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

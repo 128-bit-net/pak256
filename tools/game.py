@@ -36,6 +36,8 @@
 - MCP のポートは必ず明示する。範囲の既定は pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）で、作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
   別の範囲を割り当てられた作業者は、--port-range・Game(port_range=…)・環境変数 PAK256_PORT_RANGE のどれかで範囲を渡す（"下限-上限"。#128）。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
+- 本体が FATAL ERROR で止まると「PRESS ANY KEY」の画面のまま残るので、起動のログ（game.log）を見て、出ていたら待たずに閉じ、
+  エラーの文を出して失敗する（GameFatalError。起動の待ち・Squirrel・撮影・--interactive の見張り。#132）。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
 """
@@ -82,6 +84,19 @@ CLIMATES = {"desert": 1, "tropic": 2, "mediterran": 3, "temperate": 4, "tundra":
 MONTH_TO_SEASON = (2, 2, 2, 3, 3, 0, 0, 0, 0, 1, 1, 2)
 SEASON_MONTHS = {"summer": 6, "autumn": 9, "winter": 0, "spring": 3}  # 季節ごとの絵を撮るのに使う月（0 始まり）
 MONTH_SPEED = 64  # 月を進めるときの速さ
+# 本体が止まるときに出す文の印。"FATAL ERROR: …"（log.cc の fatal）と "FATAL ERROR during reading of …"（loadsave.cc）
+FATAL_MARK = b"FATAL ERROR"
+FATAL_CHARS = 1500  # エラーの文として持つ長さ（印から後ろ）
+FATAL_FLUSH = 0.3  # 印を見つけてから、文の残りが書かれるのを待つ秒
+FATAL_POLL = 0.5  # MCP の答えを待つ間に game.log を見る間隔（秒）
+FATAL_SEND_WAIT = 2  # 致命の結果を .out に書いた後、送る側が読むのを待ってから閉じる秒
+
+
+class GameFatalError(RuntimeError):
+    """本体が FATAL ERROR で止まった。message は game.log の印から後ろ。"""
+
+    def __init__(self, message):
+        super().__init__(f"本体が FATAL ERROR で止まった:\n{message}")
 
 
 def default_client():
@@ -451,6 +466,8 @@ class Game:
         self.job = None  # 親が強制終了されてもゲームを閉じる Job Object（Windows）
         self.prepared = False  # この Game が作業フォルダを用意した（他人の物を消さない）
         self.left_over = False  # 閉じた後も PID が残ったか
+        self.fatal_message = None  # 見つけた FATAL ERROR の文
+        self._log_pos = 0  # game.log を見終えた位置
 
     def __enter__(self):
         try:
@@ -468,6 +485,7 @@ class Game:
             raise RuntimeError(f"MCP のクライアントが無い: {self.client}（--mcp-client か環境変数 MCP_CLIENT で渡す）")
         if port_in_use(self.port) or self.alive_mcp():
             raise RuntimeError(f"ポート {self.port} は他で使われている（他のゲームが動いている）")
+        self.fatal_message, self._log_pos = None, 0
         check_work(self.work, self.env, self.root)
         self.prepared = True
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build,
@@ -485,14 +503,19 @@ class Game:
         print(f"[game] pid={self.proc.pid} port={self.port} work={self.work}", flush=True)
         end, last = time.monotonic() + limit, None
         while time.monotonic() < end:
+            self.check_fatal()
             if self.proc.poll() is not None:
+                self.check_fatal()  # 見た後に書いて終わった場合
                 raise RuntimeError(f"ゲームが終わった（終了コード {self.proc.returncode}）。ログの末尾: {self.log_tail()}")
             try:
                 if self.sq("return 1", timeout=5) == "1":
                     return
+            except GameFatalError:
+                raise
             except Exception as e:  # 起動中は答えない
                 last = e
             time.sleep(3)
+        self.check_fatal()
         raise RuntimeError(f"ゲームが MCP に答えない: {last}。ログの末尾: {self.log_tail()}")
 
     def log_tail(self, n=600):
@@ -503,6 +526,37 @@ class Game:
         except OSError:
             return "（無し）"
 
+    def fatal(self):
+        """game.log に FATAL ERROR が出ていれば、その文を返す（無ければ None）。起動していないときは見ない。
+
+        前に見た所から先だけを読む（-log -debug 3 を足すとログが大きい）。一度見つけたら覚えておく。
+        """
+        if self.fatal_message is not None or self.proc is None:
+            return self.fatal_message
+        path = os.path.join(self.work, "game.log")
+        try:
+            with open(path, "rb") as f:
+                f.seek(self._log_pos)
+                data = f.read()
+            i = data.find(FATAL_MARK)
+            if i < 0:  # 印が読みの境目で割れないよう、少し手前から次を読む
+                self._log_pos += max(0, len(data) - len(FATAL_MARK) + 1)
+                return None
+            time.sleep(FATAL_FLUSH)
+            with open(path, "rb") as f:
+                f.seek(self._log_pos + i)
+                data = f.read(FATAL_CHARS)
+        except OSError:
+            return None
+        self.fatal_message = data.decode("utf-8", errors="replace").strip()
+        return self.fatal_message
+
+    def check_fatal(self):
+        """本体が FATAL ERROR で止まっていたら GameFatalError。"""
+        message = self.fatal()
+        if message is not None:
+            raise GameFatalError(message)
+
     def alive_mcp(self):
         try:
             return self.sq("return 1", timeout=3) == "1"
@@ -510,8 +564,26 @@ class Game:
             return False
 
     def _client(self, *args, timeout):
-        return subprocess.run([sys.executable, "-X", "utf8", "-I", self.client, "--port", str(self.port), *args, "--timeout", str(timeout)],
-                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout + 10)
+        """MCP のクライアントを流す。止まった本体は答えないので、待つ間も game.log を見て、FATAL ERROR ならすぐ失敗する。"""
+        self.check_fatal()
+        cmd = [sys.executable, "-X", "utf8", "-I", self.client, "--port", str(self.port), *args, "--timeout", str(timeout)]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
+        end = time.monotonic() + timeout + 10
+        try:
+            while True:
+                try:
+                    out, err = p.communicate(timeout=FATAL_POLL)
+                    break
+                except subprocess.TimeoutExpired:
+                    self.check_fatal()
+                    if time.monotonic() >= end:
+                        raise subprocess.TimeoutExpired(cmd, timeout + 10) from None
+        finally:
+            if p.poll() is None:
+                p.kill()
+                p.communicate()
+        self.check_fatal()
+        return subprocess.CompletedProcess(cmd, p.returncode, out, err)
 
     def sq(self, code, timeout=30):
         """Squirrel を流して、戻り値の文字列を返す。"""
@@ -660,14 +732,20 @@ def run_command(g, text):
 
 
 def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
-    """inbox/ の .cmd を番号順に 1 つずつ流して .out に結果を書く。@quit か idle_limit 秒の無音か、ゲームが落ちたら戻る。"""
+    """inbox/ の .cmd を番号順に 1 つずつ流して .out に結果を書く。@quit か idle_limit 秒の無音か、ゲームが落ちたら戻る。
+
+    本体が FATAL ERROR で止まったら GameFatalError（命令の途中なら、その命令の .out に error を書いてから）。
+    """
     os.makedirs(inbox, exist_ok=True)
     last = time.monotonic()
     while True:
+        pending = sorted(n for n in os.listdir(inbox) if n.endswith(".cmd"))
+        if not pending:
+            g.check_fatal()  # 待っている命令があるときは、流して .out に理由を返してから抜ける
         if g.proc is not None and g.proc.poll() is not None:
+            g.check_fatal()
             log("[game] ゲームが終わった。見張りをやめる")
             return
-        pending = sorted(n for n in os.listdir(inbox) if n.endswith(".cmd"))
         if not pending:
             if time.monotonic() - last > idle_limit:
                 log(f"[game] {idle_limit} 秒、命令が無い。閉じる")
@@ -690,6 +768,9 @@ def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
         with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
             f.write(body)
         os.replace(out + ".tmp", out)  # 送る側が書きかけを読まない
+        if g.fatal() is not None:
+            time.sleep(FATAL_SEND_WAIT)  # 閉じると inbox が消えるので、送る側が結果を読むのを待つ
+            g.check_fatal()
         last = time.monotonic()  # 長い命令の後すぐに「無音」と見なさない
         if quit_:
             return
@@ -760,19 +841,23 @@ def main():
         sys.exit("検証環境を --env か環境変数 PAK256_GAME_ENV で渡す")
     if args.build:
         subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
-    with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
-              client=args.mcp_client, keep=args.keep, port_range=args.port_range) as g:
-        if args.interactive:
-            print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
-            try:
-                serve_inbox(g, os.path.join(g.work, INBOX), args.idle_limit)
-            except KeyboardInterrupt:
-                pass
-        for s in args.script:
-            print("[script]", g.sq_file(s), flush=True)
-        if args.capture:
-            g.capture(args.capture)
-            print("[capture]", args.capture, flush=True)
+    try:
+        with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
+                  client=args.mcp_client, keep=args.keep, port_range=args.port_range) as g:
+            if args.interactive:
+                print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
+                try:
+                    serve_inbox(g, os.path.join(g.work, INBOX), args.idle_limit)
+                except KeyboardInterrupt:
+                    pass
+            for s in args.script:
+                print("[script]", g.sq_file(s), flush=True)
+            if args.capture:
+                g.capture(args.capture)
+                print("[capture]", args.capture, flush=True)
+            g.check_fatal()  # 最後の命令の後に止まっていても、成功にしない
+    except GameFatalError as e:  # with を抜けるときに閉じてある
+        sys.exit(f"[game] {e}")
     if g.left_over:
         sys.exit(1)
 
