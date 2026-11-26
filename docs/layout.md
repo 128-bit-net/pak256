@@ -97,6 +97,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `build.py` | 物を dat にして pak に組む（下の「組み方」） |
 | `datgen.py` | 表（YAML）から dat を作る。`build.py` が使う。1 ファイルだけ試すときは `python -X utf8 tools/datgen.py <表>` |
 | `install_local.py` | 組んだ pak か配布の zip を、テストプレイのフォルダの `pak256/` に入れる（[game-check.md](game-check.md)） |
+| `pakimage.py` | 組んだ pak の画像をゲームを起動せずに取り出して見る（[game-check.md](game-check.md) の「pak の中の画像を見る」）。Pillow が要る |
+| `test_pakimage.py` | `pakimage.py` の検査（pak の読み方。makeobj があれば、組んで取り出した画素が元の PNG と合うことも） |
 | `package.py` | `build/` の pak と `config/`・`text/`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
 | `ci/setup_makeobj.sh` | CI の Linux に makeobj を用意する |
 | `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
