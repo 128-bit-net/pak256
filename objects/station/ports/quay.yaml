@@ -1,0 +1,20 @@
+# 港（絵は仮。docs/stations.md の「港」）。この表と PNG は draw_ports.py が書き出す。
+# 1 タイル = 26.4m の縮尺（docs/buildings.md）。
+obj: building
+name: pak256_quay
+copyright: pak256.LongScale チーム
+# 岸壁。水に面した平らな土地に建てる。高さ 1m の敷き面と上屋・係船柱
+type: dock
+enables_pax: 1
+enables_post: 1
+enables_ware: 1
+level: 4
+intro_year: 1900
+noinfo: 1
+dims: 1,1,4
+icon: "> quay.2.0"
+backimage:        # backimage[向き][y][x][高さ][コマ]
+  0: {0: {0: {0: {0: quay.0.0}}}}
+  1: {0: {0: {0: {0: quay.0.1}}}}
+  2: {0: {0: {0: {0: quay.0.2}}}}
+  3: {0: {0: {0: {0: quay.0.3}}}}
