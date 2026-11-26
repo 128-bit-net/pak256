@@ -57,7 +57,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 街の建物を置く道具（`tool_build_house`）の引数は、建物の名前の前に 2 文字を付ける。1 文字目は気候の制限を外すか（`0` は外さない）、2 文字目は向き（`00<name>` は向き 0）。街の建物は、近くに街が無いと置けない（2026-11-26、#104。形は本体の `simtool.cc` の `tool_build_house_t::work_on_ground`）。
 - 木を植える道具は、公共のプレーヤーで呼ぶ（2026-11-26、#104）。地図の木の設定が「無し」だと、ほかのプレーヤーは植えられない（本体の `tool_plant_tree_t::work`）。森は `tool_forest`（`tools/tree_check.py`）。
 - 地形は `command_x.grid_raise`・`command_x.grid_lower` で作る。`grid_lower` は地下水位 −3 まで（2026-11-25、#5）。水は `command_x(tool_change_water_height).work(pl, pos, "1")`（#5）。
-- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。`Game` は起動のたびに作業フォルダを作り直し、足す引数は無いので、`game.append_day_night_off` を包んで足す（[例](records/2026-11-26_stop-overlap-screens/run.py)）。
+- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。`Game` は起動のたびに作業フォルダを作り直し、足す引数は無いので、`game.append_day_night_off` を包んで足す（[例](records/2026-11-26_stop-overlap-screens/run.py)。`--night` ではこの関数が呼ばれない）。
 - 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。強制終了するとゲームが閉じられず、ポートを握ったまま残ることがある（Job Object に入れられた場合は閉じる。下の「別の道具から使う」）。止めたときは、起動した PID を `tasklist` で探して閉じる（2026-11-25、#30）。
 
 ## 別の道具から使う
