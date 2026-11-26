@@ -5,7 +5,10 @@
   6 NS 両端、7 EW 両端）。NS は v の向き（左下）、EW は u の向き（右下）。南は +v、東は +u。
 - 絵は 後ろ（車の下）と 前（車の上）の 2 枚に分ける。シートは 8 列（向き）× 3 行（0 行 = 後ろ、1 行 = 前、2 行 = 道具の絵）。
   セルの名前は <名前>.<行>.<列>。道具の絵（icon）は 2 行 0 列。
-- 道路そのものは描かない（道路は AMI が持つ）。道路は、タイルの中央の幅 約 9m（c = 0.33〜0.67）を通ると見て、その近い側（見える側）に停留所の設備を置く。
+- 道路そのものは描かない（道路は AMI が持つ）。AMI の生活道路（ami_road_local）は舗装がタイルの端までで、白線は軸に直交する c で
+  0.156〜0.172 と 0.828〜0.844（#115 で画面の画素から測った）。設備は白線の外（路肩）に置く。
+  奥の側（c が小さい側）に待合・小屋を置く（高い物は画面の上へ伸びるので、道路に重ならない。車より奥なので後ろの絵）。
+  手前の側（c が大きい側）には低い歩道の帯だけを置く（前の絵）。手前に背の高い物を置くと、画面で白線に重なる。
 
 使い方（Pillow が要る。書き出した PNG と表は git に入れる）:
     python -X utf8 objects/station/road_stops/draw_stops.py
@@ -41,8 +44,12 @@ ROOF_BUS = (176, 64, 56)
 ROOF_TRUCK = (96, 104, 112)
 SIGN = (232, 200, 60)
 
-# 道路の幅の外側の、近い側の帯（c の範囲）
-NEAR = (0.74, 0.98)
+# 白線の外側の端（c）。この内側（道路の中央の側）には何も置かない
+LINE_FAR, LINE_NEAR = 0.156, 0.844
+# 白線の外の帯（c の範囲）。FAR = 奥の側（待合・小屋）、NEAR = 手前の側（低い歩道だけ）
+FAR = (0.015, 0.140)
+NEAR = (0.860, 0.985)
+KERB_UP = 0.2  # 連なりの端の縁の高さ（帯の上へ。m）
 
 
 def box_a_c(cv, axis, a0, a1, c0, c1, z0, z1, wall, roof):
@@ -53,55 +60,54 @@ def box_a_c(cv, axis, a0, a1, c0, c1, z0, z1, wall, roof):
         db.flat_box(cv, a0, a1, c0, c1, z0, z1, wall, roof)
 
 
-def platform(cv, axis, south_end, north_end, z, wall, roof, near=NEAR):
-    """近い側の帯。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（道路・線路はふさがない）。"""
+def platform(cv, axis, south_end, north_end, z, wall, roof, band, kerb_up=KERB_UP):
+    """道路の脇の帯 band（c の範囲）。連なりの端では、端の手前で止め、帯の上だけに小さな縁を置く（道路はふさがない）。"""
     a0 = 0.05 if north_end else 0.0
     a1 = 0.95 if south_end else 1.0
-    box_a_c(cv, axis, a0, a1, near[0], near[1], 0, z, wall, roof)
+    box_a_c(cv, axis, a0, a1, band[0], band[1], 0, z, wall, roof)
     if north_end:
-        box_a_c(cv, axis, 0.0, 0.05, near[0], near[1], 0, z + 0.2, KERB, KERB)
+        box_a_c(cv, axis, 0.0, 0.05, band[0], band[1], 0, z + kerb_up, KERB, KERB)
     if south_end:
-        box_a_c(cv, axis, 0.95, 1.0, near[0], near[1], 0, z + 0.2, KERB, KERB)
+        box_a_c(cv, axis, 0.95, 1.0, band[0], band[1], 0, z + kerb_up, KERB, KERB)
+
+
+# 手前の側の歩道の帯（前の絵）。高くすると白線に重なって見えるので、低くする
+def near_walk(cv, axis, s, n):
+    platform(cv, axis, s, n, 0.15, CONCRETE, CONCRETE, NEAR, kerb_up=0.05)
 
 
 # ---- バス停: 低い歩道に、屋根つきの待合 ----
 
 def bus_back(cv, axis, s, n):
-    platform(cv, axis, s, n, 0.15, CONCRETE, CONCRETE)  # 歩道
-
-
-def bus_front(cv, axis, s, n):
-    c0, c1 = 0.80, 0.94
+    platform(cv, axis, s, n, 0.15, CONCRETE, CONCRETE, FAR)  # 奥の歩道
+    c0, c1 = 0.030, 0.120
     for a in (0.34, 0.66):  # 柱 4 本
         for c in (c0, c1 - 0.02):
             box_a_c(cv, axis, a - 0.01, a + 0.01, c, c + 0.02, 0.15, 2.6, POST, POST)
-    box_a_c(cv, axis, 0.30, 0.70, c0 - 0.02, c1 + 0.02, 2.6, 2.9, ROOF_BUS, ROOF_BUS)  # 屋根
-    box_a_c(cv, axis, 0.40, 0.60, c1 - 0.03, c1, 0.15, 0.6, (140, 100, 70), (150, 110, 80))  # ベンチ
-    box_a_c(cv, axis, 0.14, 0.145, c1 - 0.02, c1 - 0.015, 0.15, 3.2, POST, SIGN)  # 停留所の標識
+    box_a_c(cv, axis, 0.40, 0.60, c0 + 0.005, c0 + 0.035, 0.15, 0.6, (140, 100, 70), (150, 110, 80))  # ベンチ（道路を向く）
+    box_a_c(cv, axis, 0.30, 0.70, c0 - 0.012, c1 + 0.012, 2.6, 2.9, ROOF_BUS, ROOF_BUS)  # 屋根
+    box_a_c(cv, axis, 0.14, 0.145, 0.125, 0.130, 0.15, 3.2, POST, SIGN)  # 停留所の標識
 
 
 # ---- 荷役所: 高い荷台の高さの積み降ろし場に、小屋と荷 ----
 
 def truck_back(cv, axis, s, n):
-    platform(cv, axis, s, n, 1.0, (150, 148, 142), CONCRETE)  # 積み降ろし場（高さ 1m）
-
-
-def truck_front(cv, axis, s, n):
-    box_a_c(cv, axis, 0.30, 0.62, 0.84, 0.96, 1.0, 4.2, (150, 160, 170), ROOF_TRUCK)  # 小屋
-    box_a_c(cv, axis, 0.68, 0.80, 0.80, 0.90, 1.0, 2.0, (170, 126, 82), (184, 140, 94))  # 荷（木箱）
-    box_a_c(cv, axis, 0.14, 0.145, 0.88, 0.895, 1.0, 4.0, POST, SIGN)  # 標識
+    platform(cv, axis, s, n, 1.0, (150, 148, 142), CONCRETE, FAR)  # 奥の積み降ろし場（高さ 1m）
+    box_a_c(cv, axis, 0.30, 0.62, 0.022, 0.118, 1.0, 4.2, (150, 160, 170), ROOF_TRUCK)  # 小屋
+    box_a_c(cv, axis, 0.68, 0.80, 0.050, 0.126, 1.0, 2.0, (170, 126, 82), (184, 140, 94))  # 荷（木箱）
+    box_a_c(cv, axis, 0.14, 0.145, 0.110, 0.125, 1.0, 4.0, POST, SIGN)  # 標識
 
 
 STOPS = {
     "bus_stop": dict(
-        name="pak256_bus_stop", back=bus_back, front=bus_front,
+        name="pak256_bus_stop", back=bus_back, front=near_walk,
         dat={"waytype": "road", "enables_pax": 1, "enables_post": 1, "level": 2, "intro_year": 1900},
-        note="バス停。旅客と郵便。屋根つきの待合（高さ 2.9m）のある歩道",
+        note="バス停。旅客と郵便。道路の奥の側に屋根つきの待合（高さ 2.9m）のある歩道、手前の側に低い歩道",
     ),
     "truck_stop": dict(
-        name="pak256_truck_stop", back=truck_back, front=truck_front,
+        name="pak256_truck_stop", back=truck_back, front=near_walk,
         dat={"waytype": "road", "enables_ware": 1, "level": 2, "intro_year": 1900},
-        note="トラックの荷役所。貨物。高さ 1m の積み降ろし場に小屋と木箱",
+        note="トラックの荷役所。貨物。道路の奥の側に高さ 1m の積み降ろし場と小屋と木箱、手前の側に低い歩道",
     ),
 }
 
@@ -119,12 +125,8 @@ def sheet(stop):
     for i in range(LAYOUTS):
         out.paste(cell(stop["back"], i), (i * CELL, 0))
         out.paste(cell(stop["front"], i), (i * CELL, CELL))
-    # 道具の絵: 向き 0（NS 中）の後ろと前を重ねる
-    art = Image.new("RGB", (CELL, CELL), CLEAR)
-    for row in (0, 1):
-        part = out.crop((0, row * CELL, CELL, row * CELL + CELL))
-        art.paste(part, (0, 0), _mask(part))
-    out.paste(tool_icon(art, ICON_BG), (0, CELL * 2))
+    # 道具の絵: 向き 0（NS 中）の後ろ（待合・小屋のある側）だけを使う。手前の歩道まで入れると、収める倍率が下がって小さくなる
+    out.paste(tool_icon(out.crop((0, 0, CELL, CELL)), ICON_BG), (0, CELL * 2))
     return out
 
 

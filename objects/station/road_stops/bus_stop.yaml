@@ -3,7 +3,7 @@
 obj: building
 name: pak256_bus_stop
 copyright: pak256.LongScale チーム
-# バス停。旅客と郵便。屋根つきの待合（高さ 2.9m）のある歩道
+# バス停。旅客と郵便。道路の奥の側に屋根つきの待合（高さ 2.9m）のある歩道、手前の側に低い歩道
 type: stop
 waytype: road
 enables_pax: 1
