@@ -28,6 +28,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/gui/` | 記号・カーソル・ツールバーのアイコン | #6 |
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
+| `objects/citycar/` | 街の車（`obj: citycar`）。[vehicles.md](vehicles.md) の「街の車」 | #173 |
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|air\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)。飛行機は [airport.md](airport.md)） | #40 |
 | `objects/airport/` | 滑走路・誘導路・空港の駅・格納庫。[airport.md](airport.md) | #155 |
@@ -112,6 +113,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
+| `test_citycars.py` | 街の車の表と絵の検査（スクリプトの出力と同じか・手本の 2 倍の大きさ・8 方向の位置 ±2px・特別な色・訳。[vehicles.md](vehicles.md) の「街の車」。Pillow・PyYAML が要る） |
 | `test_trees.py` | 木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないこと、表（.yaml）の気候・季節、各気候の木と `simuconf.tab` の食い違いの検査（Pillow・PyYAML が要る） |
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
 | `test_stations.py` | 停留所・駅・港の表の検査（港は `PortTest`: 型・向きの数・シート・`draw_ports.py` が書く表と同じこと・`stations.md` に載ること。#154）: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること、道路の停留所の絵が画面で道路の白線の内側に掛からないこと（#115）（Pillow が要る） |

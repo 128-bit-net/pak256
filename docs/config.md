@@ -54,6 +54,10 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 - `river_type[0]`〜: pak256 の川（下の「川」）。pak128 の 5 段（太い順に `river_30`・`river_20`・`river_10`・`river_0b`・`river_0a`。下の 2 段は船が通れない）とは違い、3 段で全部船が通れる。
 - `max_no_of_trees_on_square` ほか木の数: pak128 と同じ。256 の絵は画素が 4 倍だが、2.1 の確かめで小さな地図は問題なかった。木の絵は #9 で入った。大きな森での描画の重さは未確認（重ければ減らす）。
 
+## 街の車
+
+街の車の台数（`citycar_level = 5`）と寿命（`default_citycar_life = 120`）は pak128 と同じ値にしてある。物（`objects/citycar/`、[vehicles.md](vehicles.md) の「街の車」）を #173 で足し、値は変えていない（`simuconf.tab` の注釈だけを直した）。物が入ったので、この値はここから効く。本体が出す台数の式と、小さい街では出ないことは[記録](records/2026-11-27_citycars.md)。
+
 ## 川
 
 川は、水の道（`waytype=water`）で `system_type=255` の物。絵と表は `objects/river/`（`draw_river.py` が書き出す。MIT。絵は仮の数式の絵）。`simuconf.tab` の `river_type[0]`〜 に太い順に並べる（[#158](https://github.com/128-bit-net/pak256/issues/158)、ゲームの確かめは [記録](records/2026-11-27_river.md)）。
