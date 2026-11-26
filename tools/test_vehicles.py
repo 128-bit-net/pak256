@@ -240,6 +240,23 @@ class TestCoalTruck(unittest.TestCase):
         self.assertEqual(sum(hist[1:255]), 0)
 
 
+def painted_over(cell):
+    """車輪の暗い帯より下にある車体の赤の画素の数。"""
+    px = cell.load()
+    bad = 0
+    for x in range(cell.width):
+        dark = False
+        for y in range(cell.height):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            if max(r, g, b) < 48:
+                dark = True
+            elif dark and r > 100 and g < 80:
+                bad += 1
+    return bad
+
+
 class TestRoadVehicles(unittest.TestCase):
     """バス・郵便のトラック（#41）。表の length・貨物・絵の位置（部分ごとの高さを含む）・特別な色。"""
 
@@ -299,6 +316,17 @@ class TestRoadVehicles(unittest.TestCase):
                 self.assertIsNotNone(box, d)
                 for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
                     self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_nothing_painted_over_the_skirt(self):
+        # 車輪の暗い帯はいちばん下なので、帯より下の画素に車体の赤は出ない。部分の後ろの面を手前向きと誤ると、前の面の上に塗り重なる（#116）
+        for spec, _, img in self.each():
+            if spec["name"] != "pak256_mail_truck":
+                continue
+            for i, d in enumerate(V.DIRECTIONS):
+                committed = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL))
+                # コミット済みの絵と、今の描く道具の絵の両方を見る（道具だけ戻して流し直していないときも落ちる）
+                for source, cell in (("png", committed), ("draw_cell", self.mod.draw_cell(spec, d, False))):
+                    self.assertEqual(painted_over(cell), 0, f"{spec['name']} {d} {source}")
 
     def test_no_special_colors_and_binary_alpha(self):
         for spec, _, img in self.each():

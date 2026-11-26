@@ -177,13 +177,14 @@ class Canvas:
 
 def draw_panel(c, spec, direction, whole):
     """panel: 車体を前から割った部分を全幅の箱として描く。"""
-    cx = (whole[0][0] + whole[2][0]) / 2
-    cy = (whole[0][1] + whole[2][1]) / 2
     # 奥の部分から描く（画面の x + y の小さい方が奥）
     parts = sorted(spec["parts"], key=lambda p: sum(
         (q[0] + q[1]) for q in part_corners(whole, p[0], p[1])))
     for t0, t1, height, body, band, kind in parts:
         box = part_corners(whole, t0, t1)
+        # 面の向きは部分の箱の中心から決める（車体全体の中心からだと、前の部分の後ろの面を手前向きと誤り、前の面に塗り重ねる。#116）
+        cx = (box[0][0] + box[2][0]) / 2
+        cy = (box[0][1] + box[2][1]) / 2
         for a, b, k, is_front in visible_faces(box, cx, cy):
             c.quad(a, b, 0.0, 0.5, shade(SKIRT, k))
             c.quad(a, b, 0.5, height, shade(body, k))
