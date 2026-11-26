@@ -127,6 +127,31 @@ class GameToolTest(Base):
 SLEEPER = [sys.executable, "-c", "import time; time.sleep(60)"]
 
 
+class WorkDirTest(Base):
+    """リポジトリの直下に work/ が無い状態（作ったばかりの worktree）。#119。"""
+
+    def default_work(self):
+        self.assertFalse(os.path.exists(os.path.join(self.root, "work")))
+        return game.default_work(47880, self.root)
+
+    def test_creates_missing_work_parents(self):
+        work = self.default_work()
+        game.prepare_workdir(self.env, work, "map", root=self.root, build=self.build)
+        self.assertTrue(os.path.isfile(os.path.join(work, game.MARK)))
+
+    def test_fails_when_work_cannot_be_made(self):
+        work = self.default_work()
+        put(os.path.join(self.root, "work"), "フォルダでなくファイル")
+        g = game.Game(self.env, "map", 47880, work=work, client=__file__, root=self.root, build=self.build)
+        with mock.patch.object(game, "port_in_use", lambda p: False), \
+                mock.patch.object(game.Game, "alive_mcp", lambda self_: False), \
+                mock.patch.object(game.subprocess, "Popen") as popen:
+            with self.assertRaises(OSError):  # コマンドからは例外のまま終わる（終了コードは 0 でない）
+                with g:
+                    pass
+        popen.assert_not_called()
+
+
 @unittest.skipUnless(os.name == "nt", "taskkill・tasklist が要る（Windows だけ。CI は Linux なので飛ばす）")
 class LifecycleTest(Base):
     """ゲームの代わりに眠るだけのプロセスを起動して、閉じ方と片付けを見る（本物のゲームは起動しない）。"""

@@ -79,7 +79,8 @@ def makeobj(rel, dat_dir):
     # 相対のパスで渡す（makeobj の出力に手元の絶対パスを出さないため）
     args = [MAKEOBJ, f"pak{CELL}", os.path.relpath(pak, ROOT), os.path.relpath(dat_dir, ROOT).replace(os.sep, "/") + "/"]
     r = subprocess.run(args, cwd=ROOT, capture_output=True, text=True, errors="replace")
-    out = (r.stdout + r.stderr).strip()
+    # 警告は標準エラーに出る。標準出力が改行で終わらないと行頭から外れて見落とすので、改行を挟んでつなぐ
+    out = "\n".join(s.strip("\n") for s in (r.stdout, r.stderr) if s).rstrip()
     bad = bad_lines(out)
     print(f"[build] {rel} → {os.path.relpath(pak, ROOT)}")
     if out:
