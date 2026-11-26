@@ -2,6 +2,7 @@
 
 温帯（x<256）の平らな地図に、東西の道路と南北の道路を敷き、それぞれにバス停 1 つと荷役所 2 つを置いて、
 バス・郵便のトラック・石炭のトラックを、ダイヤの積載の待ち 100% で停めて撮る。車両を停めない 3 タイル続きの停留所も撮る。
+手前の車線にも停まるように、反対の端の車庫から西行き・南行きのバスを 1 台ずつ出す（左側通行）。
 
 使い方: python -X utf8 run.py <検証環境> <ポート> <出力フォルダ>
 """
@@ -37,6 +38,7 @@ os.makedirs(a.out, exist_ok=True)
 ROAD = "ami_road_local"
 EY = 60          # 東西の道路の y（x=52〜76）
 NX = 90          # 南北の道路の x（y=50〜74）
+NEAR_X, NEAR_Y = 79, 46  # 手前の車線に停めるバス停（東西の道路の x、南北の道路の y）
 # (停留所, 車両, 東西の道路の x, 南北の道路の y)。車庫から遠い停留所から先に出す
 PLAN = [
     ("pak256_truck_stop", "pak256_coal_truck", 70, 56),
@@ -75,8 +77,8 @@ def shot(g, name, x, y, zoom=3):
 
 
 with Game(a.env, "flat_512_left_v64", a.port) as g:
-    print("[way]", g.road(52, EY, 76, EY, ROAD))
-    print("[way]", g.road(NX, 50, NX, 74, ROAD))
+    print("[way]", g.road(52, EY, 84, EY, ROAD))
+    print("[way]", g.road(NX, 42, NX, 74, ROAD))
     for stop, _, x, y in PLAN:
         print("[stop]", stop, g.station(x, EY, stop), g.station(NX, y, stop))
     # 車両を停めない 3 タイル続きの停留所（中ほどと端の絵を見る）
@@ -89,6 +91,13 @@ with Game(a.env, "flat_512_left_v64", a.port) as g:
         convoy(g, ew_depot, (x, EY), (53, EY), veh)
         convoy(g, ns_depot, (NX, y), (NX, 73), veh)
         g.settle(3)
+    # 手前の車線に停める編成（西行きは南の車線、南行きは東の車線）
+    print("[stop]", g.station(NEAR_X, EY, "pak256_bus_stop"), g.station(NX, NEAR_Y, "pak256_bus_stop"))
+    ew_far_depot, ns_far_depot = (83, EY + 1), (NX + 1, 43)
+    depot(g, (83, EY), ew_far_depot)
+    depot(g, (NX, 43), ns_far_depot)
+    convoy(g, ew_far_depot, (NEAR_X, EY), (84, EY), "pak256_bus")
+    convoy(g, ns_far_depot, (NX, NEAR_Y), (NX, 42), "pak256_bus")
     g.settle(30)
     print("[convoys]", g.sq('local s=""; foreach (cv in world.get_convoy_list()) { local p=cv.get_pos(); '
                             's += cv.get_name()+"@"+p.x+","+p.y+" v="+cv.get_speed()+"; "; } return s'))
@@ -102,3 +111,5 @@ with Game(a.env, "flat_512_left_v64", a.port) as g:
     shot(g, "ns_bus.png", NX, 66)
     shot(g, "ew_empty.png", 74, EY)
     shot(g, "ns_empty.png", NX, 51)
+    shot(g, "ew_near.png", NEAR_X, EY)
+    shot(g, "ns_near.png", NX, NEAR_Y)

@@ -104,7 +104,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないこと、表（.yaml）の気候・季節、各気候の木と `simuconf.tab` の食い違いの検査（Pillow・PyYAML が要る） |
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
-| `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
+| `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること、道路の停留所の絵が画面で道路の白線の内側に掛からないこと（#115）（Pillow が要る） |
 | `test_ground.py` | コミットしてある気候の地面の模様（`texture-climate.png`）が、斜め格子の周期で隣のタイルとつながり、透明な画素が無いことの検査（[ground.md](ground.md)。Pillow が要る） |
 | `test_frames.py` | 地面の印（`Marker`）・格子の線（`Borders`）・タイルのカーソルの枠が、地面の絵の縁と画素単位で一致し、両端の高さが同じ辺が横 2px・縦 1px の階段であることの検査（[ground.md](ground.md) の「枠の線」。Pillow が要る） |
 | `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
