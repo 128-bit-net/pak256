@@ -67,6 +67,8 @@ pak256_bus_stop
 Bus Stop
 pak256_truck_stop
 Truck Loading Bay
+pak256_tram_stop
+Tram Stop
 pak256_train_station
 Train Station
 pak256_rail_signal
@@ -81,3 +83,5 @@ pak256_railcar
 Railcar
 pak256_railcar_trailer
 Railcar Trailer
+pak256_tram
+Tram
