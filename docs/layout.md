@@ -31,12 +31,13 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/vehicle/<rail\|road\|air\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)。飛行機は [airport.md](airport.md)） | #40 |
 | `objects/airport/` | 滑走路・誘導路・空港の駅・格納庫。[airport.md](airport.md) | #155 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
+| `objects/river/` | 川（`system_type=255` の水の道。3 段）。[config.md](config.md) の「川」 | #158 |
 | `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・路面電車の停留所（`tram_stops/`。#153）・港（`ports/`。#154）。どれも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅・港（`objects/station/`。#44・#46・#73・#94・#154）と線路の信号（`objects/signal/`。#73）、飛行機の滑走路・誘導路・駅・格納庫（`objects/airport/`。AMI の 256 版に無いので pak256 で作る。[#155](https://github.com/128-bit-net/pak256/issues/155)、起票をユーザーが承認）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅・港（`objects/station/`。#44・#46・#73・#94・#154）と線路の信号（`objects/signal/`。#73）、飛行機の滑走路・誘導路・駅・格納庫（`objects/airport/`。AMI の 256 版に無いので pak256 で作る。[#155](https://github.com/128-bit-net/pak256/issues/155)、起票をユーザーが承認）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。川（`objects/river/`。#158）は地図の地形の一部なので pak256 で持つ（AMI の 256 版に無い）。
 
 ## 物のフォルダの中身
 
@@ -125,7 +126,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
