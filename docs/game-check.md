@@ -235,6 +235,46 @@ python -X utf8 tools/install_local.py <テストプレイのフォルダ> --zip 
 
 pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で、`Game` の作業フォルダ（`<作業フォルダ>/pak/`）も同じ関数で入れる。配布の zip の一覧のうち、ゲームが読む物だけを返す `package.collect_runtime` を土台にしていて、許諾の検査（`package.collect`）とは切り離してある。
 
+## pak の中の画像を見る（`tools/pakimage.py`、#148）
+
+組んだ pak の画像を、ゲームを起動せずに PNG に取り出す。画像の端の画素や、物どうしの違いを調べるときに使う（#141 の暗い線は、この見方で切り分けた）。Pillow が要る。
+
+```
+python -X utf8 tools/build.py                                   # 先に pak を組む（build/pak/）
+python -X utf8 tools/pakimage.py list --name ami_road_local     # 物の種類・名前・画像の数・pak
+python -X utf8 tools/pakimage.py tree ami_road_local            # 画像の道筋・大きさ・ずらし
+python -X utf8 tools/pakimage.py export pak256_bus:4 -o work/pakimage
+python -X utf8 tools/pakimage.py sheet ami_road_local:6/8 ami_road_local_base_single:6/8 \
+    -o work/snow.png --scale 8 --crop 30,195,80,235             # 並べて拡大（雪の直線の下の端）
+```
+
+| 引数 | 意味 |
+|---|---|
+| `指定` | `名前` か `名前:道筋`。道筋は `tree` に出る子の番号を `/`（か `.`）でつなぐ。途中までならその下の全部、`*` はその段の全部（`pak256_birch:2/*/0` は全部の樹齢の最初の季節） |
+| `--pak` | 読む pak のファイルかフォルダ（何回でも）。省くと `build/pak/`。Release の zip を展開した物なども読める |
+| `--type` | 同じ名前の物が 2 つ以上あるときに、種類（`WAY`・`VHCL` など）で絞る。同じ種類なら `--pak` で絞る |
+| `-o` | `export` は出力のフォルダ（`<名前>_<道筋>.png`）、`sheet` は出力の PNG |
+| `--cell` | 画像を置くマスの大きさ（既定 256）。512 のセルに描いた物は 512。はみ出す画像があると、範囲をマスの単位で広げて知らせる |
+| `--scale`・`--cols`・`--crop` | `sheet` だけ。最近傍の拡大の倍率、横に並べる数、マスの中の `x0,y0,x1,y1` |
+
+- `export` の PNG は RGBA で、透明な画素は透明のまま。画像はマスの中の元の位置に置く（dat のずらしが効いた位置）。`sheet` の透明な所は緑で塗り、下に名前と道筋を書く（画像の無い番号は `(empty)`）。
+- 色は pak の中の値で、ゲームの画面の色ではない。普通の色は 15bit（元の PNG の下位 3 ビットは落ちる）。プレーヤー色・灯りの色は dat に描く元の色で出る（ゲームではプレーヤーと昼夜で変わる）。半透明の画素は不透明度に直す。
+- 読むのは pak の版 1003 まで、画像の版 2・3（makeobj 60.12 は 3）。
+
+道筋の番号の意味（本体の `descriptor/writer/` で書く順を確かめた種類。0 始まり。下に無い種類は `tree` の大きさと枚数で見る）:
+
+| 種類 | 道筋 | 意味 |
+|---|---|---|
+| `WAY` | `2`〜`4` | 夏の奥の側（`image`）の平ら・坂・斜め。平らの番号は `-,n,e,ne,s,ns,se,nse,w,nw,ew,new,sw,nsw,sew,nsew` の順（16 以降は分岐の絵）、坂は `imageup` の 3・6・9・12（続きは `imageup2`）、斜めは `ne,se,nw,sw` |
+| `WAY` | `5` | カーソルとアイコン |
+| `WAY` | `6`〜 | 季節（雪）の絵がある物は、`6` 雪の平ら・`7` 坂・`8` 斜め、`9`〜`11` が手前の側（`frontimage`）の夏、`12`〜`14` が手前の雪。季節の無い物は `6`〜`8` が手前の側 |
+| `VHCL` | `4/<向き>` | 空の絵。向きは `s,w,sw,se,n,e,ne,nw` の順 |
+| `VHCL` | `5/<向き>` か `5/<向き>/<貨物の番号>` | 積んだ絵（`freightimage`）。後者は `freightimage[番号][向き]` で書いた物 |
+| `BUIL` | `<2+タイル>/<2×季節+(0 奥・1 手前)>/<高さ>/<コマ>` | タイルは向き（layout）・y・x の順に数える。奥は `backimage`、手前は `frontimage` |
+| `TREE` | `2/<樹齢>/<季節>` | `image[樹齢][季節]` |
+| `GRND` | `2/<坂の番号>/<コマ>` | `image[番号][コマ]` |
+| `SIGN` | `2/<番号>` | `image[番号]` の順。`image[向き][状態]` で書いた物は、状態ごとに向きの順（ふつうは `n,s,e,w`、`image[ne][0]` がある物は `n,s,e,w,ne,sw,se,nw`、私有の道は `ns,ew`） |
+
 ## 保存データの互換の確かめ
 
 版を出す前に、前の版の保存データが読めることを確かめる（例: [v0.4.0 の記録](records/2026-11-26_v040-check.md)。スクリプトはその記録のフォルダ）。
