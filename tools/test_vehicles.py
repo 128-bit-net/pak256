@@ -498,5 +498,72 @@ class TestRailVehicles(unittest.TestCase):
                 self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
 
 
+class TestShips(unittest.TestCase):
+    """船（旅客船・貨物船。#154）。表・実物比例の length・512 のセル・水路の中心の位置・特別な色・docs の表と訳。"""
+
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(ROOT, "objects", "vehicle", "water", "draw_ships.py")
+        spec = importlib.util.spec_from_file_location("draw_ships", path)
+        cls.mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.mod)
+
+    def each(self):
+        for spec in self.mod.VEHICLES:
+            d = os.path.join(ROOT, "objects", "vehicle", "water", spec["dir"])
+            with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8", newline="") as f:
+                raw = f.read().replace("\r\n", "\n")
+            img = Image.open(os.path.join(d, spec["stem"] + ".png")).convert("RGBA")
+            yield spec, raw, yaml.safe_load(raw), img
+
+    def test_tables(self):
+        self.assertEqual({s["name"] for s in self.mod.VEHICLES}, {"pak256_ferry", "pak256_cargo_ship"})
+        for spec, raw, table, img in self.each():
+            self.assertEqual(raw, self.mod.yaml_lines(spec), spec["name"])
+            self.assertEqual(table["waytype"], "water")
+            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]))
+            self.assertEqual(table["cell_size"], 512)
+            rows = 2 if spec.get("freight_image") else 1
+            self.assertEqual(img.size, (512 * len(V.DIRECTIONS), 512 * rows))
+            for i, d in enumerate(V.DIRECTIONS):
+                self.assertEqual(table["emptyimage"][d], f"{spec['stem']}.0.{i},-128,-128")
+
+    def test_cells_at_rule_position(self):
+        # 船体（水面の高さの輪郭）の外接枠が、水路の中心の決まりの位置（船首の先が基準点、後ろへ length）と合う
+        for spec, _, _, img in self.each():
+            length = V.length_units(spec["real_length_m"])
+            for i, d in enumerate(V.DIRECTIONS):
+                fr = self.mod.Frame(d)
+                half = spec["width_m"] / 2
+                total = length * V.M_PER_UNIT
+                hull = self.mod.outline(0.0, total, half, bow=total * 0.2)
+                xs = [fr.P(p, z)[0] / self.mod.SS for p in hull for z in (0.0, spec["hull_z"])]
+                box = img.crop((i * 512, 0, (i + 1) * 512, 512)).getchannel("A").getbbox()
+                self.assertIsNotNone(box, d)
+                self.assertLessEqual(abs(box[0] - min(xs)), TOL, f"{spec['name']} {d} 左: {box} {min(xs)}")
+                self.assertLessEqual(abs(box[2] - max(xs)), TOL, f"{spec['name']} {d} 右: {box} {max(xs)}")
+                self.assertTrue(box[0] > 0 and box[1] > 0 and box[2] < 512 and box[3] < 512, f"{d}: セルからはみ出す {box}")
+
+    def test_no_special_colors_and_binary_alpha(self):
+        for spec, _, _, img in self.each():
+            colors = {(r << 16 | g << 8 | b) for n, (r, g, b, a) in img.getcolors(img.width * img.height) if a}
+            self.assertFalse(colors & SPECIAL, spec["name"])
+            self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_values_match_docs_table_and_translations(self):
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        for spec in self.mod.VEHICLES:
+            doc = docs_row(text, spec["name"])
+            self.assertEqual(int(doc["length"]), V.length_units(spec["real_length_m"]), spec["name"])
+            for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", lang + ".tab"), encoding="utf-8") as f:
+                lines = [ln.rstrip("\r\n") for ln in f]
+            for spec in self.mod.VEHICLES:
+                self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
+
+
 if __name__ == "__main__":
     unittest.main()

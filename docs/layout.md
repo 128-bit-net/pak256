@@ -30,12 +30,12 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
+| `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・港（`ports/`。#154）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅・港（`objects/station/`。#44・#46・#73・#94・#154）と線路の信号（`objects/signal/`。#73）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 

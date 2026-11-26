@@ -3,7 +3,8 @@
 本体は、needs_ground の無い建物が基礎の升（fundament_t）にあると、地面を描かない（gebaeude_t::calc_image が地面の絵を空にする）。
 絵に地面の無い建物でこれを忘れると、その升に何も描かれず、スクロールすると前の画面が残る。
 道の上に建てる停留所・車庫は、今ある道の升に載るだけで基礎の升にならない。
-検査は、type が stop・depot で waytype のある建物を除き、ほかの建物と産業のすべてに needs_ground を求める。
+港（type が dock・habour）も、今ある升に載せるだけで基礎の升にならない。
+検査は、type が stop・depot で waytype のある建物と港を除き、ほかの建物と産業のすべてに needs_ground を求める。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
@@ -17,6 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OBJECTS = os.path.join(ROOT, "objects")
 BUILDING_OBJS = ("building", "factory")
 ON_WAY_TYPES = ("stop", "depot")  # waytype があれば道の上に建てる物
+HARBOUR_TYPES = ("dock", "habour", "harbour")  # 港。今ある升に載せる
 
 
 def tables():
@@ -33,6 +35,8 @@ def problem(d):
     if d.get("obj") not in BUILDING_OBJS:
         return None
     if d.get("obj") == "building" and d.get("type") in ON_WAY_TYPES and d.get("waytype"):
+        return None
+    if d.get("obj") == "building" and d.get("type") in HARBOUR_TYPES:
         return None
     if int(d.get("needs_ground", 0)) <= 0:  # makeobj は 0 より大きければ有効
         return "needs_ground: 1 が無い（本体が下の地面を描かない）"
@@ -66,7 +70,8 @@ class CheckerSelfTest(unittest.TestCase):
 
     def test_good_passes(self):
         for d in ({"obj": "building", "type": "res", "needs_ground": 1}, {"obj": "factory", "needs_ground": 1},
-                  {"obj": "building", "type": "stop", "waytype": "road"}, {"obj": "tree"}):
+                  {"obj": "building", "type": "stop", "waytype": "road"}, {"obj": "tree"},
+                  {"obj": "building", "type": "dock"}, {"obj": "building", "type": "habour"}):
             self.assertIsNone(problem(d), d)
 
 

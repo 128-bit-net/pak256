@@ -82,6 +82,22 @@
 - **曲がり・坂**（[#71](https://github.com/128-bit-net/pak256/issues/71)。画面は [記録](records/2026-11-25_rail-leftovers.md)）: 車体は 1 枚の絵で、曲がりの角のタイルでは進む向きの斜めに描かれる。AMI の線路の 90° の曲がりは 1 タイルの中で折れるので、20m（`length=12`）の車体は角の外へはみ出して草地に掛かって見える（付随車との継ぎ目も折れない）。坂では車体が水平のまま走り、1 段の坂をまたぐ継ぎ目に段差が出るが、車輪はどちらの車もレールの上に乗った。**直さない**: 1 両 1 枚の絵はこの本体の決まりで、はみ出しを無くすには車両を短くして両数を増やすか、車両ごとに曲がり用の絵を足すしかなく、仮の絵の段階では釣り合わない。見えたことは記録に残した。
 - 旅客は、駅（`pak256_train_station`。[stations.md](stations.md)）で積み降ろす。信号（`pak256_rail_signal`。[signals.md](signals.md)）を置き、1 本の線路に複数の編成を走らせる試験は `tools/vehicle_check/signal.nut`（#73）。車庫は AMI の `ami_rail_depot`（`ami_rail.pak`）。
 
+## 船
+
+[#154](https://github.com/128-bit-net/pak256/issues/154)。絵は仮（多角形を押し出した物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/water/<名前>/`（`ferry`・`cargo_ship`）。描く道具は `objects/vehicle/water/draw_ships.py`（MIT。`python -X utf8 objects/vehicle/water/draw_ships.py`。Pillow だけで動く）。直すときはスクリプトの表（`VEHICLES`）を直して流し直す。検査は `tools/test_vehicles.py` の `TestShips`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅 | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_ferry` | 旅客船 / Passenger Ship | `Passagiere` | 30m・7m | 18 | 300 | 37 | 2400 | 100 | 70 | 800000 | 915 | 1930 |
+| `pak256_cargo_ship` | 貨物船 / Cargo Ship | `Kohle` | 36m・8m | 22 | 165 | 25 | 1050 | 100 | 122 | 2101315 | 573 | 1930 |
+
+- **値の目安**: 旅客船は pak128 の `Ferry_yeu_128set`、貨物船は `MHz-C11C_Bulk_Barge` の dat の値（機能上の数値）を同じにした。dat の文・コメント・絵・作者名・連結・煙・音は写していない（道路の車両の石炭のトラックと同じ扱い。法律の専門家には確かめていない）。登場年は pak256 の開始年に合わせて 1930。値の釣り合いは、後で見直す（roadmap の段階 4）。
+- **大きさ**: 実物比例（[standards.md](standards.md) の 4 章「船・飛行機」）。`length` = 実物の長さ ÷ 1.65。幅と高さも実物の値のまま描く。
+- **位置**: 水路の中心（基準点）に、船首の先を置いて後ろへ伸ばす。喫水線は地面の高さ（水面）。本体は左側通行のずれを道路の車両にしか足さない。ゲームで海と AMI の運河を走らせて撮った（[記録](records/2026-11-26_ships.md)）。
+- **セル**: 30〜36m は 256 のセルに収まらないので 512 のセル（`cell_size: 512`、位置合わせ `,-128,-128`）。
+- 貨物船だけが `freightimage`（甲板の石炭の山）を持つ。
+- 車庫は AMI の `ami_canal_depot`。港は [stations.md](stations.md) の「港」。試験は `tools/vehicle_check/ship.nut`。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。
