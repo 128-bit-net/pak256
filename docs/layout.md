@@ -33,6 +33,8 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
 | `objects/river/` | 川（`system_type=255` の水の道。3 段）。[config.md](config.md) の「川」 | #158 |
 | `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・路面電車の停留所（`tram_stops/`。#153）・港（`ports/`。#154）。どれも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
+| `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
+| `objects/station/monorail_stops/`・`objects/vehicle/monorail/` | モノレールの駅と車両（跨座式。[stations.md](stations.md)・[vehicles.md](vehicles.md)） | #156 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。

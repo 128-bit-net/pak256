@@ -114,6 +114,23 @@
 - 貨物船だけが `freightimage`（甲板の石炭の山）を持つ。
 - 車庫は AMI の `ami_canal_depot`。港は [stations.md](stations.md) の「港」。試験は `tools/vehicle_check/ship.nut`。
 
+## モノレールの車両
+
+[#156](https://github.com/128-bit-net/pak256/issues/156)。軌道は AMI の 256 版の跨座式の桁（`ami_monorail_straddle`・高架 `ami_monorail_straddle_elev_*`・トンネル `ami_monorail_straddle_tunnel`）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/monorail/monorail/`、描く道具は `objects/vehicle/monorail/draw_monorail.py`（MIT。`python -X utf8 objects/vehicle/monorail/draw_monorail.py`。Pillow だけで動く）。検査は `tools/test_vehicles.py` の `TestMonorail`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_monorail` | モノレール / Monorail | `Passagiere` | 15m・3.0m・5.0m（裾の下端から） | 9 | 82 | 100 | 330 | 80 | 18 | 482000 | 29 | 1930 |
+
+- **値の目安**: pak128 のモノレールの車両 `PMNV-TC-1_Turbo_Car` の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名・連結の指定は写していない（扱いは線路の車両と同じ）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1985）。引退年は書かない。
+- **動力**: `engine_type: diesel`。電化（AMI の `ami_monorail_power`）を張らなくても走るようにした。
+- **連結**: 指定は無い。1 両で走り、何両でもつなげる。
+- **長さと位置**: 線路の車両と同じ決まり（15m → `length=9`、軌道の中心に描く、車体の前の端が基準点）。どの向きも 256 のセルに収まる。
+- **大きさ**: 幅と高さは線路の車両の倍率（1.40・1.20）で描く（幅 4.2m・高さ 6.0m）。モノレールの手本の絵は測っていない（pak128.Japan の手本との比べは無い）。
+- **桁との合わせ方**: AMI の桁は幅 2.24m・上面 1.85m。車体の裾（スカート）を地面まで下ろして桁の側面を隠し、床の下面を 2.4m にした。車体の端の面は桁の通る所を空けた。
+- **懸垂式**: AMI の懸垂式（`ami_monorail_suspended_*`）も同じ `monorail_track` なので、ツールバーに出てこの車両も走れるはずだが、絵は跨座式用なので合わない（ゲームでは確かめていない）。
+- **ゲームでの確かめ**: `tools/vehicle_check/monorail_run.py`（`monorail.nut`・`monorail_city.nut`）が、地上・高架・トンネル・曲がりの 4 本の線を作って撮り、運んだ数と収支を出す。画面と結果は[記録](records/2026-11-26_monorail.md)。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。

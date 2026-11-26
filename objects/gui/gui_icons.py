@@ -686,6 +686,27 @@ def g_canal_x(c):
     badge(c, "x")
 
 
+def monorail(c, x=64, y=64, k=1.0):
+    """跨座式モノレール: 桁と柱の上の車体（正面）。"""
+    c.xf(x, y, k)
+    c.rect(54, 76, 74, 116, GRY)
+    c.rect(24, 24, 104, 96, W, r=16, outline=DRK, w=3)
+    c.rect(36, 36, 92, 62, BLU, r=4)
+    c.rect(24, 70, 104, 78, (44, 96, 168))
+    c.rect(54, 82, 74, 98, GRY)
+    c.xf()
+
+
+def g_monorail_tool(c):
+    monorail(c)
+
+
+def g_monorail_x(c):
+    """モノレールの撤去: モノレールに赤い ×。"""
+    monorail(c, 56, 56, 0.85)
+    badge(c, "x")
+
+
 def g_signal_x(c):
     """信号の撤去: 信号の柱と灯りに赤い ×。"""
     c.line([(44, 112), (44, 40)], 9)
@@ -990,6 +1011,8 @@ ICONS = {
     ("bar", 49): g_canal_x,
     ("bar", 52): g_air_tool,
     ("bar", 53): g_airstrip_x,
+    ("bar", 56): g_monorail_x,
+    ("bar", 57): g_monorail_tool,
 }
 
 BG = {      # 地の色を変える絵（気候は色で見分けやすくする）
@@ -999,6 +1022,7 @@ BG = {      # 地の色を変える絵（気候は色で見分けやすくする
     ("bar", 47): (170, 56, 50),
     ("bar", 49): (170, 56, 50),
     ("bar", 53): (170, 56, 50),
+    ("bar", 56): (170, 56, 50),
     ("bar", 32): (30, 90, 170),
     ("bar", 33): (190, 150, 60),
     ("bar", 34): (30, 130, 80),

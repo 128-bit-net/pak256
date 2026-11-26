@@ -399,6 +399,84 @@ def screen_size(img, cell):
 
 
 RAIL_DIR = os.path.join(ROOT, "objects", "vehicle", "rail")
+MONORAIL_DIR = os.path.join(ROOT, "objects", "vehicle", "monorail")
+
+
+class TestMonorail(unittest.TestCase):
+    """跨座式モノレールの車両（#156）。表・256 のセル・桁の中心に描く位置・特別な色・docs の表と訳。"""
+
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location("draw_monorail", os.path.join(MONORAIL_DIR, "draw_monorail.py"))
+        cls.mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.mod)
+
+    def each(self):
+        for spec in self.mod.VEHICLES:
+            d = os.path.join(MONORAIL_DIR, spec["dir"])
+            with open(os.path.join(d, spec["stem"] + ".yaml"), encoding="utf-8", newline="") as f:
+                raw = f.read()
+            img = Image.open(os.path.join(d, spec["stem"] + ".png")).convert("RGBA")
+            yield spec, raw, yaml.safe_load(raw), img
+
+    def test_tables(self):
+        for spec, raw, table, img in self.each():
+            self.assertEqual(raw.replace("\r\n", "\n"), self.mod.yaml_lines(spec), spec["name"])
+            self.assertEqual(table["waytype"], "monorail_track")
+            self.assertEqual(table["freight"], "Passagiere")
+            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]))
+            self.assertNotEqual(table["engine_type"], "electric")  # 電化しなくても走る
+            self.assertEqual(list(table["emptyimage"]), list(V.DIRECTIONS))
+            self.assertEqual(img.size, (V.CELL * len(V.DIRECTIONS), V.CELL))
+
+    def test_sheet_is_what_the_script_draws(self):
+        for spec, _, _, img in self.each():
+            self.assertEqual(img.tobytes(), self.mod.draw_sheet(spec).tobytes(), spec["name"])
+
+    def test_cells_at_rule_position(self):
+        for spec, _, _, img in self.each():
+            for i, d in enumerate(V.DIRECTIONS):
+                whole = V.footprint(d, V.length_units(spec["real_length_m"]), self.mod.WIDTH_M * V.RAIL_WIDTH_SCALE,
+                                    V.FRONT_UNITS, centered=True)
+                pts = [V.to_screen(x, y, z * V.RAIL_HEIGHT_SCALE) for x, y in whole for z in (0.0, self.mod.HEIGHT_M)]
+                ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
+                self.assertTrue(0 <= ex[0] and ex[2] <= V.CELL and 0 <= ex[1] and ex[3] <= V.CELL, f"{d}: セルに収まらない {ex}")
+                box = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).getchannel("A").getbbox()
+                self.assertIsNotNone(box, d)
+                for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
+                    self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {ex}")
+
+    def test_covers_the_beam(self):
+        # 車体は AMI の桁より広く、床の下面は桁の上面より高い（裾が桁の側面を隠す）
+        self.assertGreater(self.mod.WIDTH_M * V.RAIL_WIDTH_SCALE, self.mod.BEAM_WIDTH_M)
+        self.assertGreaterEqual(self.mod.FLOOR_M * V.RAIL_HEIGHT_SCALE, self.mod.BEAM_TOP_M)
+
+    def test_floor_matches_station_platform(self):
+        path = os.path.join(ROOT, "objects", "station", "monorail_stops", "draw_stops.py")
+        spec = importlib.util.spec_from_file_location("monorail_draw_stops", path)
+        stops = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(stops)
+        self.assertAlmostEqual(stops.PLATFORM_Z, self.mod.FLOOR_M * V.RAIL_HEIGHT_SCALE)
+
+    def test_no_special_colors_and_binary_alpha(self):
+        for spec, _, _, img in self.each():
+            found = {c for _, c in img.getcolors(1 << 20) if c[3] and (c[0] << 16 | c[1] << 8 | c[2]) in SPECIAL}
+            self.assertFalse(found, f"{spec['name']} 特別な色: {sorted(found)}")
+            self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_values_match_docs_table_and_translations(self):
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        for spec in self.mod.VEHICLES:
+            doc = docs_row(text, spec["name"])
+            self.assertEqual(int(doc["length"]), V.length_units(spec["real_length_m"]), spec["name"])
+            for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
+                self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
+        for lang in ("ja", "en"):
+            with open(os.path.join(ROOT, "text", lang + ".tab"), encoding="utf-8") as f:
+                lines = [ln.rstrip("\r\n") for ln in f]
+            for spec in self.mod.VEHICLES:
+                self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
 
 
 class TestRailVehicles(unittest.TestCase):

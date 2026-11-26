@@ -12,7 +12,7 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAYOUTS = 8
 # 置き場（objects/station/ の下のフォルダ）と waytype の対応
-FOLDER_WAYTYPE = {"road_stops": "road", "rail_stops": "track", "tram_stops": "tram_track"}
+FOLDER_WAYTYPE = {"road_stops": "road", "rail_stops": "track", "tram_stops": "tram_track", "monorail_stops": "monorail_track"}
 
 
 def stops():

@@ -1,0 +1,27 @@
+# モノレール（跨座式。絵は仮）。この表と PNG は draw_monorail.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 15m ÷ 1.65 = 9.09 → length 9（docs/vehicles.md）。
+# 値は pak128 のモノレールの車両の機能上の数値に合わせた（docs/vehicles.md の表）。
+obj: vehicle
+name: pak256_monorail
+copyright: pak256.LongScale チーム
+waytype: monorail_track
+freight: Passagiere
+payload: 82
+engine_type: diesel
+power: 330
+speed: 100
+gear: 80
+intro_year: 1930
+cost: 482000
+runningcost: 29
+weight: 18
+length: 9
+emptyimage:       # 向きごとの絵
+  s: monorail.0.0
+  w: monorail.0.1
+  sw: monorail.0.2
+  se: monorail.0.3
+  n: monorail.0.4
+  e: monorail.0.5
+  ne: monorail.0.6
+  nw: monorail.0.7
