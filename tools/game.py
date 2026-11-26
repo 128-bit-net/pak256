@@ -748,7 +748,7 @@ def run_command(g, text):
     arg = arg.strip()
     if name == "player":
         parts = arg.split(None, 1)
-        if len(parts) != 2 or not parts[0].isdigit() or parts[1].startswith("@"):
+        if len(parts) != 2 or not (parts[0].isascii() and parts[0].isdigit()) or parts[1].startswith("@"):
             raise ValueError("@player には番号（公共は 1）と Squirrel を渡す")
         return g.sq(parts[1], timeout=CMD_TIMEOUT, player_nr=int(parts[0]))
     if name == "capture":
@@ -774,6 +774,24 @@ def write_result(out, body):
     with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
         f.write(body)
     os.replace(out + ".tmp", out)
+
+
+def set_busy(inbox, line):
+    """実行中の命令の 1 行目を inbox/busy に置く（line が None なら消す）。
+
+    送る側が読んでいる間の Windows は置き換えも削除も PermissionError になるので、少し待ってやり直す。
+    理由を伝えるためだけのファイルなので、できなくても命令は続ける。
+    """
+    path = os.path.join(inbox, BUSY)
+    for _ in range(10):
+        try:
+            if line is not None:
+                write_result(path, line)
+            elif os.path.exists(path):
+                os.remove(path)
+            return
+        except OSError:
+            time.sleep(0.05)
 
 
 def reject_pending(inbox, reason):
@@ -827,17 +845,13 @@ def _serve(g, inbox, idle_limit, poll, log):
             continue
         out = os.path.join(inbox, pending[0][:-4] + ".out")
         quit_ = text.strip() == "@quit"
-        busy = os.path.join(inbox, BUSY)
-        write_result(busy, (text.strip().splitlines() or [""])[0][:100])
+        set_busy(inbox, (text.strip().splitlines() or [""])[0][:100])
         try:
             body = "ok\n" + ("bye" if quit_ else run_command(g, text))
         except Exception as e:  # 1 つの失敗で見張りを止めない
             body = f"error\n{type(e).__name__}: {e}"
         finally:
-            try:
-                os.remove(busy)
-            except OSError:
-                pass
+            set_busy(inbox, None)
         write_result(out, body)
         if g.fatal() is not None:
             g.check_fatal()

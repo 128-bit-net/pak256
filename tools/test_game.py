@@ -981,6 +981,7 @@ class InboxTest(unittest.TestCase):
     def test_waiting_send_says_which_command_is_running(self):
         # 前の命令が長くて順番が来なかった 2 つ目の送りに、理由を返す（#142）
         release = threading.Event()
+        self.addCleanup(release.set)  # 途中で落ちても見張りの待ちを解く
 
         class Slow(self.Fake):
             def sq(self, code, timeout=30, player_nr=0):
@@ -1003,12 +1004,28 @@ class InboxTest(unittest.TestCase):
                 game.send_command(inbox, "return 2", 0.3)
             self.assertIn("long_one()", str(cm.exception))
             self.assertIn("順番が来なかった", str(cm.exception))
+            self.assertEqual([n for n in os.listdir(inbox) if n.endswith(".cmd")], [])  # 取り下げた
             release.set()
             sender.join(10)
             self.assertEqual(first, [(True, "done")])
             self.assertFalse(os.path.exists(os.path.join(inbox, game.BUSY)))
             game.send_command(inbox, "@quit", 5)
             th.join(5)
+
+    def test_busy_file_failure_does_not_stop_the_command(self):
+        # 送る側が busy を開いている間の PermissionError で、命令を失わない（#142）
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            put(os.path.join(inbox, "1.cmd"), "@quit")
+            real = game.write_result
+
+            def locked(path, body):
+                if os.path.basename(path) == game.BUSY:
+                    raise PermissionError(path)
+                real(path, body)
+            with mock.patch.object(game, "write_result", locked):
+                game.serve_inbox(self.Fake(), inbox, 30, 0.01, lambda *_: None)
+            self.assertTrue(os.path.isfile(os.path.join(inbox, "1.out")))
 
     def test_send_without_game_fails(self):
         with tempfile.TemporaryDirectory() as t:
