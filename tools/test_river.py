@@ -80,6 +80,17 @@ class RiverTest(unittest.TestCase):
         got = sheet.crop((0, 2 * 256, 256, 3 * 256))
         self.assertEqual(got.tobytes(), river.cell(river.SLOPE_RIBI[3], tier["half"], 0, river.SLOPES[3]).tobytes())
 
+    def test_every_tier_has_its_own_snow_and_double_slope_art(self):
+        """どの段も、雪の直線（行 3）と、2 段の坂（行 2 の列 4）の絵が、その段の幅で今のスクリプトと同じ。"""
+        for tier in river.TIERS:
+            with Image.open(os.path.join(OBJ, tier["name"] + ".png")) as im:
+                sheet = im.convert("RGBA")
+            got = sheet.crop((5 * 256, 3 * 256, 6 * 256, 4 * 256))
+            self.assertEqual(got.tobytes(), river.cell(5, tier["half"], 1).tobytes(), tier["name"])
+            got = sheet.crop((4 * 256, 2 * 256, 5 * 256, 3 * 256))
+            double = tuple(c * 2 for c in river.SLOPES[3])
+            self.assertEqual(got.tobytes(), river.cell(river.SLOPE_RIBI[3], tier["half"], 0, double).tobytes(), tier["name"])
+
     def test_edges_have_the_same_width(self):
         """どの段も、つながる辺の中ほどは水で、つながらない辺の中ほどは何も無い（隣の升と幅がそろう）。"""
         edges = {1: (0.5, 0.001), 2: (0.999, 0.5), 4: (0.5, 0.999), 8: (0.001, 0.5)}
