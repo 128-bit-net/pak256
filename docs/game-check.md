@@ -20,6 +20,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 | `--save` | 保存データの名前（拡張子なし）。指定した 1 つだけ写す |
 | `--port` | MCP のポート。必ず明示する。既定の範囲は 47800〜47999（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）で、作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
 | `--port-range` | ポートの範囲を変える。`下限-上限`（例 `47200-47299`）。pak256 の外の作業者が、自分に割り当てられた範囲で使うとき（[#128](https://github.com/128-bit-net/pak256/issues/128)）。環境変数 `PAK256_PORT_RANGE` でも渡せる（`game.py` を読み込む別の道具にも効く）。`Game(..., port_range="47200-47299")` も同じ。引数が環境変数より先 |
+| `--player-nr` | Squirrel（`--script`・`--send`・`--send-file`）を流すプレーヤー。公共は 1。省くと 0（下の「公共のプレーヤーで流す」） |
 | `--extra-pak` | 足りない物を別の pak から借りる（試験のときだけ。コミットしない） |
 | `--night` | 昼夜の切り替えを止めない（夜の灯りを確かめるとき） |
 | `--keep` | 閉じた後も作業フォルダ（既定は `work/game/<ポート>/`）を残す |
@@ -33,7 +34,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
 - ゲームは**起動したときの PID で閉じる**（実行ファイルの名前では止めない）。閉じた後に `tasklist` で残りを確かめ、残ったら知らせて終了コード 1 で終わる（その作業フォルダは消せないので残す）。
-- **本体が FATAL ERROR で止まったら、待たずに閉じて失敗で終わる**（[#132](https://github.com/128-bit-net/pak256/issues/132)）。本体は「PRESS ANY KEY」の画面のまま残って MCP に答えないので、`game.py` は MCP の答えを待つ間も起動のログ（`game.log`）を見て、`FATAL ERROR` が出ていたら、起動した PID を閉じ、その行から後ろのエラーの文を出して終了コード 1 で終わる。起動の待ち・Squirrel・撮影・`--interactive` の見張りで同じ。ほかの道具から `Game` を使うときは `game.GameFatalError`（`RuntimeError` の一種）が上がる。見るのは `FATAL ERROR` の文だけで、本体がこの文を出さずに止まる形（`No fonts found!` などの通知の窓）は、これまでどおり時間切れになる。
+- **本体が FATAL ERROR・通知の窓で止まったら、待たずに閉じて失敗で終わる**（[#132](https://github.com/128-bit-net/pak256/issues/132)・[#142](https://github.com/128-bit-net/pak256/issues/142)）。本体は、起動した後の失敗では「PRESS ANY KEY」の画面、起動の途中の失敗（pak やフォントが無いなど）では「Fatal Error」の通知の窓（`dr_fatal_notify`）のまま残って MCP に答えない。`game.py` は MCP の答えや `settle` を待つ間も起動のログ（`game.log`）を見て、`FATAL ERROR` か `dr_fatal_notify: ERROR:` が出ていたら、起動した PID を閉じ、その行から後ろのエラーの文を出して終了コード 1 で終わる。起動の待ち・Squirrel・撮影・`settle`・`--interactive` の見張りで同じ。ほかの道具から `Game` を使うときは `game.GameFatalError`（`RuntimeError` の一種）が上がる。見るのはこの 2 つの文だけ。通知の窓は、`ground.Outside.pak` を抜いた起動で確かめた（2026-11-26、OTRP v64。起動から約 1 秒で文がログに出て、コマンドは終了コード 1）。
 
 - 画面は `Game.capture`（本体の `capture_screen`）で撮る。PowerShell の画面全体の撮影は真っ黒になる。
 
@@ -70,6 +71,8 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 ## スクリプトで物を置くときの癖
 
 - 保存データ `flat_512_left_v64` は x が 256 以上が雪の気候。温帯の物は x<256 に置く（2026-11-25、#11）。
+- **公共のプレーヤーで流す**: Squirrel の道具は、呼び出しの `player_nr`（MCP の `run_squirrel` の引数）のプレーヤーで使われる。スクリプトの中で `player_x(1)` と書くだけでは変わらない。`Game.sq`・`sq_file`・`road`・`station`・`climate` は `player_nr=1` を、コマンドは `--player-nr 1` を渡す（開いたまま使うときは `--send` の側に付ける。`--interactive` には付けない。2026-11-26、[#142](https://github.com/128-bit-net/pak256/issues/142)）。
+- **歩道つきの街の道路**は `Game.city_road(x1, y1, x2, y2)`（公共のプレーヤーで `tool_build_cityroad`）。公共でないと歩道は付かず、`road(..., player_nr=1)`（`tool_build_way`）でも付かない（2026-11-26、`flat_512_left_v64` に AMI の道路を足した組で `has_sidewalk()` を比べた。#142）。
 - 道路は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>")`、停留所は `command_x(tool_build_station).work(pl, coord3d, "<停留所の name>")`。停留所の引数に番号を付けた `"1,<name>"` は失敗する（2026-11-25、#44。`Game.road`・`Game.station`）。
 - 建物（車庫・停留所など）は、置いた直後は建設中の縞。`debug.set_game_speed(64)` で進めてから撮る（2026-11-25、#58。`Game.settle`）。
 - `run_squirrel` に渡す文字列の中に改行を入れない。呼ぶ側で書いた `\n` が本物の改行になって、コンパイルが通らない（`Game.sq` は流す前に止める。2026-11-25、#59）。
@@ -90,13 +93,15 @@ with Game(env, "flat_512_left_v64", 47880) as g:
     g.sq("return 1")                       # Squirrel（戻り値の文字列）
     g.sq_file("course.nut", head="OX <- 40;\n")
     g.road(40, 40, 48, 40, "ami_road_local")   # 道路を敷く（command_x(tool_build_way)）
+    g.city_road(40, 42, 48, 42)                # 歩道つきの街の道路（公共のプレーヤー）
+    g.sq("return 1", player_nr=1)              # 公共のプレーヤーで流す
     g.station(44, 40, "<停留所の name>")         # 停留所を置く（command_x(tool_build_station)）
     g.settle(10)                           # 建物を置いた後、建設中の絵が終わるまで進める（速さ 64 → 1 に戻す）
     g.dialog("finances")                   # 窓を開く（名前か番号。下の表）
     g.capture("out/shot.png")              # capture_screen
 ```
 
-- 建物（車庫・停留所など）は、置いた直後は建設中の絵（黄と黒の縞）で、速さ 1 のままだと終わらない（#58）。撮る前に `g.settle(秒)` を呼ぶ（既定は実時間 15 秒、速さ 64。建物 1 つで約 12 秒、AMI の車庫は工事がゲーム内の約 100 秒かかるので `g.settle(20)` にする（stations.md）。途中で止まっても速さ 1 に戻す）。
+- 建物（車庫・停留所など）は、置いた直後は建設中の絵（黄と黒の縞）で、速さ 1 のままだと終わらない（#58）。撮る前に `g.settle(秒)` を呼ぶ（既定は実時間 15 秒、速さ 64。建物 1 つで約 12 秒、AMI の車庫は工事がゲーム内の約 100 秒かかるので `g.settle(20)` にする（stations.md）。途中で止まっても速さ 1 に戻す）。待つ間に本体が止まったら、秒数を待ち切らずに `GameFatalError`（#142）。
 - Squirrel の文字列の中に改行を入れると、本体でコンパイルが通らない。Python の通常の文字列に書いたバックスラッシュ n は本物の改行になるので、`sq`・`sq_file` は流す前に `ValueError` で止める（文字列の外の改行・注釈の中・`@"…"` は構わない）。区切りに改行を使わないか、raw 文字列で渡す。
 - 親が強制終了されても閉じる: ゲームは起動のとき Windows の Job Object（`KILL_ON_JOB_CLOSE`）に入れる。`tools/game.py` を動かす Python を `TaskStop` などで強制終了しても、OS がゲームを終わらせ、ポートを握ったまま残らない（#30 で 47810 が残った）。それでも、長い確かめは強制終了せず待つ。入れられなかったときは `[game] Job Object に入れられなかった` と出る（Python が別の Job の中で、入れ子にできない環境）。
 - `tools/vehicle_check/run.py`（[vehicles.md](vehicles.md) の「試験」）はこの上で動く。
@@ -163,13 +168,14 @@ python -X utf8 tools/game.py --port 47900 --send "@quit"
 | `@dialog <名前か番号>` | 窓を開く（下の表） |
 | `@settle [秒]` | 建設中の絵が終わるまで進める（既定 15 秒） |
 | `@month <月>` | 月が 0〜11（0 = 1 月）になるまで早送りする（上の「気候と月」。`--timeout` を長くする） |
+| `@player <番号> <Squirrel>` | そのプレーヤーで Squirrel を流す（`--send` の `--player-nr` はこれになる） |
 | `@quit` | ゲームを閉じて終わる |
 
 - 仕組み: 見張る側は作業フォルダ（既定 `work/game/<ポート>/`）の `inbox/` に置かれた命令のファイルを番号順に 1 つずつ流し、結果を `.out` に書く。`--send` は同じポート（`--work` を使ったなら同じ値）を渡す。
 - 命令の失敗（Squirrel の誤り・知らない指示）では見張りは止まらず、次の命令を受ける。
 - **必ず閉じる**: 終わったら `@quit` を送る。見張りの Ctrl+C、命令が `--idle-limit` 秒（既定 3600）来ないとき、ゲームが落ちたときも、起動した PID で閉じて作業フォルダを消す（`--keep` なら残す）。本体が FATAL ERROR で止まったときは、命令の途中ならその `--send` にエラーの文を返し（終了コード 1）、見張りの側もエラーの文を出して終了コード 1 で終わる。見張りの Python が強制終了されても、Job Object で閉じる。起動は `-load` と写した作業フォルダなので、自動保存は失わない。
 - 同じポートで 2 台は起動できない。ポートは割り当てられた範囲の中。
-- 複数の `--send` を同時に流さない（順に流す）。
+- 複数の `--send` を同時に流さない（順に流す）。流してしまったときは、後の命令は順番を待つ。待ちが `--timeout` を超えると取り下げて、実行中の命令の 1 行目を理由にして失敗する。本体が FATAL ERROR・通知の窓で止まったときは、順番を待っていた命令にも、流さなかったことと理由を返す（#142）。
 - **`--send-file` では、変数を先頭に足せない**（`Game.sq_file` の `head=` に当たる物が無い）。流す `.nut` に、変数の定義を直に書く（例: 先頭に `OX <- 40; OY <- 60; CARS <- 4;`）。値を変えて流すときは、`sed` で写しを作って流す（`sed 's/OY <- 60/OY <- 110/' a.nut > work/b.nut`）。同じ `.nut` を `Game.sq_file(path, head=…)` から流すなら、先頭に同じ名前の変数を足し、`.nut` の定義の行を消す（二重に定義すると後の値が勝つ）。`tools/vehicle_check/signal.nut`・`road_stop_coal.nut` がこの形（`road_stop_bus.nut` は変数が `WAY`・`DEPOT` だけで、座標は中に書いてある）。
 - **信号を置き直したときの向き**（本体の `simtool.cc` の `place_sign_intern` を読んで決めた。OTRP v64 で 2 回目までは画面で確かめた）: `command_x.build_sign_at` を同じ所に重ねて呼ぶと、1 回目は両方向、2 回目は片方向、3 回目は反対の片方向、4 回目は両方向に戻る。2 回目の列車が進む向きは、東西の線路なら西、南北の線路なら南（本体の中の向きは通れない向きの ribi で、東・北）。両方向の信号だけの 1 本の線路（周回）に、逆向きの編成が入ると、止まったまま動かなくなった（向き合ったのが原因と見ている）。周回させるときは、上の辺（東西）と左の辺（南北）だけに 2 回ずつ置くと、反時計回りにそろう。詳しくは [signals.md](signals.md) の「置いたときの動き」と `tools/vehicle_check/signal.nut`。
 - 1 つの Squirrel は最大 300 秒（`CMD_TIMEOUT`）待つ。`--send` の `--timeout`（既定 120）は送る側の待ちで、超えると命令を取り下げる（見張りが取った後なら「実行された可能性がある」と出る）。見張りやゲームが閉じると、送る側はすぐ失敗する。
@@ -246,4 +252,4 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 `tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

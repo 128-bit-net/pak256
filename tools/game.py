@@ -14,11 +14,14 @@
     python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47900 --interactive   # 起動して待つ（背景で動かす）
     python -X utf8 tools/game.py --port 47900 --send "return 1"            # Squirrel を流して結果を見る
     python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"  # 撮る（@dialog 名前・@settle 秒・@month 月・@quit も）
+    python -X utf8 tools/game.py --port 47900 --player-nr 1 --send "return 1"  # 公共のプレーヤーで流す（#142）
 
 別の道具（tools/vehicle_check/run.py など）から使う:
     from game import Game, prepare_workdir
     with Game(env, save, port) as g:
         g.sq("return 1")
+        g.sq("return 1", player_nr=1)  # 公共のプレーヤーで流す（#142）
+        g.city_road(40, 40, 48, 40)  # 歩道つきの街の道路（公共のプレーヤーで敷く）
         g.dialog("finances")   # 財務の窓（番号の表は DIALOGS・docs/game-check.md）
         g.settle(10)           # 建設中の絵が終わるまで進める
         g.climate(40, 40, 48, 48, "desert")  # 気候を塗る（地形を変えた後に）
@@ -36,8 +39,10 @@
 - MCP のポートは必ず明示する。範囲の既定は pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）で、作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
   別の範囲を割り当てられた作業者は、--port-range・Game(port_range=…)・環境変数 PAK256_PORT_RANGE のどれかで範囲を渡す（"下限-上限"。#128）。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
-- 本体が FATAL ERROR で止まると「PRESS ANY KEY」の画面のまま残るので、起動のログ（game.log）を見て、出ていたら待たずに閉じ、
-  エラーの文を出して失敗する（GameFatalError。起動の待ち・Squirrel・撮影・--interactive の見張り。#132）。
+- 本体が FATAL ERROR で止まると「PRESS ANY KEY」の画面のまま、起動の前の失敗では通知の窓（dr_fatal_notify）のまま残るので、
+  起動のログ（game.log）を見て、どちらかの文が出ていたら待たずに閉じ、エラーの文を出して失敗する
+  （GameFatalError。起動の待ち・Squirrel・撮影・settle・--interactive の見張り。#132・#142）。
+- Squirrel は呼び出しの player_nr のプレーヤーで流れる（スクリプトの中の player_x(1) では変わらない）。公共は 1。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
 """
@@ -84,8 +89,10 @@ CLIMATES = {"desert": 1, "tropic": 2, "mediterran": 3, "temperate": 4, "tundra":
 MONTH_TO_SEASON = (2, 2, 2, 3, 3, 0, 0, 0, 0, 1, 1, 2)
 SEASON_MONTHS = {"summer": 6, "autumn": 9, "winter": 0, "spring": 3}  # 季節ごとの絵を撮るのに使う月（0 始まり）
 MONTH_SPEED = 64  # 月を進めるときの速さ
-# 本体が止まるときに出す文の印。"FATAL ERROR: …"（log.cc の fatal）と "FATAL ERROR during reading of …"（loadsave.cc）
-FATAL_MARK = b"FATAL ERROR"
+# 本体が止まるときに出す文の印。"FATAL ERROR: …"（log.cc の fatal）と "FATAL ERROR during reading of …"（loadsave.cc）、
+# FATAL ERROR を出さずに通知の窓で止まる "dr_fatal_notify: ERROR: …"（simsys.cc の dr_fatal_notify。pak やフォントが無いときなど。#142）
+FATAL_MARKS = (b"FATAL ERROR", b"dr_fatal_notify: ERROR:")
+PUBLIC_PLAYER = 1  # 公共のプレーヤーの player_nr（歩道つきの街の道路などはこのプレーヤーで敷く）
 FATAL_CHARS = 1500  # エラーの文として持つ長さ（印から後ろ）
 FATAL_FLUSH = 0.3  # 印を見つけてから、文の残りが書かれるのを待つ秒
 FATAL_POLL = 0.5  # MCP の答えを待つ間に game.log を見る間隔（秒）
@@ -96,7 +103,7 @@ class GameFatalError(RuntimeError):
     """本体が FATAL ERROR で止まった。message は game.log の印から後ろ。"""
 
     def __init__(self, message):
-        super().__init__(f"本体が FATAL ERROR で止まった:\n{message}")
+        super().__init__(f"本体が FATAL ERROR・通知の窓で止まった:\n{message}")
 
 
 def default_client():
@@ -381,6 +388,13 @@ def check_squirrel(code):
         i += 1
 
 
+def check_player_nr(player_nr):
+    """本体の player_nr（0〜15 の整数）であることを確かめる。"""
+    if not isinstance(player_nr, int) or isinstance(player_nr, bool) or not 0 <= player_nr <= 15:
+        raise ValueError(f"player_nr は 0〜15 の整数で渡す（公共は {PUBLIC_PLAYER}）: {player_nr!r}")
+    return player_nr
+
+
 def alive(pid):
     """tasklist で PID のプロセスが残っているか。"""
     out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"], capture_output=True)
@@ -527,7 +541,7 @@ class Game:
             return "（無し）"
 
     def fatal(self):
-        """game.log に FATAL ERROR が出ていれば、その文を返す（無ければ None）。起動していないときは見ない。
+        """game.log に FATAL_MARKS のどれかが出ていれば、その文を返す（無ければ None）。起動していないときは見ない。
 
         前に見た所から先だけを読む（-log -debug 3 を足すとログが大きい）。一度見つけたら覚えておく。
         """
@@ -538,9 +552,9 @@ class Game:
             with open(path, "rb") as f:
                 f.seek(self._log_pos)
                 data = f.read()
-            i = data.find(FATAL_MARK)
+            i = min((n for n in (data.find(m) for m in FATAL_MARKS) if n >= 0), default=-1)  # 先に出た印
             if i < 0:  # 印が読みの境目で割れないよう、少し手前から次を読む
-                self._log_pos += max(0, len(data) - len(FATAL_MARK) + 1)
+                self._log_pos += max(0, len(data) - max(map(len, FATAL_MARKS)) + 1)
                 return None
             time.sleep(FATAL_FLUSH)
             with open(path, "rb") as f:
@@ -552,7 +566,7 @@ class Game:
         return self.fatal_message
 
     def check_fatal(self):
-        """本体が FATAL ERROR で止まっていたら GameFatalError。"""
+        """本体が FATAL ERROR・通知の窓で止まっていたら GameFatalError。"""
         message = self.fatal()
         if message is not None:
             raise GameFatalError(message)
@@ -585,20 +599,23 @@ class Game:
         self.check_fatal()
         return subprocess.CompletedProcess(cmd, p.returncode, out, err)
 
-    def sq(self, code, timeout=30):
-        """Squirrel を流して、戻り値の文字列を返す。"""
+    def sq(self, code, timeout=30, player_nr=0):
+        """Squirrel を流して、戻り値の文字列を返す。
+
+        player_nr のプレーヤーで道具を使う（公共は 1）。スクリプトの中の player_x(1) では変わらないので、ここで渡す（#142）。
+        """
         check_squirrel(code)
-        out = self._client("--run-squirrel", code, timeout=timeout)
+        out = self._client("--player-nr", str(check_player_nr(player_nr)), "--run-squirrel", code, timeout=timeout)
         line = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else "{}"
         data = json.loads(line)
         if "result" not in data:
             raise RuntimeError(f"run_squirrel failed: {line} {out.stderr[-300:]}")
         return str(data["result"])
 
-    def sq_file(self, path, head="", timeout=60):
+    def sq_file(self, path, head="", timeout=60, player_nr=0):
         """Squirrel のファイルを流す。head は先頭に足す変数の定義。"""
         with open(path, encoding="utf-8") as f:
-            return self.sq(head + f.read(), timeout=timeout)
+            return self.sq(head + f.read(), timeout=timeout, player_nr=player_nr)
 
     def capture(self, path, timeout=30):
         """画面を PNG に撮る（capture_screen）。"""
@@ -609,13 +626,23 @@ class Game:
         if out.returncode != 0 or not os.path.isfile(path):
             raise RuntimeError(f"撮れなかった: {out.stderr[-300:]}")
 
-    def road(self, x1, y1, x2, y2, way="ami_road_local", z=0):
+    def road(self, x1, y1, x2, y2, way="ami_road_local", z=0, player_nr=0):
         """道路を敷く（command_x(tool_build_way)。道路の名前は AMI の物など）。Squirrel の戻り値を返す。"""
-        return self.sq(f'return command_x(tool_build_way).work(player_x(0), coord3d({x1},{y1},{z}), coord3d({x2},{y2},{z}), "{way}")')
+        return self.sq(f'return command_x(tool_build_way).work(player_x({player_nr}), coord3d({x1},{y1},{z}), '
+                       f'coord3d({x2},{y2},{z}), "{way}")', player_nr=player_nr)
 
-    def station(self, x, y, name, z=0):
+    def city_road(self, x1, y1, x2, y2, way="", z=0):
+        """歩道つきの街の道路を敷く（公共のプレーヤーで command_x(tool_build_cityroad)。#142）。
+
+        way を省くと本体の街の道路。歩道は公共のプレーヤーがこの道具で敷いたときに付く（road に player_nr=1 を渡すだけでは付かない）。
+        """
+        return self.sq(f'return command_x(tool_build_cityroad).work(player_x({PUBLIC_PLAYER}), coord3d({x1},{y1},{z}), '
+                       f'coord3d({x2},{y2},{z}), "{way}")', player_nr=PUBLIC_PLAYER)
+
+    def station(self, x, y, name, z=0, player_nr=0):
         """停留所を置く（command_x(tool_build_station)。名前は物の name だけ。"1,<name>" の形は失敗する）。"""
-        return self.sq(f'return command_x(tool_build_station).work(player_x(0), coord3d({x},{y},{z}), "{name}")')
+        return self.sq(f'return command_x(tool_build_station).work(player_x({player_nr}), coord3d({x},{y},{z}), "{name}")',
+                       player_nr=player_nr)
 
     def dialog(self, which):
         """窓を開く（gui.open_dialog_tool）。which は番号か DIALOGS の名前（"finances" など。表は docs/game-check.md）。"""
@@ -624,7 +651,7 @@ class Game:
             raise ValueError(f"窓の番号か名前を渡す: {which!r}（名前: {', '.join(DIALOGS)}）")
         return self.sq(f"return gui.open_dialog_tool({nr})")
 
-    def climate(self, x1, y1, x2, y2, climate, z=0, timeout=60):
+    def climate(self, x1, y1, x2, y2, climate, z=0, timeout=60, player_nr=0):
         """(x1, y1)〜(x2, y2) の矩形の気候を塗る（tool_set_climate）。climate は 1〜7 の番号か CLIMATES の名前。
 
         地形（grid_raise・grid_lower・水位）を変えると気候が高さで決まり直すので、塗るのは地形の後。
@@ -633,8 +660,8 @@ class Game:
         nr = CLIMATES.get(climate) if isinstance(climate, str) else climate
         if not isinstance(nr, int) or isinstance(nr, bool) or nr not in CLIMATES.values():
             raise ValueError(f"気候は 1〜7 か名前を渡す: {climate!r}（名前: {', '.join(CLIMATES)}）")
-        return self.sq(f'return command_x(tool_set_climate).work(player_x(0), coord3d({x1},{y1},{z}), '
-                       f'coord3d({x2},{y2},{z}), "{nr}")', timeout=timeout)
+        return self.sq(f'return command_x(tool_set_climate).work(player_x({player_nr}), coord3d({x1},{y1},{z}), '
+                       f'coord3d({x2},{y2},{z}), "{nr}")', timeout=timeout, player_nr=player_nr)
 
     def month(self):
         """今の月（0 始まり。0 = 1 月）。"""
@@ -665,10 +692,14 @@ class Game:
         """建設中の絵（黄と黒の縞）が終わるまでゲームを進めて、速さを 1 に戻す（速さ 1 のままだと終わらない。#58）。
 
         建物（車庫・停留所など）を置いた後、撮る前に呼ぶ。seconds は実時間の秒。
+        待つ間も game.log を FATAL_POLL 秒ごとに見て、本体が止まったら秒数を待ち切らずに GameFatalError（#142）。
         """
         self.sq(f"debug.set_game_speed({int(speed)}); return 1")
         try:
-            time.sleep(seconds)
+            end = time.monotonic() + seconds
+            while (rest := end - time.monotonic()) > 0:
+                time.sleep(min(FATAL_POLL, rest))
+                self.check_fatal()
         finally:
             self.sq("debug.set_game_speed(1); return 1")
 
@@ -696,8 +727,10 @@ class Game:
 
 # --- 開いたままのゲームへ命令を流す（#85） ---
 # 作業フォルダの inbox/ に <番号>.cmd を置くと、見張っている側（--interactive）が流して <番号>.out に結果を書く。
-# .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@month <月>・@quit）。
+# .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@month <月>・
+# @player <番号> <Squirrel>・@quit）。命令を流している間は inbox/busy にその 1 行目を置き、順番が来なかった送りがそれを理由にする（#142）。
 INBOX = "inbox"
+BUSY = "busy"
 CMD_TIMEOUT = 300  # 1 つの Squirrel の待ち秒（AMI の game.sh の RUN と同じ。長い見本のため）
 IDLE_LIMIT = 3600  # 命令が来ないまま続いたら閉じる秒（閉じ忘れの保険）
 
@@ -713,6 +746,11 @@ def run_command(g, text):
         return g.sq(text, timeout=CMD_TIMEOUT)
     name, _, arg = text[1:].partition(" ")
     arg = arg.strip()
+    if name == "player":
+        parts = arg.split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit() or parts[1].startswith("@"):
+            raise ValueError("@player には番号（公共は 1）と Squirrel を渡す")
+        return g.sq(parts[1], timeout=CMD_TIMEOUT, player_nr=int(parts[0]))
     if name == "capture":
         if not arg:
             raise ValueError("@capture には PNG のパスを渡す")
@@ -728,15 +766,43 @@ def run_command(g, text):
             raise ValueError("@month には月（0〜11。0 = 1 月）を渡す")
         g.wait_month(int(arg))
         return str(int(arg))
-    raise ValueError(f"知らない指示: @{name}（@capture・@dialog・@settle・@month・@quit）")
+    raise ValueError(f"知らない指示: @{name}（@capture・@dialog・@settle・@month・@player・@quit）")
+
+
+def write_result(out, body):
+    """送る側が書きかけを読まないように、別の名前で書いてから置く。"""
+    with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
+        f.write(body)
+    os.replace(out + ".tmp", out)
+
+
+def reject_pending(inbox, reason):
+    """順番を待っている命令を流さずに取り下げて、理由を .out に返す（#142）。"""
+    for name in sorted(n for n in os.listdir(inbox) if n.endswith(".cmd")):
+        try:
+            os.remove(os.path.join(inbox, name))
+        except OSError:  # 送る側が取り下げた
+            continue
+        write_result(os.path.join(inbox, name[:-4] + ".out"), f"error\nこの命令は流さなかった。{reason}")
 
 
 def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
     """inbox/ の .cmd を番号順に 1 つずつ流して .out に結果を書く。@quit か idle_limit 秒の無音か、ゲームが落ちたら戻る。
 
-    本体が FATAL ERROR で止まったら GameFatalError（命令の途中なら、その命令の .out に error を書いてから）。
+    本体が FATAL ERROR・通知の窓で止まったら GameFatalError（命令の途中なら、その命令の .out に error を書いてから。
+    順番を待っている命令にも、流さなかった理由を .out に返す）。
     """
     os.makedirs(inbox, exist_ok=True)
+    try:
+        _serve(g, inbox, idle_limit, poll, log)
+    except GameFatalError as e:
+        reject_pending(inbox, str(e))
+        if any(n.endswith(".out") for n in os.listdir(inbox)):
+            time.sleep(FATAL_SEND_WAIT)  # 閉じると inbox が消えるので、送る側が結果を読むのを待つ
+        raise
+
+
+def _serve(g, inbox, idle_limit, poll, log):
     last = time.monotonic()
     while True:
         pending = sorted(n for n in os.listdir(inbox) if n.endswith(".cmd"))
@@ -761,15 +827,19 @@ def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
             continue
         out = os.path.join(inbox, pending[0][:-4] + ".out")
         quit_ = text.strip() == "@quit"
+        busy = os.path.join(inbox, BUSY)
+        write_result(busy, (text.strip().splitlines() or [""])[0][:100])
         try:
             body = "ok\n" + ("bye" if quit_ else run_command(g, text))
         except Exception as e:  # 1 つの失敗で見張りを止めない
             body = f"error\n{type(e).__name__}: {e}"
-        with open(out + ".tmp", "w", encoding="utf-8", newline="") as f:
-            f.write(body)
-        os.replace(out + ".tmp", out)  # 送る側が書きかけを読まない
+        finally:
+            try:
+                os.remove(busy)
+            except OSError:
+                pass
+        write_result(out, body)
         if g.fatal() is not None:
-            time.sleep(FATAL_SEND_WAIT)  # 閉じると inbox が消えるので、送る側が結果を読むのを待つ
             g.check_fatal()
         last = time.monotonic()  # 長い命令の後すぐに「無音」と見なさない
         if quit_:
@@ -796,9 +866,17 @@ def send_command(inbox, text, timeout=120, poll=0.2):
             return head == "ok", body
         time.sleep(poll)
     try:
+        with open(os.path.join(inbox, BUSY), encoding="utf-8") as f:
+            running = f.read()
+    except OSError:
+        running = None
+    try:
         os.remove(cmd)  # 見張りが取らなかった命令は取り下げる
     except OSError:
         raise RuntimeError(f"{timeout} 秒、答えが無い。命令は見張りが取った後で、実行された可能性がある")
+    if running is not None:
+        raise RuntimeError(f"{timeout} 秒、答えが無い。見張りが前の命令を実行中で、順番が来なかった（命令は取り下げた。"
+                           f"実行中の命令: {running}）。終わってから送り直すか、--timeout を長くする")
     raise RuntimeError(f"{timeout} 秒、答えが無い（見張りが止まっている？命令は取り下げた）")
 
 
@@ -819,11 +897,19 @@ def main():
     ap.add_argument("--interactive", action="store_true", help="起動して、命令を待つ（--send で流す）。@quit・無音・Ctrl+C で閉じる")
     ap.add_argument("--idle-limit", type=int, default=IDLE_LIMIT, help="--interactive で命令が来ない秒（超えたら閉じる）")
     ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@month <月>・@quit")
+    ap.add_argument("--player-nr", type=int, help=f"Squirrel（--script・--send・--send-file）を流すプレーヤー（公共は {PUBLIC_PLAYER}。省くと 0）")
     ap.add_argument("--send-file", help="--send の代わりに、Squirrel のファイルを流す")
     ap.add_argument("--timeout", type=int, default=120, help="--send の答えを待つ秒")
     args = ap.parse_args()
     if (args.send is not None or args.send_file) and args.interactive:
         sys.exit("--interactive（起動）と --send（流す）は別の呼び出しで使う")
+    if args.player_nr is not None:
+        try:
+            check_player_nr(args.player_nr)
+        except ValueError as e:
+            sys.exit(f"--player-nr: {e}")
+        if args.interactive:
+            sys.exit("--player-nr は --interactive でなく、--send・--send-file の呼び出しに付ける")
     if args.send is not None or args.send_file:
         text = args.send
         if args.send_file:
@@ -831,6 +917,10 @@ def main():
                 text = f.read()
         if text.lstrip().startswith("@capture "):  # 見張る側の作業フォルダでなく、ここからの相対で読む
             text = "@capture " + os.path.abspath(text.lstrip()[len("@capture "):].strip())
+        if args.player_nr is not None:
+            if text.lstrip().startswith("@"):
+                sys.exit("--player-nr は Squirrel を流すときだけ（@capture などの指示には付けない）")
+            text = f"@player {args.player_nr} {text}"
         ok, body = send_command(os.path.join(os.path.abspath(args.work) if args.work else default_work(args.port), INBOX),
                                 text, args.timeout)
         print(body)
@@ -851,7 +941,7 @@ def main():
                 except KeyboardInterrupt:
                     pass
             for s in args.script:
-                print("[script]", g.sq_file(s), flush=True)
+                print("[script]", g.sq_file(s, player_nr=args.player_nr or 0), flush=True)
             if args.capture:
                 g.capture(args.capture)
                 print("[capture]", args.capture, flush=True)
