@@ -1,0 +1,52 @@
+[way] ami_road_local 52,60-74,60: None
+[way] ami_rail_ballast 52,66-74,66: None
+[way] ami_road_local 52,76-74,76: None
+[station] None
+[station] None
+[station] None
+[stop] None
+[stop] None
+[stop] None
+[stop] None
+[way] ami_road_local 52,61-52,60: None
+[depot] ami_road_depot: None
+[way] ami_rail_ballast 52,67-52,66: None
+[depot] ami_rail_depot: None
+[way] ami_road_local 52,77-52,76: None
+[depot] ami_road_depot: None
+[city] None
+[factory] None
+[factory] None
+[convoy] ['pak256_coal_truck']: ok
+[convoy] ['pak256_mail_truck']: ok
+[convoy] ['pak256_bus']: ok
+[convoy] ['pak256_railcar', 'pak256_railcar_trailer']: ok
+[convoy] ['pak256_coal_truck']: ok
+[house] pak256_house_small 58,59: None
+[house] pak256_house_wide 59,59: None
+[house] pak256_shop 61,59: None
+[house] pak256_apartment 62,59: None
+[house] pak256_workshop 64,59: None
+[house] pak256_townhall 65,59: None
+[house] pak256_office 67,59: None
+[house] pak256_row_house 58,65: None
+[house] pak256_store 63,65: None
+[house] pak256_warehouse 65,65: None
+[house] pak256_factory 67,65: None
+[tree] pak256_zelkova 60,59: {"result":"age=623 tries=2"}
+[tree] pak256_cedar 63,59: {"result":"age=634 tries=2"}
+[tree] pak256_birch 66,59: {"result":"age=649 tries=2"}
+[tree] pak256_birch 59,61: {"result":"age=619 tries=3"}
+[tree] pak256_zelkova 66,61: {"result":"age=698 tries=7"}
+[tree] pak256_cedar 59,65: {"result":"age=668 tries=13"}
+[tree] pak256_zelkova 64,65: {"result":"age=595 tries=6"}
+[tree] pak256_cedar 66,65: {"result":"age=580 tries=2"}
+[tree] pak256_zelkova 57,75: {"result":"age=661 tries=2"}
+[tree] pak256_cedar 62,75: {"result":"age=681 tries=2"}
+[check] 58,59=pak256_house_small 59,59=pak256_house_wide 61,59=pak256_shop 62,59=pak256_apartment 64,59=pak256_workshop 65,59=pak256_townhall 67,59=pak256_office 58,65=pak256_row_house 63,65=pak256_store 65,65=pak256_warehouse 67,65=pak256_factory 
+[convoys] (1) 石炭トラック@65,60 v=0; (2) 郵便のトラック@63,60 v=0; (3) バス@60,60 v=0; (4) 気動車@62,66 v=0; (5) 石炭トラック@60,76 v=0; 
+[month] 6
+[shot] A_road_z3.png
+[shot] B_rail_z3.png
+[shot] C_industry_z3.png
+[shot] D_overview_z6.png

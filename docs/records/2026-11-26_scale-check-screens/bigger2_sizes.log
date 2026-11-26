@@ -1,0 +1,5 @@
+mock2x_bus length=9 長さ 102px 幅 22px 高さ 24px（40% 9% 9%） 目標 (100, 22, 24)
+mock2x_mail length=6 長さ 68px 幅 24px 高さ 21px（27% 9% 8%） 目標 (68, 24, 22)
+mock2x_coal length=8 長さ 91px 幅 22px 高さ 29px（36% 9% 11%） 目標 (86, 22, 28)
+mock2x_railcar length=12 長さ 136px 幅 28px 高さ 24px（53% 11% 9%） 目標 (132, 28, 24)
+mock2x_railcar_trailer length=12 長さ 136px 幅 28px 高さ 24px（53% 11% 9%） 目標 (132, 28, 24)

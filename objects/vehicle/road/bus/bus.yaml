@@ -1,5 +1,5 @@
 # bus（絵は仮）。この表と PNG は draw_vehicles.py が書き出す。直すときはスクリプトを直して流し直す。
-# 実物 12m ÷ 1.65 = 7.27 → length 7（docs/vehicles.md）。
+# 実物 12m。画面の大きさは pak128 の手本の 2 倍で、length 9（docs/standards.md の 4 章）。
 obj: vehicle
 name: pak256_bus
 copyright: pak256.LongScale チーム
@@ -14,7 +14,7 @@ intro_year: 1930
 cost: 661000
 runningcost: 39
 weight: 11
-length: 7
+length: 9
 emptyimage:       # 向きごとの絵
   s: bus.0.0
   w: bus.0.1

@@ -1,6 +1,7 @@
 """見本のバスの絵と表を書き出す（docs/vehicles.md）。MIT License。絵は仮（箱を組んだ物）で、見た目は後から描き直す。
 
-長さと描画位置は tools/vehicles.py の決まりで決める。8 方向を 256px のセルに横に並べたシート（2048x256）。
+長さと描画位置は tools/vehicles.py の決まりで決める。大きさはバス（pak256_bus）と同じで、pak128 の路線バスの手本の 2 倍
+（docs/standards.md の 4 章）。8 方向を 256px のセルに横に並べたシート（2048x256）。
 
 使い方（Pillow が要る。書き出した PNG と表は git に入れる）:
     python -X utf8 objects/vehicle/road/sample_bus/draw_bus.py
@@ -21,6 +22,8 @@ NAME = "pak256_sample_bus"
 REAL_LENGTH_M = 12.0  # 実物の長さ
 WIDTH_M = 2.5
 HEIGHT_M = 3.2
+LENGTH = 9  # dat の length。手本の 2 倍の長さから
+SCALE = (1.22, 1.30)  # (幅, 高さ) の倍率
 SS = 3  # 描くときの拡大（縁をなめらかにしてから、半透明を切る）
 
 # 色（makeobj の特別な色を避ける。_SPECIAL に当たれば 1 ずらす）
@@ -56,8 +59,7 @@ def draw_cell(direction, marker, emulate_right=False):
     （tools/vehicles.py の DRIVELEFT_64）をあらかじめ引いて描く。本体は左側通行のとき絵をずらすだけなので、
     この絵は右側通行の地図での普通の絵と同じ所に出る。
     """
-    length = V.length_units(REAL_LENGTH_M)
-    fr, fl, bl, br = V.footprint(direction, length, WIDTH_M, V.FRONT_UNITS)
+    fr, fl, bl, br = V.footprint(direction, LENGTH, WIDTH_M * SCALE[0], V.FRONT_UNITS)
     img = Image.new("RGBA", (V.CELL * SS, V.CELL * SS), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
@@ -67,7 +69,7 @@ def draw_cell(direction, marker, emulate_right=False):
         shift = (-lx * V.CELL / 64, -ly * V.CELL / 64)
 
     def scr(p, z):
-        sx, sy = V.to_screen(p[0], p[1], z)
+        sx, sy = V.to_screen(p[0], p[1], z * SCALE[1])
         return (sx + shift[0]) * SS, (sy + shift[1]) * SS
 
     def quad(p0, p1, z0, z1, color):
@@ -120,10 +122,10 @@ def draw_cell(direction, marker, emulate_right=False):
 
 
 def write_yaml(path, stem, name=NAME):
-    length = V.length_units(REAL_LENGTH_M)
+    length = LENGTH
     lines = [
         "# 見本のバス（絵は仮）。この表と PNG は draw_bus.py が書き出す。直すときはスクリプトを直して流し直す。",
-        f"# 実物 {REAL_LENGTH_M:g}m ÷ 1.65 = {REAL_LENGTH_M / V.M_PER_UNIT:.2f} → length {length}（docs/vehicles.md）。",
+        f"# 実物 {REAL_LENGTH_M:g}m。画面の大きさは pak128 の手本の 2 倍で、length {length}（docs/standards.md の 4 章）。",
         "obj: vehicle",
         f"name: {name}",
         "copyright: pak256.LongScale チーム",

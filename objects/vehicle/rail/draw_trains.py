@@ -1,6 +1,8 @@
 """線路の車両（気動車・付随車）の絵と表を書き出す（docs/vehicles.md の「線路の車両」・#46）。MIT License。
 絵は仮（箱を組んだ物）で、見た目は後から描き直す。
 
+- 画面の大きさは pak128.Japan の手本（`yoshi_kiha35_m`）の 2 倍（docs/standards.md の 4 章「大きさ」）。長さは実物の換算のままで、
+  幅と高さは実物の値に `tools/vehicles.py` の `RAIL_WIDTH_SCALE`・`RAIL_HEIGHT_SCALE` を掛けて描く。
 - 長さと描画位置は tools/vehicles.py の決まりで決める。線路の車両は車線のずれを付けず、線路の中心（基準点）に描く
   （`footprint(centered=True)`）。20m の車体は length=12 で、横の斜めでは 1 タイルのセル（256）に収まらないので、512 のセルに描く
   （表に cell_size: 512 と位置合わせ -128,-128 を書く。docs/layout.md の「セルの大きさ」）。
@@ -41,6 +43,7 @@ WIDTH_M = 2.8
 HEIGHT_M = 3.6
 FLOOR_M = 0.9  # 床の下面（台車の上）
 BOGIE_WIDTH_M = 2.2
+TARGET_PX = (132, 28, 24)  # yoshi_kiha35_m（66,14,12）の 2 倍
 
 # 車両の表。値は pak128 の気動車（Haru_VT98 とその付随車）の機能上の数値に合わせた（docs/vehicles.md の表）。
 VEHICLES = [
@@ -73,7 +76,7 @@ class Canvas:
         self.d = ImageDraw.Draw(self.img)
 
     def scr(self, p, z_m):
-        sx, sy = V.to_screen(p[0], p[1], z_m)
+        sx, sy = V.to_screen(p[0], p[1], z_m * V.RAIL_HEIGHT_SCALE)
         return (sx + PAD) * SS, (sy + PAD + V.RAIL_WHEEL_DROP_PX) * SS
 
     def quad(self, p0, p1, z0, z1, color):
@@ -100,8 +103,8 @@ class Canvas:
 def draw_cell(spec, direction, marker):
     """1 方向のセル（512x512、RGBA）を描く。前後が同じ形なので、逆向きに走っても崩れない。"""
     length = length_of(spec)
-    whole = V.footprint(direction, length, WIDTH_M, V.FRONT_UNITS, centered=True)
-    bogie = V.footprint(direction, length - 3, BOGIE_WIDTH_M, V.FRONT_UNITS - 1.5, centered=True)
+    whole = V.footprint(direction, length, WIDTH_M * V.RAIL_WIDTH_SCALE, V.FRONT_UNITS, centered=True)
+    bogie = V.footprint(direction, length - 3, BOGIE_WIDTH_M * V.RAIL_WIDTH_SCALE, V.FRONT_UNITS - 1.5, centered=True)
     cx = (whole[0][0] + whole[2][0]) / 2
     cy = (whole[0][1] + whole[2][1]) / 2
     c = Canvas()
