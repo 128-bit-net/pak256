@@ -323,6 +323,28 @@ class TestRoadVehicles(unittest.TestCase):
             for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
 
+    def test_standards_table_matches_specs(self):
+        # docs/standards.md の 4 章「大きさ」の表の目標 px と length が、描くスクリプトの値と同じ
+        with open(os.path.join(ROOT, "docs", "standards.md"), encoding="utf-8") as f:
+            rows = {}
+            for line in f:
+                cells = [c.strip() for c in line.strip().strip("|").split("|")]
+                if len(cells) == 6 and cells[3].isdigit():
+                    rows[cells[0]] = (tuple(int(v) for v in cells[2].split("・")), int(cells[3]))
+        for spec, row in zip(self.mod.VEHICLES, ("バス", "郵便のトラック", "石炭のトラック")):
+            self.assertEqual(rows[row], (spec["target_px"], spec["length"]), row)
+        spec_ = importlib.util.spec_from_file_location("draw_trains_t", os.path.join(RAIL_DIR, "draw_trains.py"))
+        trains = importlib.util.module_from_spec(spec_)
+        spec_.loader.exec_module(trains)
+        self.assertEqual(rows["気動車・付随車"], (trains.TARGET_PX, 12))
+
+    def test_sample_bus_has_the_bus_size(self):
+        # 見本のバスは pak256_bus と同じ大きさ
+        sample = load_draw_bus()
+        bus = next(v for v in self.mod.VEHICLES if v["name"] == "pak256_bus")
+        self.assertEqual((sample.LENGTH, sample.SCALE), (bus["length"], bus["scale"]))
+        self.assertEqual((sample.WIDTH_M, sample.HEIGHT_M), (bus["width_m"], bus["parts"][0][2]))
+
     def test_screen_size_is_twice_the_reference(self):
         # 画面の大きさが、pak128 の手本の 2 倍の目標に合う（長さは length の丸めで ±6px、幅・高さは ±2px）
         for spec in self.mod.VEHICLES:
