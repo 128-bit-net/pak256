@@ -544,6 +544,15 @@ class TestShips(unittest.TestCase):
                 self.assertLessEqual(abs(box[2] - max(xs)), TOL, f"{spec['name']} {d} 右: {box} {max(xs)}")
                 self.assertTrue(box[0] > 0 and box[1] > 0 and box[2] < 512 and box[3] < 512, f"{d}: セルからはみ出す {box}")
 
+    def test_freight(self):
+        with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:
+            text = f.read()
+        expect = {"pak256_ferry": "Passagiere", "pak256_cargo_ship": "Kohle"}
+        for spec, _, table, _ in self.each():
+            self.assertEqual(table["freight"], expect[spec["name"]])
+            self.assertEqual(docs_row(text, spec["name"])["freight"].strip("`"), expect[spec["name"]])
+            self.assertEqual("freightimage" in table, spec["name"] == "pak256_cargo_ship")
+
     def test_no_special_colors_and_binary_alpha(self):
         for spec, _, _, img in self.each():
             colors = {(r << 16 | g << 8 | b) for n, (r, g, b, a) in img.getcolors(img.width * img.height) if a}
