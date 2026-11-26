@@ -131,20 +131,20 @@ def default_client():
 # --- 作業フォルダの用意（ゲームを使わない。検査できる） ---
 
 def _is_runtime(rel):
-    """配布の zip の pak256/ の中の相対パスのうち、ゲームが読む物（最上段の *.pak・config/・text/）か。"""
-    return (rel.endswith(".pak") and "/" not in rel) or rel.split("/", 1)[0] in ("config", "text")
+    """配布の zip の pak256/ の中の相対パスのうち、ゲームが読む物（最上段の *.pak・demo.sve・config/・text/）か。"""
+    return (rel.endswith(".pak") and "/" not in rel) or rel == package.DEMO or rel.split("/", 1)[0] in ("config", "text")
 
 
 VERSION_FILE = "VERSION"  # install_local.py が書く版の名前のファイル（入れ替えのとき一緒に消す）
 
 
 def clean_pak(dest):
-    """dest の中の、入れる種類の物（最上段の *.pak・config/・text/・VERSION）だけを消す。下位のフォルダなどほかの物は残す。"""
+    """dest の中の、入れる種類の物（最上段の *.pak・demo.sve・config/・text/・VERSION）だけを消す。下位のフォルダなどほかの物は残す。"""
     if not os.path.isdir(dest):
         return
     for name in os.listdir(dest):
         path = os.path.join(dest, name)
-        if os.path.isfile(path) and (name.endswith(".pak") or name == VERSION_FILE):
+        if os.path.isfile(path) and (name.endswith(".pak") or name in (VERSION_FILE, package.DEMO)):
             os.remove(path)
         elif os.path.isdir(path) and name in ("config", "text"):
             shutil.rmtree(path)
@@ -173,12 +173,12 @@ def _zip_members(zip_path):
 
 
 def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=False):
-    """pak と config/・text/ を dest（本体の pak のフォルダ）に入れる。
+    """pak と config/・text/・demo.sve を dest（本体の pak のフォルダ）に入れる。
 
-    dest の中身は配布の zip の pak256/ と同じ形（*.pak・config・text だけ。許諾の文は入れない）。
+    dest の中身は配布の zip の pak256/ と同じ形（*.pak・config・text・demo.sve だけ。許諾の文は入れない）。
     zip_path があれば（root・build は使わない）、その zip（Release の物を含む配布の zip）から取る。無ければ手元で組んだ build/pak/ と config/・text/ から取る
     （配布用の許諾の検査は通さない。package.collect_runtime）。
-    clean は、入れる前に dest の古い *.pak・config/・text/ を消す（テストプレイのフォルダの入れ替え。ほかの物は残す）。
+    clean は、入れる前に dest の古い *.pak・demo.sve・config/・text/ を消す（テストプレイのフォルダの入れ替え。ほかの物は残す）。
     extra は、足りない物を別の pak から借りるときのファイル（試験のときだけ。コミットしない）。
     ゲームの作業フォルダ（Game）も、テストプレイのフォルダに入れる道具（tools/install_local.py。#38）も、これで入れる。
     入れた相対パスの一覧を返す。

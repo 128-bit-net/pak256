@@ -8,6 +8,7 @@
 objects/<種類>/<物>/   物。表・描く元・描いた PNG を一緒に置く
 config/               設定ファイル（simuconf.tab など。#3）
 text/                 物の名前の訳と街の名前（#10）
+demo/                 初期マップ demo.sve（下の「初期マップ」。#79）
 vendor/ami/           同梱する AMI の版の指定・組む元と許諾の文（下の「AMI の 256 版を同梱する」）
 tools/                道具（下の「道具」）
 docs/                 文書
@@ -103,7 +104,9 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `install_local.py` | 組んだ pak か配布の zip を、テストプレイのフォルダの `pak256/` に入れる（[game-check.md](game-check.md)） |
 | `pakimage.py` | 組んだ pak の画像をゲームを起動せずに取り出して見る（[game-check.md](game-check.md) の「pak の中の画像を見る」）。Pillow が要る |
 | `test_pakimage.py` | `pakimage.py` の検査（pak の読み方。makeobj があれば、組んで取り出した画素が元の PNG と合うことも） |
-| `package.py` | `build/` の pak と `config/`・`text/`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
+| `package.py` | `build/` の pak と `config/`・`text/`・`demo/demo.sve`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
+| `check_demo.py` | 初期マップ `demo/demo.sve` が使う物の名前が、`build/pak/` にあるかの検査（下の「初期マップ」。CI で流す） |
+| `test_check_demo.py` | `check_demo.py` の検査（保存データの名前の読み方・`makeobj list` の読み方） |
 | `ci/setup_makeobj.sh` | CI の Linux に makeobj を用意する |
 | `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
@@ -128,6 +131,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
+| `title_shot.py` | 起動の窓と後ろの地図を撮る道具（`-load` 無し・MCP 無し。[game-check.md](game-check.md) の「起動の画面を撮る」。Windows だけ） |
+| `test_title_shot.py` | `title_shot.py` の検査（ゲームは起動しない） |
 | `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
@@ -153,6 +158,7 @@ python -X utf8 tools/build.py
 pak256/*.pak            build/pak/ の pak（自前の物と AMI）
 pak256/config/          config/ の中身
 pak256/text/            text/ の中身
+pak256/demo.sve         demo/demo.sve（初期マップ）
 pak256/LICENSE.md
 pak256/LICENSES/        許諾の本文
 pak256/CREDITS.md
@@ -161,12 +167,38 @@ pak256/ami_license.txt  AMI の pak を入れたときだけ
 
 CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.github/workflows/docs-lint.yml`（全部の PR と main への push。版は `ci.env`）。
 
-- PR と main への push: `tools/test_*.py` の検査（`test_datgen.py` など）→ `tools/build.py`（pak を組む）→ `tools/package.py`。zip は artifact `pak256-zip` に置く。
+- PR と main への push: `tools/test_*.py` の検査（`test_datgen.py` など）→ `tools/build.py`（pak を組む）→ `tools/check_demo.py`（初期マップの物）→ `tools/package.py`。zip は artifact `pak256-zip` に置く。
 - makeobj は警告（`Warning`）でも終了コード 0 なので、`build.py` がログの `Warning`・`ERROR` の行で失敗にする。CI も同じ。
 - CI の makeobj は本家 125.0 の Linux 版で、版は手元の Windows 版と同じ 60.12（CI のログの「Makeobj version」。2026-11-26 に確かめた）。Release の pak も CI のこの makeobj で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
 - AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.8`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+
+## 初期マップ
+
+`demo/demo.sve` は、保存データが無いときに起動すると、起動の窓の後ろに映る地図（[#79](https://github.com/128-bit-net/pak256/issues/79)）。配布の zip の `pak256/demo.sve` に入る。
+
+### 本体の動き
+
+OTRP の fork の `simmain.cc` を読み、v64 で起動して確かめた（2026-11-27。[記録](records/2026-11-27_demo-map.md)）。
+
+- 本体は、読む物がほかに無いときに pak のフォルダの `demo.sve` を読む。`-load` を付けたとき、終了時の自動保存（`reload_and_save_on_quit`）のデータがあるときは、そちらが先。
+- 起動の窓が出ている間、世界は一時停止している（`modal_dialogue`）。置いた車両は後ろで走らない。建設中の絵（黄と黒の縞）も、保存した時のまま映る。
+- 画面の位置は、保存した時の位置。
+- 地図に足りない物があっても、この道では「足りない物」の窓が出ない（起動の後に窓が閉じられる）。気づけるように、下の検査がある。
+
+### 作り方
+
+1. OTRP v64 と、今の pak（`tools/install_local.py` で入れた物）で地図を作る。
+2. 後で消すつもりの物（仮の停留所・駅・見本の物）を置かない。pak から消すと、地図のその物が欠ける。
+3. 建てた直後の建物は、ゲームを進めて建設中の絵が終わってから保存する。
+4. 映したい場所に画面を合わせて保存し、`demo/demo.sve` に置き換える。圧縮は gzip・bzip2・無圧縮のどれか（`tools/check_demo.py` が読める形）。
+5. `python -X utf8 tools/build.py` の後、`python -X utf8 tools/check_demo.py` を流す。
+6. ゲームで確かめる: `-load` を付けずに起動して、地図が映ることを画面で見る（`tools/title_shot.py`。[game-check.md](game-check.md) の「起動の画面を撮る」）。保存データの中に手元のパスや個人の情報が無いことも見る。
+
+### 物を消す・名前を変えるとき
+
+CI が `tools/check_demo.py` を流し、`demo.sve` が使う `pak256_`・`ami_` の名前が組んだ pak に無ければ失敗する。失敗したら、`demo.sve` を作り直す。名前を変えない中身の変更（大きさ・way の種類など）と、`pak256_`・`ami_` で始まらない名前（貨物・地面など）は、この検査で分からない。
 
 ## AMI の 256 版を同梱する
 

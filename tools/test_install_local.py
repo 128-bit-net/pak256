@@ -27,6 +27,7 @@ class InstallLocalTest(unittest.TestCase):
         put(os.path.join(self.root, "config", "simuconf.tab"), "a = 1\n")
         put(os.path.join(self.root, "config", ".gitkeep"), "")
         put(os.path.join(self.root, "text", "ja.tab"))
+        put(os.path.join(self.root, "demo", "demo.sve"), "demo")
         put(os.path.join(self.build, "pak", "own.one.pak"), "new")
         self.dest = os.path.join(t, "play")
         put(os.path.join(self.dest, game.EXE), "exe")
@@ -55,8 +56,8 @@ class InstallLocalTest(unittest.TestCase):
 
     def test_installs_into_pak256_and_leaves_user_files(self):
         placed = self.install()
-        self.assertEqual(sorted(placed), ["VERSION", "config/simuconf.tab", "own.one.pak", "text/ja.tab"])
-        for rel in ("own.one.pak", "config/simuconf.tab", "text/ja.tab"):
+        self.assertEqual(sorted(placed), ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "text/ja.tab"])
+        for rel in ("own.one.pak", "demo.sve", "config/simuconf.tab", "text/ja.tab"):
             self.assertTrue(self.exists("pak256", *rel.split("/")), rel)
         self.assertFalse(self.exists("pak256", "config", ".gitkeep"))
         self.assertEqual(self.read("settings.xml"), "設定")
@@ -97,6 +98,18 @@ class InstallLocalTest(unittest.TestCase):
         self.assertEqual(self.read("pak256", "own.one.pak"), "new2")
         self.assertEqual(self.read("save", "a.sve"), "save")
         self.assertEqual(self.read("settings.xml"), "設定")
+
+    def test_demo_save_replaced_or_removed(self):
+        put(os.path.join(self.dest, "pak256", "demo.sve"), "old")
+        self.install()
+        self.assertEqual(self.read("pak256", "demo.sve"), "demo")
+        # 初期マップの無い古い版の zip を入れると、前の版の demo.sve は残さない（pak と合わなくなるため）
+        self.install(zip_path=self.make_zip(["pak256/a.pak"]))
+        self.assertFalse(self.exists("pak256", "demo.sve"))
+        self.install(zip_path=self.make_zip(["pak256/a.pak", "pak256/demo.sve", "pak256/sub/demo.sve"]))
+        self.assertEqual(self.read("pak256", "demo.sve"), "z:pak256/demo.sve")
+        self.assertFalse(self.exists("pak256", "sub"))
+        self.assertEqual(self.read("save", "a.sve"), "save")
 
     def test_version_file(self):
         self.install()
@@ -190,7 +203,8 @@ class InstallLocalTest(unittest.TestCase):
         names = [a for a, _ in package.collect(self.root, self.build)]
         self.assertIn("pak256/LICENSE.md", names)
         z = self.make_zip(names)
-        self.assertEqual(sorted(self.install(zip_path=z)), ["VERSION", "config/simuconf.tab", "own.one.pak", "text/ja.tab"])
+        self.assertEqual(sorted(self.install(zip_path=z)),
+                         ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "text/ja.tab"])
 
     def test_install_pak_extra_still_works(self):
         src = os.path.join(self.tmp.name, "b", "road.pak")

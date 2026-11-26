@@ -4,7 +4,7 @@ pak256.LongScale（256LS）は、中身の種類ごとに次の許諾で配布�
 
 | 中身 | 許諾 | 本文 |
 |---|---|---|
-| 素材: 絵（`.png` など）、3D の元データ（`.blend` など）、dat、音、翻訳の文、説明書 | CC BY-SA 4.0（クリエイティブ・コモンズ 表示-継承 4.0 国際） | [LICENSES/CC-BY-SA-4.0.txt](LICENSES/CC-BY-SA-4.0.txt) |
+| 素材: 絵（`.png` など）、3D の元データ（`.blend` など）、dat、音、翻訳の文、説明書、初期マップの保存データ（`demo.sve`） | CC BY-SA 4.0（クリエイティブ・コモンズ 表示-継承 4.0 国際） | [LICENSES/CC-BY-SA-4.0.txt](LICENSES/CC-BY-SA-4.0.txt) |
 | コード: dat や絵を作るスクリプト、ビルドの道具、ゲームの中で動くスクリプト（`.py`・`.nut`・`.sh`・Makefile など） | MIT License | [LICENSES/MIT.txt](LICENSES/MIT.txt) |
 
 - 個別に別の許諾を書いたファイル・フォルダは、その許諾に従います。
@@ -15,7 +15,7 @@ pak256.LongScale（256LS）は、中身の種類ごとに次の許諾で配布�
 
 ## English summary
 
-- Assets (graphics, 3D source files, dat files, sounds, translations, documentation): CC BY-SA 4.0.
+- Assets (graphics, 3D source files, dat files, sounds, translations, documentation, the demo map save `demo.sve`): CC BY-SA 4.0.
 - Code (generators, build tools, in-game scripts): MIT License.
 - Copyright remains with each author listed in `CREDITS.md`.
 - Exception: the bundled AMI add-on (`ami_*.pak` and its images, fetched from `vendor/ami`) is licensed under CC BY 4.0, not CC BY-SA. Attribution: 128na, https://github.com/128na/simutrans-addon-dev.

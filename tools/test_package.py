@@ -31,6 +31,7 @@ class PackageTest(unittest.TestCase):
         put(os.path.join(self.root, "config", "simuconf.tab"))
         put(os.path.join(self.root, "text", ".gitkeep"), "")
         put(os.path.join(self.build, "pak", "own.one.pak"))
+        put(os.path.join(self.root, "demo", "demo.sve"))
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -41,7 +42,13 @@ class PackageTest(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(self.names(), [
             "pak256/CREDITS.md", "pak256/LICENSE.md", "pak256/LICENSES/A.txt",
-            "pak256/config/simuconf.tab", "pak256/own.one.pak"])
+            "pak256/config/simuconf.tab", "pak256/demo.sve", "pak256/own.one.pak"])
+
+    def test_no_demo_stops_package_but_not_runtime(self):
+        os.remove(os.path.join(self.root, "demo", "demo.sve"))
+        with self.assertRaises(SystemExit):
+            self.names()
+        self.assertNotIn("pak256/demo.sve", [a for a, _ in package.collect_runtime(self.root, self.build)])
 
     def test_no_pak_stops(self):
         os.remove(os.path.join(self.build, "pak", "own.one.pak"))
