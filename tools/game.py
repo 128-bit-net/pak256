@@ -215,13 +215,13 @@ def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=Fals
     ゲームの作業フォルダ（Game）も、テストプレイのフォルダに入れる道具（tools/install_local.py。#38）も、これで入れる。
     入れた相対パスの一覧を返す。
     """
-    if zip_path and pak_dir:
+    if zip_path and pak_dir is not None:
         raise ValueError("zip_path と pak_dir は一緒に渡せない")
     if zip_path:
         members = _zip_members(zip_path)
         if not any(rel.endswith(".pak") and "/" not in rel for rel, _ in members):
             raise RuntimeError(f"zip に pak が無い: {zip_path}")
-    elif pak_dir:
+    elif pak_dir is not None:
         members = None
         sources = pak_dir_sources(pak_dir, root)
     else:
@@ -446,7 +446,7 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
     sve = os.path.join(env, "save", save + ".sve")
     if not os.path.isfile(sve):
         raise RuntimeError(f"保存データが無い: {sve}")
-    if pak_dir:  # 作業フォルダを消す前に止める
+    if pak_dir is not None:  # 作業フォルダを消す前に止める（空文字も止める。黙って build/pak/ にしない）
         pak_dir_sources(pak_dir, root)
         p, w = (os.path.normcase(os.path.realpath(d)) for d in (pak_dir, work))
         if p == w or p.startswith(w + os.sep):
@@ -660,7 +660,7 @@ class Game:
                  screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None,
                  rewrite_roads=True, pak_dir=None):
         check_port(port, port_range)
-        self.pak_dir = os.path.abspath(pak_dir) if pak_dir else None
+        self.pak_dir = os.path.abspath(pak_dir) if pak_dir else pak_dir  # 空文字は abspath しない（今の場所になる）
         self.rewrite_roads = rewrite_roads
         self.simuconf_extra = check_simuconf_lines(simuconf_extra)
         self.env, self.save, self.port = os.path.abspath(env), save, port

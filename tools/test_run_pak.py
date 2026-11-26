@@ -120,7 +120,7 @@ class PakDirTest(Base):
         put(os.path.join(no_conf, "a.pak"))
         os.makedirs(os.path.join(no_conf, "config"))
         inside = os.path.join(self.work, game.PAK_DIR)
-        for folder in (empty, no_conf, os.path.join(empty, "nothing"), inside):
+        for folder in ("", empty, no_conf, os.path.join(empty, "nothing"), inside):
             with self.subTest(folder):
                 with self.assertRaises(RuntimeError):
                     game.prepare_workdir(self.env, self.work, "map", root=self.root, build=self.build, pak_dir=folder)
