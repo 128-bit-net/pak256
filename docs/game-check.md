@@ -24,6 +24,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 | `--extra-pak` | 足りない物を別の pak から借りる（試験のときだけ。コミットしない） |
 | `--night` | 昼夜の切り替えを止めない（夜の灯りを確かめるとき） |
 | `--keep` | 閉じた後も作業フォルダ（既定は `work/game/<ポート>/`）を残す |
+| `--keep-save-roads` | 保存データの写しの道路名を書き換えない（下の「保存データの道路名」） |
 | `--interactive` | 起動して命令を待つ（下の「開いたまま使う」） |
 | `--mcp-client` | OTRP 本体のリポジトリの `mcp_client.py`（環境変数 `MCP_CLIENT`。既定は pak256 の checkout の隣の `simutrans/` の中） |
 
@@ -32,6 +33,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 検証環境から写すのは、実行ファイル・DLL・`config/`・`font/`・`themes/`・`text/`・`script/`・`music/` と、指定した保存データだけ。**`settings.xml` は写さない**（本体が送信用の記録を持ち、起動のたびに使用状況を外へ送るため）。`pak128` などの絵・`addons/` も写さない。検証環境には書かない。
 - 手元で組んだ pak（`build/pak/` の自前の物と AMI）と `config/`・`text/` を、作業フォルダの `pak/` に入れる（配布の zip の `pak256/` と同じ中身）。
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
+- 写した保存データの街の道路・街どうしの道路の名前を、pak の `config/simuconf.tab` の指定に書き換える（下の「保存データの道路名」）。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
 - ゲームは**起動したときの PID で閉じる**（実行ファイルの名前では止めない）。閉じた後に `tasklist` で残りを確かめ、残ったら知らせて終了コード 1 で終わる（その作業フォルダは消せないので残す）。
 - **本体が FATAL ERROR・通知の窓で止まったら、待たずに閉じて失敗で終わる**（[#132](https://github.com/128-bit-net/pak256/issues/132)・[#142](https://github.com/128-bit-net/pak256/issues/142)）。本体は、起動した後の失敗では「PRESS ANY KEY」の画面のまま残って MCP に答えない。起動の途中の失敗（pak が無いなど）では「Fatal Error」の通知の窓（`dr_fatal_notify`）が出る。窓のまま残った回（45 秒以上）と、12〜24 秒で本体が自分で終了コード 1 になった回があり、違いの理由は分かっていない。`game.py` は MCP の答えや `settle` を待つ間も起動のログ（`game.log`）を見て、`FATAL ERROR` か `dr_fatal_notify: ERROR:` が出ていたら、起動した PID を閉じ、その行から後ろのエラーの文を出して終了コード 1 で終わる。起動の待ち・Squirrel・撮影・`settle`・`--interactive` の見張りで同じ。ほかの道具から `Game` を使うときは `game.GameFatalError`（`RuntimeError` の一種）が上がる。見るのはこの 2 つの文だけ。通知の窓を実機で確かめたのは、`ground.Outside.pak` を抜いた起動だけ（2026-11-26、OTRP v64。起動から約 1 秒で文がログに出て、コマンドは終了コード 1）。フォントが無いときなど、ほかの `dr_fatal_notify` は本体のソースを読んで同じ文が出ると見ている。
@@ -48,6 +50,17 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 昼夜は `config/simuconf.tab` の末尾の `day_night_shift = 0` で止める（pak の側の `<pak>/config/simuconf.tab` に足しても効く）。夜の灯りを確かめるときだけ外す（`--night`）。昼まで早送りして撮り直すのは、昼夜が飛んで当てにならない（2026-11-25、#44）。
 - `-load` の保存データの名前は、拡張子なしで渡すと確実。
 - 本体は起動画面（地図を作る前）の間は MCP に答えないので、スクリプトで新しい地図は作れない。平らな保存データを `-load` で読み、地形はスクリプトで作る（2026-11-25、#5）。新しい地図の作成画面で生える物（木など）はスクリプトで確かめられないので、PR の「確かめていないこと」に書く。
+
+## 保存データの道路名（#151）
+
+保存データは、街の道路（`city_road`）と街どうしの道路（`intercity_road`）の名前の一覧を自分で持つ。`flat_512_left_v64` の一覧は pak128 の道路の名前で、pak256 には無いので、そのまま読むと本体が代わりの道路を選び、街の道路が壁用の `ami_road_local_base_single` になる（2026-11-26、#147。[記録](records/2026-11-26_town-road.md)）。
+
+`game.py` は、起動の前に**作業フォルダの写し**の 2 つの一覧を、作業フォルダの `pak/config/simuconf.tab` の指定（名前・登場年・退役年）に丸ごと書き換える。検証環境の保存データは変えない。書き換えたときは `[game] 保存データの写しの道路名を書き換えた（…）` と出る。pak256 の指定のとおりなら、街の道路は新しい地図の指定と同じ `ami_road_local` になる（2026-11-26、OTRP v64、`flat_512_left_v64`。街の道路の道具と `tool_add_city` の後の道で確かめた。本体が保存し直した物の 2 つの一覧が指定の値になることも見た）。
+
+- **既定で書き換える。** 指定しないと気づかずに違う絵を見ることになるため。
+- **保存された名前そのものを確かめるときは止める**: コマンドは `--keep-save-roads`、`Game`・`prepare_workdir` は `rewrite_roads=False`。下の「保存データの互換の確かめ」はこれに当たる。`docs/records/2026-11-26_town-road/check.py` は書き換える前の道具に合わせたスクリプトで、そのままでは流れない。
+- `simuconf.tab` に指定（`city_road[0]`・`intercity_road[0]` の行）の無い方の一覧は、保存データのまま残す。
+- 扱う保存データは、gzip・bzip2・無圧縮のバイナリの形。ほかの圧縮の形や、一覧が 1 か所に決まらないときは、写しに触らずに「保存データの道路名は書き換えていない（理由）」と出して、そのまま起動する。XML の形は試していない。
 
 ## 道路と線路の道が無い pak では起動できない
 
@@ -71,7 +84,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 ## スクリプトで物を置くときの癖
 
 - 保存データ `flat_512_left_v64` は x が 256 以上が雪の気候。温帯の物は x<256 に置く（2026-11-25、#11）。
-- `flat_512_left_v64` の街の道路（街の道路の道具・街が建てる道）は `ami_road_local_base_single` になる。保存データが pak128 の道路の名前を持つため。pak256 の新しい地図の指定は `ami_road_local`（2026-11-26、#147。[記録](records/2026-11-26_town-road.md)）。
+- `flat_512_left_v64` の街の道路（街の道路の道具・街が建てる道）は、`game.py` が道路名を書き換えるので `ami_road_local`。書き換えを止めると `ami_road_local_base_single`（上の「保存データの道路名」）。
 - **公共のプレーヤーで流す**: Squirrel の道具は、呼び出しの `player_nr`（MCP の `run_squirrel` の引数）のプレーヤーで使われる。スクリプトの中で `player_x(1)` と書くだけでは変わらない。`Game.sq`・`sq_file`・`road`・`station`・`climate` は `player_nr=1` を、コマンドは `--player-nr 1` を渡す（開いたまま使うときは `--send` の側に付ける。`--interactive` には付けない。2026-11-26、[#142](https://github.com/128-bit-net/pak256/issues/142)）。
 - **歩道つきの街の道路**は `Game.city_road(x1, y1, x2, y2)`（公共のプレーヤーで `tool_build_cityroad`）。公共でないと歩道は付かず、`road(..., player_nr=1)`（`tool_build_way`）でも付かない（2026-11-26、`flat_512_left_v64` に AMI の道路を足した組で `has_sidewalk()` を比べた。#142）。
 - 道路は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>")`、停留所は `command_x(tool_build_station).work(pl, coord3d, "<停留所の name>")`。停留所の引数に番号を付けた `"1,<name>"` は失敗する（2026-11-25、#44。`Game.road`・`Game.station`）。
@@ -258,7 +271,7 @@ python -X utf8 tools/pakimage.py sheet ami_road_local:6/8 ami_road_local_base_si
 | `--scale`・`--cols`・`--crop` | `sheet` だけ。最近傍の拡大の倍率、横に並べる数、マスの中の `x0,y0,x1,y1` |
 
 - `export` の PNG は RGBA で、透明な画素は透明のまま。画像はマスの中の元の位置に置く（dat のずらしが効いた位置）。`sheet` の透明な所は緑で塗り、下に名前と道筋を書く（画像の無い番号は `(empty)`）。
-- 色は pak の中の値で、ゲームの画面の色ではない。普通の色は 15bit（元の PNG の下位 3 ビットは落ちる）。プレーヤー色・灯りの色は dat に描く元の色で出る（ゲームではプレーヤーと昼夜で変わる）。半透明の画素は不透明度に直す。
+- 色は pak の中の値で、ゲームの画面の色ではない。普通の色は 15bit（元の PNG の下位 3 ビットは落ちる）。書き出す PNG は 5 ビットの値を 0〜255 に広げる（`(v << 3) | (v >> 2)`。元の 248 は 255 になる）ので、元の PNG と値で比べるときは両方を `>> 3` してそろえる。プレーヤー色・灯りの色は dat に描く元の色で出る（ゲームではプレーヤーと昼夜で変わる）。半透明の画素は不透明度に直す。
 - 読むのは pak の版 1003 まで、画像の版 2・3（makeobj 60.12 は 3）。
 
 道筋の番号の意味（本体の `descriptor/writer/` で書く順を確かめた種類。0 始まり。下に無い種類は `tree` の大きさと枚数で見る）:
@@ -277,7 +290,7 @@ python -X utf8 tools/pakimage.py sheet ami_road_local:6/8 ami_road_local_base_si
 
 ## 保存データの互換の確かめ
 
-版を出す前に、前の版の保存データが読めることを確かめる（例: [v0.4.0 の記録](records/2026-11-26_v040-check.md)。スクリプトはその記録のフォルダ）。
+版を出す前に、前の版の保存データが読めることを確かめる（例: [v0.4.0 の記録](records/2026-11-26_v040-check.md)。スクリプトはその記録のフォルダ）。保存データを読み込む側は、道路名の書き換えを止める（`--keep-save-roads`・`Game(..., rewrite_roads=False)`。遊ぶ人の読み込みと同じにする）。
 
 1. **物の名前を先に比べる。** 前の版の Release の zip と、今の main の CI の zip を展開し、`makeobj list` で物の種類と名前の違いを出す。保存データは名前で引くので、無くなった名前・変わった名前が、確かめる対象になる。前の版の説明や記録でなく、zip の中身で判断する（AMI の pak の中の物は、pak256 の側で使っていなくても置ける。v0.3.1 の AMI の停留所がそうだった）。
 2. **無くなる物を置いた保存データを作る。** 前の版の zip の中身だけで起動し（`Game(build=…, root=…)`）、いつもの運送の場面に加えて、無くなる物を置き、それを使う路線も出して、`world.save_game` で保存する。いつもの場面のスクリプトを流すだけでは、消える物を確かめたことにならない。
@@ -302,4 +315,4 @@ python -X utf8 docs/records/2026-11-26_passengers/stats.py <出力.jsonl>
 
 `tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、保存データの写しの道路名の書き換え（合成の保存データ。gzip・bzip2・無圧縮、元のファイルが変わらないこと、扱えない形・一覧が無い・2 か所のとき触らないこと、止める指定）、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

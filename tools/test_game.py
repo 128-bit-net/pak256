@@ -1,5 +1,8 @@
 """game.py の検査（ゲームは起動しない）。python -X utf8 -m unittest discover -s tools -p "test_*.py" """
+import bz2
+import gzip
 import os
+import struct
 import sys
 import subprocess
 import tempfile
@@ -51,6 +54,115 @@ class Base(unittest.TestCase):
         with open(os.path.join(self.work, *p), encoding="utf-8", newline="") as f:
             return f.read()
 
+
+
+def road_list(*roads):
+    """保存データの道路の一覧の形（数と、名前の長さ・名前・登場・退役）を作る。"""
+    out = struct.pack("<H", len(roads))
+    for name, intro, retire in roads:
+        out += struct.pack("<H", len(name)) + name.encode() + struct.pack("<HH", intro, retire)
+    return out
+
+
+class SaveRoadTest(Base):
+    # 一覧の前後は、道路の一覧に読めない中身
+    HEAD = b"Simutrans 0.122.0.64-pak128\n\x00" + bytes(40)
+    TAIL = bytes(40) + b"tail"
+    OLD = (road_list(("CityRoad_030", 0, 22920), ("Road_040", 22920, 23400), ("Road_050", 23280, 36044))
+           + road_list(("Road_070", 22920, 23580), ("Road_090", 23580, 36044), ("Road_055", 20400, 22920),
+                       ("Road_030", 0, 20400)))
+    CONFIG = ("intercity_road[0] = ami_road_local,0,1930\nintercity_road[1] = ami_road_general,1930,2999\n"
+              "# 注釈 city_road[0] = no\ncity_road[0] = ami_road_local,0,2999\n")
+    NEW = (road_list(("ami_road_local", 0, 35988))
+           + road_list(("ami_road_local", 0, 23160), ("ami_road_general", 23160, 35988)))
+
+    def setUp(self):
+        super().setUp()
+        put(os.path.join(self.root, "config", "simuconf.tab"), self.CONFIG)
+        self.sve = os.path.join(self.env, "save", "map.sve")
+        self.data = self.HEAD + self.OLD + self.TAIL
+
+    def put_save(self, raw):
+        with open(self.sve, "wb") as f:
+            f.write(raw)
+
+    def copy_bytes(self):
+        with open(os.path.join(self.work, "save", "map.sve"), "rb") as f:
+            return f.read()
+
+    def test_road_settings_follows_game_reading(self):
+        conf = os.path.join(self.tmp.name, "s.tab")
+        put(conf, "city_road[0] = first\ncity_road[0] = second,1,2\ncity_road[2]=third,1950\nintercity_road[1] = x,1,2\n")
+        # [0] の無いキーは返さない。同じキーは先の行。省いた年は 0
+        self.assertEqual(game.road_settings(conf), {"city_road": [("first", 0, 0), ("third", 23400, 0)]})
+
+    def test_rewrites_copy_only(self):
+        for codec in (gzip, bz2, None):
+            with self.subTest(codec=codec):
+                raw = codec.compress(self.data) if codec else self.data
+                self.put_save(raw)
+                self.prepare()
+                got = self.copy_bytes()
+                self.assertEqual(codec.decompress(got) if codec else got, self.HEAD + self.NEW + self.TAIL)
+                with open(self.sve, "rb") as f:
+                    self.assertEqual(f.read(), raw)  # 検証環境の保存データは変えない
+
+    def test_keep_save_roads(self):
+        self.put_save(gzip.compress(self.data))
+        self.prepare(rewrite_roads=False)
+        self.assertEqual(gzip.decompress(self.copy_bytes()), self.data)
+
+    def test_list_without_setting_is_kept(self):
+        put(os.path.join(self.root, "config", "simuconf.tab"), "city_road[0] = ami_road_local,0,2999\n")
+        self.put_save(self.data)
+        self.prepare()
+        old_inter = self.OLD[len(road_list(("CityRoad_030", 0, 0), ("Road_040", 0, 0), ("Road_050", 0, 0))):]
+        self.assertEqual(self.copy_bytes(), self.HEAD + road_list(("ami_road_local", 0, 35988)) + old_inter + self.TAIL)
+
+    def test_simuconf_extra_wins(self):
+        self.put_save(self.data)
+        self.prepare(simuconf_extra=["city_road[0] = other_road"])
+        self.assertIn(road_list(("other_road", 0, 0)), self.copy_bytes())
+
+    def test_unusable_save_is_untouched(self):
+        conf = os.path.join(self.tmp.name, "s.tab")
+        put(conf, self.CONFIG)
+        path = os.path.join(self.tmp.name, "a.sve")
+        cases = {"圧縮": b"\x28\xb5\x2f\xfd" + self.data, "0 か所": self.HEAD + self.TAIL,
+                 "2 か所": self.HEAD + self.OLD + self.TAIL + self.OLD + self.TAIL}
+        for reason, raw in cases.items():
+            with self.subTest(reason=reason):
+                with open(path, "wb") as f:
+                    f.write(raw)
+                self.assertIn(reason, game.rewrite_save_roads(path, conf))
+                with open(path, "rb") as f:
+                    self.assertEqual(f.read(), raw)
+
+    def test_nothing_to_do(self):
+        conf = os.path.join(self.tmp.name, "s.tab")
+        path = os.path.join(self.tmp.name, "a.sve")
+        for config, data in ((self.CONFIG, self.HEAD + self.NEW + self.TAIL), ("a = 1\n", self.data)):
+            put(conf, config)
+            with open(path, "wb") as f:
+                f.write(data)
+            self.assertIsNone(game.rewrite_save_roads(path, conf))
+            with open(path, "rb") as f:
+                self.assertEqual(f.read(), data)
+
+    def test_repo_simuconf_has_both_lists(self):
+        wanted = game.road_settings(os.path.join(game.ROOT, "config", "simuconf.tab"))
+        self.assertEqual(sorted(wanted), ["city_road", "intercity_road"])
+
+    def test_game_and_command_pass_the_switch(self):
+        self.assertTrue(game.Game(self.env, "map", 47880).rewrite_roads)
+        self.assertFalse(game.Game(self.env, "map", 47880, rewrite_roads=False).rewrite_roads)
+        for flag, expected in (([], True), (["--keep-save-roads"], False)):
+            argv = ["game.py", "--env", self.env, "--save", "map", "--port", "47880", *flag]
+            with mock.patch.object(sys, "argv", argv), mock.patch.object(game, "Game") as made:
+                made.return_value.__enter__.return_value.left_over = False
+                made.return_value.left_over = False
+                game.main()
+            self.assertEqual(made.call_args.kwargs["rewrite_roads"], expected)
 
 
 class GameToolTest(Base):
