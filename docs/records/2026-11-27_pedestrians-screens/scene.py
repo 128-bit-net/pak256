@@ -1,7 +1,7 @@
 """歩行者の確かめと撮影（#172）。MIT License。
 温帯（x<256）と雪の気候（x>=256）に、同じ並びの街 2 つ・道・バス停・バスと郵便のトラックを置き
 （tools/vehicle_check/road_stop_bus.nut）、バス停の周りを何枚も撮る。
-使い方（リポジトリの直下から。先に tools/build.py。--pak は歩行者を差し替えた pak のフォルダ）:
+使い方（リポジトリの直下から。先に tools/build.py。歩行者を差し替えた pak は同じフォルダの variants.py で作る）:
     python -X utf8 docs/records/2026-11-27_pedestrians-screens/scene.py <検証環境> <ポート> <pak のフォルダ> <出力> [枚数]
 corners を足すと、角のタイル（斜めの向き）にいる歩行者も撮る（印の pak で使う）。"""
 import os

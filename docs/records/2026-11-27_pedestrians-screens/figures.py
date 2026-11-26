@@ -1,5 +1,7 @@
 """PR と記録の画像を作る（#172）。MIT License。scene.py が撮った画面（work/ の下。git に入れない）から切り出す。
-使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-27_pedestrians-screens/figures.py <scene.py の出力の親（work）> <出力>"""
+使い方（リポジトリの直下から）: python -X utf8 docs/records/2026-11-27_pedestrians-screens/figures.py <scene.py の出力の親（work）> <出力>
+歩く位置の図（walk.py places の出力）だけを作るときは、末尾に positions を足す。
+切り出すコマの名前と座標は、記録した回の物（歩行者の出る場所は回ごとに違うので、撮り直したら直す）。"""
 import os
 import sys
 
@@ -41,6 +43,30 @@ def stack(pages, path, horizontal=False):
         else:
             y += p.height + 8
     page.save(os.path.join(out, path), optimize=True)
+
+
+# 6. 歩く位置（walk.py places の 16px の回）。上が等倍で見てほしい人を黄色の枠で囲み、下が最近傍の 3 倍
+def spot(path, people, text):
+    """(895, 576) を中心にした 400x260 に、人の枠（切り出しの中の座標）を描き、3 倍の切り抜きを下に並べる。"""
+    im = crop(path, (-200, -130, 200, 130))
+    zooms = [im.crop((x - 40, y - 30, x + 40, y + 20)).resize((240, 150), Image.NEAREST) for x, y in people]
+    marked = im.copy()
+    d = ImageDraw.Draw(marked)
+    for x, y in people:
+        d.rectangle((x - 14, y - 18, x + 14, y + 10), outline=(255, 230, 0))
+    page = labeled(marked, text, 1)
+    out_page = Image.new("RGB", (max(page.width, 248 * len(zooms)), page.height + 158), (255, 255, 255))
+    out_page.paste(page, (0, 0))
+    for i, z in enumerate(zooms):
+        out_page.paste(z, (248 * i, page.height + 8))
+    return out_page
+
+
+if "positions" in sys.argv:
+    stack([spot("places/straight_10_67_60.png", ((243, 92), (130, 140)), "直線 x=67,y=60"),
+           spot("places/cross_07_69_60.png", ((253, 97),), "交差点 x=69,y=60"),
+           spot("places/stairs_09_66_106.png", ((215, 78), (236, 160)), "斜めの道 x=66,y=106")], "6_positions.png", horizontal=True)
+    sys.exit()
 
 
 # 1. 大きさ違いを同じ画面の同じ位置に貼った比べ（地は 10px の回の撮影。人は絵をそのまま貼る）
