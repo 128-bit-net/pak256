@@ -248,15 +248,38 @@ def paved_tile(corners, base, line):
     return dg.from_pixels(pix)
 
 
+def imageid_corners(i):
+    """本体の imageid（単段は slopetable の値 0〜14、複段は slopetable + 12 で 15〜26）の坂の 4 隅。"""
+    if i < 15:
+        return slope_corners(SINGLE_SLOPES[i])
+    return slope_corners(SINGLE_SLOPES[i - 12], 2)
+
+
+# 道の乗る坂の imageid（平ら、単段 4 向き、複段 4 向き）。3 の倍数で、本体は +1 を雪、+2 を雪線のすぐ下の坂の絵に引く（boden.cc）
+WAY_IMAGEIDS = tuple(range(0, 27, 3))
+
+
+def build_sidewalk(outdir):
+    """Sidewalk。Image[imageid] が夏、imageid+1 が雪、imageid+2（雪線のすぐ下）は空き（本体は夏の絵を使う）。"""
+    sheet = Sheet("sidewalk", 2 * len(WAY_IMAGEIDS), TILE, cols=len(WAY_IMAGEIDS))
+    images = {}
+    for k, imageid in enumerate(WAY_IMAGEIDS):
+        corners = imageid_corners(imageid)
+        for row, (base, line) in enumerate((((150, 150, 150), (110, 110, 110)), ((216, 224, 238), (190, 202, 224)))):
+            n = row * len(WAY_IMAGEIDS) + k
+            sheet.put(n, paved_tile(corners, base, line))
+            images[imageid + row] = sheet.ref(n)
+    sheet.save(outdir)
+    lines = [f"Image[{i}]={images.get(i, '-')}" for i in range(27)]
+    write_dat(outdir, "sidewalk.dat", "misc", "Sidewalk", lines, TILE,
+              "歩道つきの道の下の地面。番号は 坂（0・3・…・24）+ 0 夏・1 雪・2 雪線のすぐ下（空き）。docs/gui.md の「坂の番号」")
+
+
 def build_ground_like(outdir, fname, name, base, line, note):
-    """Sidewalk・TunnelTexture。番号は本体の imageid（単段 0〜14、複段は slopetable + 12 で 12〜26）。"""
+    """TunnelTexture。本体は坂の imageid の絵だけを引く（tunnelboden.cc）。雪の絵は無い。"""
     sheet = Sheet(fname, 27, TILE, cols=9)
     for i in range(27):
-        if i < 15:
-            corners = slope_corners(SINGLE_SLOPES[i])
-        else:   # 複段（番号 12〜14 は単段と重なるので、単段を使う）
-            corners = slope_corners(SINGLE_SLOPES[i - 12], 2)
-        sheet.put(i, paved_tile(corners, base, line))
+        sheet.put(i, paved_tile(imageid_corners(i), base, line))
     sheet.save(outdir)
     write_dat(outdir, fname + ".dat", "misc", name, image_lines(sheet, {i: True for i in range(27)}, False), TILE, note)
 
@@ -423,10 +446,9 @@ def main():
     build_menu(outdir, used)
     build_cursors(outdir, 16)
     build_construction(outdir)
-    build_ground_like(outdir, "sidewalk", "Sidewalk", (150, 150, 150), (110, 110, 110),
-                      "歩道つきの道の下の地面。番号は本体の imageid（単段 0〜14、複段 15〜26。12〜14 は単段と重なる）。雪の絵は無い")
+    build_sidewalk(outdir)
     build_ground_like(outdir, "tunnel_texture", "TunnelTexture", (70, 60, 55), (45, 38, 35),
-                      "トンネルの中の地面。並びは Sidewalk と同じ")
+                      "トンネルの中の地面。番号は坂の imageid（本体が引くのは 0・3・…・24）")
     build_ribi_arrow(outdir)
     build_power(outdir)
     build_symbols(outdir)

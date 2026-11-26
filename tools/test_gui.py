@@ -12,6 +12,8 @@ import re
 import sys
 import unittest
 
+from PIL import Image
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUI = os.path.join(ROOT, "objects", "gui")
 sys.path.insert(0, GUI)
@@ -53,6 +55,35 @@ class GuiTest(unittest.TestCase):
         found = read_dats()
         missing = [f"{o}.{n}" for o, names in REQUIRED.items() for n in names if (o, n) not in found]
         self.assertEqual(missing, [])
+
+    def test_sidewalk_numbers(self):
+        """Sidewalk は本体（boden.cc）の引き方の並び: 道の乗る坂の番号に夏、+1 に同じ形の雪、+2（雪線のすぐ下）は空き（#136）。"""
+        # 坂の符号（sw + 3*se + 9*ne + 27*nw）→ 本体の imageid（slopetable。複段は + 12）
+        way_slopes = {0: 0, 4: 3, 12: 6, 28: 9, 36: 12, 8: 15, 24: 18, 56: 21, 72: 24}
+        refs = {}
+        with open(os.path.join(GUI, "sidewalk.dat"), encoding="utf-8") as f:
+            for ln in f:
+                m = re.match(r"Image\[(\d+)\]=(.*)", ln.strip())
+                if m:
+                    refs[int(m.group(1))] = m.group(2).strip()
+        self.assertEqual(sorted(refs), list(range(27)))
+        with Image.open(os.path.join(GUI, "sidewalk.png")) as f:
+            sheet = f.convert("RGBA")
+
+        def cell(ref):
+            _, row, col = ref.split(".")
+            x, y = int(col) * 256, int(row) * 256
+            return sheet.crop((x, y, x + 256, y + 256))
+
+        for code, i in way_slopes.items():
+            summer, snow = cell(refs[i]), cell(refs[i + 1])
+            corners = (code % 3, code // 3 % 3, code // 9 % 3, code // 27)
+            spans = draw_gui.dg.column_span(*corners)
+            shape = bytes(255 if y >= 40 and draw_gui.dg.covered(spans, x, y) else 0 for y in range(256) for x in range(256))
+            self.assertEqual(summer.getchannel("A").tobytes(), shape, f"番号 {i} は坂 {code} の形でない")
+            self.assertEqual(snow.getchannel("A").tobytes(), shape, f"番号 {i + 1}（雪）が番号 {i} と違う形")
+            self.assertGreater(sum(snow.convert("L").tobytes()), sum(summer.convert("L").tobytes()), f"番号 {i + 1} が雪の色でない")
+            self.assertEqual(refs[i + 2], "-", f"番号 {i + 2}（雪線のすぐ下）")
 
     def test_menuconf_icons_fit(self):
         found = read_dats()
