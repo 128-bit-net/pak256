@@ -30,7 +30,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
-| `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・港（`ports/`。#154）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
+| `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・路面電車の停留所（`tram_stops/`。#153）・港（`ports/`。#154）。どれも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
@@ -123,7 +123,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。船と港の確かめは `ship.nut`・`ship_ports.nut`（#154）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。

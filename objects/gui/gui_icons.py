@@ -624,6 +624,19 @@ def g_slope_tool(c):
     arrow(c, 78, 28, 0, 30, YEL, 8, 12)
 
 
+def g_tram_tool(c):
+    """路面電車の道具: 前から見た車体と、その下の 2 本のレール。"""
+    c.line([(64, 14), (64, 28)], 6, GRY)
+    c.line([(46, 14), (82, 14)], 6, GRY)
+    c.rect(34, 28, 94, 96, YEL, r=14, outline=W, w=3)
+    c.rect(44, 40, 84, 66, DRK, r=4)
+    c.rect(34, 76, 94, 86, RED)
+    for x in (48, 80):
+        c.ell(x - 5, 82, x + 5, 92, W)
+    for x0, x1 in ((46, 30), (82, 98)):
+        c.line([(x0, 98), (x1, 118)], 7, W)
+
+
 def g_road_tool(c):
     road(c)
 
@@ -907,6 +920,7 @@ ICONS = {
     # ツールバーの行で指定する番号（BarTools）
     ("bar", 0): g_slope_tool,
     ("bar", 1): g_rail_tool,
+    ("bar", 3): g_tram_tool,
     ("bar", 4): g_road_tool,
     ("bar", 7): g_special,
     ("bar", 8): g_list,

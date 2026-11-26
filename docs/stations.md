@@ -98,6 +98,19 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 - 川は確かめていない。川の物（`river_type` に指定する道）が pak に無いため。[#158](https://github.com/128-bit-net/pak256/issues/158) で行う。
 - ゲームでの確かめは [記録](records/2026-11-26_ships.md)。
 
+# 路面電車の停留所（pak256 の物）
+
+[#153](https://github.com/128-bit-net/pak256/issues/153)。置き場は `objects/station/tram_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す。道路の停留所の `draw_stops.py` の関数と定数（白線の外の帯、向きの絵、道具の絵）を読んで使う（写して増やさない）。
+
+| `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
+|---|---|---|---|---|---|
+| `pak256_tram_stop` | `building` | `stop` | `tram_track` | 旅客（`enables_pax`。郵便・貨物は扱わない） | 路面電車の停留所 / Tram Stop |
+
+- 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
+- 奥の側に緑の屋根の待合（高さ 2.9m）のある乗り場、手前の側に低い歩道。設備は道路の停留所と同じく白線の外に置くので、道路に敷いた軌道でも土の上の専用の軌道でも使う（`tools/test_stations.py` の白線の検査は `tram_track` の停留所にも掛かる）。
+- 向きの絵は下の「向きの絵」と同じ並び。置くのは直線の軌道の升だけ（交差する道の升には置けない。街の道がつながった升に置こうとすると `No through station here!` になった）。
+- ゲームでの確かめは [記録](records/2026-11-26_tram.md)。
+
 # 道路の車庫（AMI の物）
 
 道路の車庫は、仮の物（`pak256_road_depot`。[#58](https://github.com/128-bit-net/pak256/issues/58)）を [#64](https://github.com/128-bit-net/pak256/issues/64) で消し、AMI の 256 版の `ami_road_depot`（`ami-256-alpha.2` の `ami_road.pak`。[layout.md](layout.md) の「AMI の 256 版を同梱する」）に置き換えた。pak256 には車庫を置かない。ゲームでの確かめは [記録](records/2026-11-25_ami-road-depot.md)。
