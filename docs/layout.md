@@ -106,6 +106,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
 | `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
 | `test_ground.py` | コミットしてある気候の地面の模様（`texture-climate.png`）が、斜め格子の周期で隣のタイルとつながり、透明な画素が無いことの検査（[ground.md](ground.md)。Pillow が要る） |
+| `test_frames.py` | 地面の印（`Marker`）・格子の線（`Borders`）・タイルのカーソルの枠が、地面の絵の縁と画素単位で一致し、両端の高さが同じ辺が横 2px・縦 1px の階段であることの検査（[ground.md](ground.md) の「枠の線」。Pillow が要る） |
 | `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
 | `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
