@@ -165,10 +165,14 @@ def fetch(out_dir):
     return paks
 
 
-def main():
-    if len(sys.argv) != 2:
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if argv in (["-h"], ["--help"]):
+        print(__doc__)
+        return
+    if len(argv) != 1 or argv[0].startswith("-"):  # 知らない引数を出力のフォルダの名前にしない（#111）
         sys.exit(__doc__)
-    paks = fetch(sys.argv[1])
+    paks = fetch(argv[0])
     print(f"[fetch_ami] {len(paks)} 個の pak を置いた" if paks else "[fetch_ami] AMI の取り方が無いので入れない")
 
 

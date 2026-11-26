@@ -48,6 +48,28 @@ class SettingsTest(unittest.TestCase):
         self.assertEqual(env["SHEET_BLENDER"], "blender.exe")
 
 
+class WayEdgesStepTest(unittest.TestCase):
+    def run_step(self, result, partial):
+        with mock.patch.object(B.check_way_edges, "check", return_value=result) as check, mock.patch("builtins.print"):
+            B.step_way_edges("ami", partial)
+        check.assert_called_once_with(os.path.join("ami", "src256"), partial)
+
+    def test_passes_and_fails(self):
+        self.run_step((3, []), False)
+        for result, partial in (((3, ["x"]), False), ((3, ["x"]), True), ((0, []), False)):
+            with self.assertRaises(SystemExit, msg=(result, partial)):
+                self.run_step(result, partial)
+
+    def test_partial_without_ways(self):
+        self.run_step((0, []), True)
+
+    def test_step_check_runs_it(self):
+        with mock.patch.object(B, "run"), mock.patch.object(B, "find_dat_linter", return_value="dat_linter"), \
+                mock.patch.object(B, "step_way_edges") as edges, mock.patch("builtins.print"):
+            B.step_check("ami", {}, False)
+        edges.assert_called_once_with("ami", False)
+
+
 class StepTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

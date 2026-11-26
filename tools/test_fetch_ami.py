@@ -258,5 +258,19 @@ class FetchTest(unittest.TestCase):
             fetch_ami.fetch(self.out)
 
 
+class ArgsTest(unittest.TestCase):
+    def test_help_does_not_fetch(self):
+        for arg in ("-h", "--help"):
+            with mock.patch.object(fetch_ami, "fetch") as f, mock.patch("builtins.print"):
+                fetch_ami.main([arg])
+                f.assert_not_called()
+
+    def test_unknown_option_does_not_fetch(self):
+        for argv in ([], ["--dry-run"], ["a", "b"]):
+            with mock.patch.object(fetch_ami, "fetch") as f, self.assertRaises(SystemExit):
+                fetch_ami.main(argv)
+            f.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
