@@ -91,6 +91,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 毎週 1〜2 つずつ足す。順番は遊んだ感触で決める。
 
 - v0.3.0 を 2026-11-25 に公開し、マイルストーン「α0.3 広げる」を閉じた。v0.3.0 を触った感想の直しは、マイルストーン「α0.3 の直し」に起こした（2026-11-26 の時点で #71・#72・#73・#76・#77・#78・#80・#81・#83・#84・#85・#94 は済み、v0.3.1 の公開 #99 も済み）。初期マップ（#79）はユーザーの保存データ待ちで、このマイルストーンから外した。v0.3.1 は 2026-11-26 に公開し、マイルストーンを閉じた。次の段はマイルストーン「α0.4 気候と街」に起こした（2026-11-26、ユーザーの決定）: 気候の地面 [#101](https://github.com/128-bit-net/pak256/issues/101)・木の気候と季節 [#102](https://github.com/128-bit-net/pak256/issues/102)・街の商業と工業の建物 [#103](https://github.com/128-bit-net/pak256/issues/103)・縮尺の確定 [#104](https://github.com/128-bit-net/pak256/issues/104)・α0.4 を出す [#105](https://github.com/128-bit-net/pak256/issues/105)。テストプレイの感想の直しは、届いたら同じマイルストーンに足す。
+- v0.4.0 を 2026-11-26 に公開した。次の段はマイルストーン「α0.5 運び方を広げる」に起こした（2026-11-26、ユーザーの決定）。入った物は、路面電車 [#153](https://github.com/128-bit-net/pak256/issues/153)・船と港 [#154](https://github.com/128-bit-net/pak256/issues/154)・飛行機と空港 [#155](https://github.com/128-bit-net/pak256/issues/155)・モノレール [#156](https://github.com/128-bit-net/pak256/issues/156)・川 [#158](https://github.com/128-bit-net/pak256/issues/158)・AMI の 256 版を `ami-256-alpha.8` に上げる [#159](https://github.com/128-bit-net/pak256/issues/159)・船と飛行機の大きさの比べ [#164](https://github.com/128-bit-net/pak256/issues/164)・初期マップ `demo.sve` [#79](https://github.com/128-bit-net/pak256/issues/79)。α0.5（v0.5.0）を出すのは [#157](https://github.com/128-bit-net/pak256/issues/157)（[確かめの記録](records/2026-11-27_v050-check.md)）。
 
 - 気候（雪・砂漠など）と季節の絵。
 - 産業の連鎖を増やす（pak128 の 7 分類に沿って）。
