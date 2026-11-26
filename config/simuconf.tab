@@ -178,6 +178,6 @@ random_grounds_probability = 10
 random_wildlife_probability = 1000
 water_animation_ms = 100
 
-# 街の車（citycar）。物（#8 以降）が入るまで台数に意味は無いが、値は pak128 と同じ。
+# 街の車（citycar）。物は objects/citycar/（#173）。台数・寿命の値は pak128 と同じ。
 citycar_level = 5
 default_citycar_life = 120
