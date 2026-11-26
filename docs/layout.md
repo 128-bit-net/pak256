@@ -36,7 +36,7 @@ ci.env                CI の道具の版（makeobj など）
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）、飛行機の滑走路・誘導路・駅・格納庫（`objects/airport/`。AMI に無い。#155）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）、飛行機の滑走路・誘導路・駅・格納庫（`objects/airport/`。AMI の 256 版に無いので pak256 で作る。[#155](https://github.com/128-bit-net/pak256/issues/155)、起票をユーザーが承認）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 

@@ -61,19 +61,58 @@ class AirportTest(unittest.TestCase):
             self.assertEqual(list(t["image"]), airport.RIBI)
             self.assertTrue(set(("icon", "cursor")) <= set(t))
 
-    def test_way_art_stays_in_the_tile(self):
-        """道の絵は地面の菱形の画素だけ（隣の升へはみ出さない・重ならない）。"""
+    def way_cell(self, key, ribi):
+        with Image.open(os.path.join(OBJ, "airport", key, key + ".png")) as im:
+            x, y = (ribi % 4) * 256, (ribi // 4) * 256
+            return im.convert("RGB").crop((x, y, x + 256, y + 256))
+
+    def test_way_art_is_what_the_script_draws(self):
+        """コミットした道の絵（向き 16 通り）が、今のスクリプトの絵と画素まで同じ。"""
         for key in airport.WAYS:
             for ribi in range(16):
-                cell = airport.ground_cell(lambda u, v: airport.way_colour(key, ribi, u, v))
-                self.assertIsNotNone(airport.rail._mask(cell).getbbox(), (key, ribi))
-                self.assertGreaterEqual(airport.rail._mask(cell).getbbox()[1], 128, (key, ribi))
+                want = airport.ground_cell(lambda u, v: airport.way_colour(key, ribi, u, v))
+                self.assertEqual(self.way_cell(key, ribi).tobytes(), want.tobytes(), (key, ribi))
+
+    def test_way_art_stays_in_the_tile(self):
+        """道の絵は地面の菱形の中の画素だけ（隣の升へはみ出さない・重ならない）。"""
+        for key in airport.WAYS:
+            for ribi in range(16):
+                px = self.way_cell(key, ribi).load()
+                for y in range(256):
+                    for x in range(256):
+                        if px[x, y] == airport.CLEAR:
+                            continue
+                        a, b = (x + 0.5 - 128) / 128, (y + 0.5 - 128) / 64
+                        self.assertTrue(0 <= (b + a) / 2 < 1 and 0 <= (b - a) / 2 < 1, (key, ribi, x, y))
+
+    def test_way_reaches_connected_sides_only(self):
+        """絵は、つながる辺（番号の北 1・東 2・南 4・西 8）まで届く。滑走路の端だけは、反対の辺の手前まで延びる。"""
+        edges = {1: (0.5, 0.01), 2: (0.99, 0.5), 4: (0.5, 0.99), 8: (0.01, 0.5)}  # 辺の中ほどの (u, v)
+        for key in airport.WAYS:
+            for ribi in range(16):
+                px = self.way_cell(key, ribi).load()
+                for bit, (u, v) in edges.items():
+                    painted = px[round(128 + (u - v) * 128), round(128 + (u + v) * 64)] != airport.CLEAR
+                    self.assertEqual(painted, bool(ribi & bit), (key, ribi, bit))
+
+    def test_stop_line_is_at_the_far_end(self):
+        """駅の絵の向き 0〜3（南・東・北・西につながる）で、停止線はつながる辺から STOP_AT の所にある。"""
+        with Image.open(os.path.join(OBJ, "airport", "air_stop", "air_stop.png")) as im:
+            px = im.convert("RGB").load()
+        for layout, side in enumerate(airport.SIDES):
+            found = []
+            for across in (0.38, 0.62):
+                u, v = airport.from_open(side, airport.STOP_AT, across)
+                found.append(px[layout * 256 + round(128 + (u - v) * 128), round(128 + (u + v) * 64)])
+            self.assertIn(airport.YELLOW, found, side)  # 片側はターミナルに隠れてもよい
 
     def test_buildings(self):
         for key, kind in (("air_stop", "stop"), ("air_depot", "depot")):
             t = table(key, key)
             self.assertEqual((t["obj"], t["type"], t["waytype"], str(t["dims"])), ("building", kind, "air", "1,1,4"))
             self.assertEqual(list(t["backimage"]), [0, 1, 2, 3])
+            # 格納庫は、口が奥を向く向き（北・西につながる = 2・3）だけ、飛行機の上の絵がある
+            self.assertEqual(list(t.get("frontimage", {})), [2, 3] if kind == "depot" else [])
             with Image.open(os.path.join(OBJ, "airport", key, key + ".png")) as im:
                 self.assertEqual(im.size, (256 * 4, 256 * 3))
 
@@ -98,7 +137,8 @@ class AirlinerTest(unittest.TestCase):
         self.assertEqual(read(OBJ, "vehicle", "air", "airliner", "airliner.yaml"), aircraft.yaml_text())
         self.assertEqual((self.table["waytype"], self.table["cell_size"]), ("air", 512))
         self.assertEqual(list(self.table["emptyimage"]), list(V.DIRECTIONS))
-        self.assertEqual(self.table["length"], V.length_from_px(self.spec["target_px"][0]))
+        # 飛行機は実物比例（standards.md「船・飛行機」）: length = 実物の長さ ÷ 1.65
+        self.assertEqual(self.table["length"], V.length_units(self.spec["real_length_m"]))
 
     def test_listed_in_docs(self):
         cells = doc_rows()[self.spec["name"]]
@@ -106,13 +146,15 @@ class AirlinerTest(unittest.TestCase):
         self.assertEqual(cells[2:11], [str(self.table[k]) for k in keys])
 
     def test_screen_size(self):
-        """横向き（sw）の胴の長さと、正面向き（se）の翼の幅が、目標の ±8% に入る。"""
+        """横向き（sw）の胴の長さと、正面向き（se）の翼の幅が、実物の大きさ（length × 1.65m と翼の幅）の ±8% に入る。"""
         def width(direction):
             i = V.DIRECTIONS.index(direction)
             box = self.img.crop((i * 512, 0, (i + 1) * 512, 512)).getbbox()
             return box[2] - box[0]
 
-        length, span = self.spec["target_px"]
+        px_per_m = V.PX_PER_UNIT_SIDE / V.M_PER_UNIT  # 画面で横向きの 1m
+        length = self.table["length"] * V.M_PER_UNIT * px_per_m
+        span = self.spec["real_span_m"] * px_per_m
         self.assertAlmostEqual(width("sw"), length, delta=length * 0.08)
         self.assertAlmostEqual(width("se"), span, delta=span * 0.08)
 
@@ -126,10 +168,11 @@ class AirlinerTest(unittest.TestCase):
 class ToolbarTest(unittest.TestCase):
     def test_air_toolbar(self):
         menu = read(ROOT, "config", "menuconf.tab")
-        for line in ("toolbar[5][0]=ways(16,0)", "toolbar[5][1]=ways(16,1)", "toolbar[5][2]=general_tool[17],49,,16",
-                     "toolbar[5][3]=buildings(33,16)", "toolbar[5][4]=buildings(34,16)"):
-            self.assertIn(line, menu)
-        self.assertRegex(menu, r"toolbar\[0\]\[\d+\]=toolbar\[5\],48,,AIRTOOLS,airtools\.txt")
+        # 段の番号は、ほかの乗り物の段が入るとずれるので、AIRTOOLS の行から読む
+        m = re.search(r"toolbar\[0\]\[\d+\]=toolbar\[(\d+)\],52,,AIRTOOLS,airtools\.txt", menu)
+        self.assertTrue(m, "AIRTOOLS の入口が無い")
+        lines = re.findall(r"(?m)^toolbar\[%s\]\[\d+\]=(\S+)" % m.group(1), menu)
+        self.assertEqual(lines, ["ways(16,0)", "ways(16,1)", "general_tool[17],53,,16", "buildings(33,16)", "buildings(34,16)"])
 
 
 if __name__ == "__main__":

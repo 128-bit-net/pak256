@@ -15,7 +15,7 @@ intro_year: 1930
 cost: 2110146
 runningcost: 65
 weight: 7
-length: 13
+length: 11
 constraint:       # 1 機で飛ぶ（前にも後ろにもつながない）
   prev: {0: none}
   next: {0: none}

@@ -1,8 +1,9 @@
 """旅客機の絵と表を書き出す（docs/airport.md・#155）。MIT License。
 絵は仮（多角形を組んだ 3 発の単葉機）で、見た目は後から描き直す。他の pak の絵は使わない。
 
-- 画面の大きさは pak128 の同じ時代の旅客機（Junkers Ju 52）の手本の 2 倍（docs/standards.md の 4 章の道路の車両と同じ考え方）:
-  胴の長さ 152px・翼の幅 260px。`length` はその長さから決める（`vehicles.length_from_px`）。
+- 大きさは実物比例（docs/standards.md の 4 章「船・飛行機」。車両の「手本の 2 倍」は当てはめない）。手本の実物は Junkers Ju 52
+  （長さ 18.9m・翼の幅 29.25m・高さ 6.1m）。`length` は実物の長さ ÷ 1.65（`vehicles.length_units`）で、胴は `length` × 1.65m に描く。
+  翼の幅と高さも実物の値に倍率を掛けない。
 - 描画位置は、機首を基準点に置き、胴を後ろへ伸ばす。飛行機は車線のずれが無いので、道の中心に描く。
 - 翼の幅が 1 タイルを超えるので、512 のセルに描く（cell_size と位置合わせ -128,-128）。
 - 影は描かない。飛んでいる間の影は、本体が同じ絵を黒の半透明で地面に描く。
@@ -35,7 +36,7 @@ WHEEL = (38, 38, 42)
 SPEC = dict(
     name="pak256_airliner", dir="airliner", stem="airliner",
     payload=18, speed=211, power=1599, weight=7, gear=50, cost=2110146, runningcost=65, intro_year=1930,
-    target_px=(152, 260),  # 胴の長さ・翼の幅（画面の横向きの px）
+    real_length_m=18.9, real_span_m=29.25,  # Junkers Ju 52 の実物の長さと翼の幅
 )
 
 # makeobj の特別な色を避ける
@@ -48,12 +49,7 @@ SPECIAL = {
 
 
 def length_of(spec=SPEC):
-    return V.length_from_px(spec["target_px"][0])
-
-
-def span_m(spec=SPEC):
-    """翼の幅（m）。画面の横向きの px から。"""
-    return spec["target_px"][1] / V.PX_PER_UNIT_SIDE * V.M_PER_UNIT
+    return V.length_units(spec["real_length_m"])
 
 
 def shade(c, k):
@@ -122,11 +118,11 @@ def draw_cell(direction):
     """1 方向のセル（512x512、RGBA）。"""
     p = Plane(direction)
     length = length_of() * V.M_PER_UNIT  # 胴の長さ（m）
-    half = span_m() / 2
-    wing_z = 1.6
+    half = SPEC["real_span_m"] / 2
+    wing_z = 1.5
 
     # 車輪（主脚 2 つと尾輪）
-    for a, s in ((length * 0.30, 3.2), (length * 0.30, -3.2), (length * 0.92, 0.0)):
+    for a, s in ((length * 0.30, 2.6), (length * 0.30, -2.6), (length * 0.92, 0.0)):
         p.tube(a - 0.6, a + 0.6, 0.35, 0.35, 0.0, 1.2, WHEEL, at=s)
 
     # 主翼（低翼）。左右を奥から
@@ -135,15 +131,15 @@ def draw_cell(direction):
                 (length * 0.46, sign * half, wing_z), (length * 0.50, 0.0, wing_z)], shade(WING, 1.0 if sign > 0 else 0.94))
         # 翼のエンジンとプロペラ
         s = sign * half * 0.30
-        p.tube(length * 0.20, length * 0.38, 0.85, 0.7, wing_z - 0.4, wing_z + 0.9, ENGINE, at=s)
-        p.poly([(length * 0.19, s - 1.8, wing_z + 0.1), (length * 0.19, s + 1.8, wing_z + 0.1),
-                (length * 0.19, s + 1.8, wing_z + 0.5), (length * 0.19, s - 1.8, wing_z + 0.5)], PROP)
+        p.tube(length * 0.20, length * 0.38, 0.65, 0.55, wing_z - 0.3, wing_z + 0.8, ENGINE, at=s)
+        p.poly([(length * 0.19, s - 1.45, wing_z + 0.1), (length * 0.19, s + 1.45, wing_z + 0.1),
+                (length * 0.19, s + 1.45, wing_z + 0.4), (length * 0.19, s - 1.45, wing_z + 0.4)], PROP)
 
     # 胴（機首から尾まで 3 つ）。奥の部分から描く
     parts = [
-        (0.0, length * 0.14, 0.9, 1.5, 1.2, 3.4),
-        (length * 0.14, length * 0.66, 1.5, 1.5, 1.2, 3.9),
-        (length * 0.66, length, 1.5, 0.35, 1.8, 3.5),
+        (0.0, length * 0.14, 0.7, 1.15, 1.1, 3.1),
+        (length * 0.14, length * 0.66, 1.15, 1.15, 1.1, 3.6),
+        (length * 0.66, length, 1.15, 0.3, 1.7, 3.2),
     ]
     for a0, a1, w0, w1, z0, z1 in sorted(parts, key=lambda q: p.depth((q[0] + q[1]) / 2, 0.0)):
         p.tube(a0, a1, w0, w1, z0, z1, SKIN)
@@ -151,18 +147,18 @@ def draw_cell(direction):
     side = 1 if p.depth(length * 0.4, 1.5) > p.depth(length * 0.4, -1.5) else -1
     for i in range(6):
         a = length * (0.24 + i * 0.07)
-        p.poly([(a, side * 1.52, 2.7), (a + length * 0.035, side * 1.52, 2.7),
-                (a + length * 0.035, side * 1.52, 3.3), (a, side * 1.52, 3.3)], GLASS)
-    p.poly([(length * 0.10, 1.2, 3.55), (length * 0.10, -1.2, 3.55), (length * 0.16, -1.3, 3.95), (length * 0.16, 1.3, 3.95)], GLASS)
+        p.poly([(a, side * 1.17, 2.4), (a + length * 0.035, side * 1.17, 2.4),
+                (a + length * 0.035, side * 1.17, 3.0), (a, side * 1.17, 3.0)], GLASS)
+    p.poly([(length * 0.10, 0.9, 3.25), (length * 0.10, -0.9, 3.25), (length * 0.16, -1.0, 3.65), (length * 0.16, 1.0, 3.65)], GLASS)
     # 機首のエンジンとプロペラ
-    p.tube(-0.2, length * 0.06, 0.85, 0.9, 1.7, 3.1, ENGINE)
-    p.poly([(-0.3, -1.8, 2.3), (-0.3, 1.8, 2.3), (-0.3, 1.8, 2.6), (-0.3, -1.8, 2.6)], PROP)
+    p.tube(0.0, length * 0.06, 0.65, 0.7, 1.6, 2.8, ENGINE)
+    p.poly([(-0.05, -1.45, 2.1), (-0.05, 1.45, 2.1), (-0.05, 1.45, 2.4), (-0.05, -1.45, 2.4)], PROP)
 
     # 水平尾翼と垂直尾翼
     for sign in sorted((1, -1), key=lambda s: p.depth(length * 0.9, s * half * 0.2)):
-        p.poly([(length * 0.82, 0.0, 3.0), (length * 0.90, sign * half * 0.34, 3.0),
-                (length * 0.98, sign * half * 0.34, 3.0), (length * 0.99, 0.0, 3.0)], shade(WING, 0.96))
-    p.poly([(length * 0.80, 0.0, 3.3), (length * 0.92, 0.0, 6.4), (length * 0.99, 0.0, 6.4), (length, 0.0, 3.3)], TAIL)
+        p.poly([(length * 0.82, 0.0, 2.8), (length * 0.90, sign * half * 0.34, 2.8),
+                (length * 0.98, sign * half * 0.34, 2.8), (length * 0.99, 0.0, 2.8)], shade(WING, 0.96))
+    p.poly([(length * 0.80, 0.0, 3.0), (length * 0.92, 0.0, 6.1), (length * 0.99, 0.0, 6.1), (length, 0.0, 3.0)], TAIL)
     return p.finish()
 
 
