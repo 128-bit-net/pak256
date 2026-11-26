@@ -62,6 +62,20 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - `simuconf.tab` に指定（`city_road[0]`・`intercity_road[0]` の行）の無い方の一覧は、保存データのまま残す。
 - 扱う保存データは、gzip・bzip2・無圧縮のバイナリの形。ほかの圧縮の形や、一覧が 1 か所に決まらないときは、写しに触らずに「保存データの道路名は書き換えていない（理由）」と出して、そのまま起動する。XML の形は試していない。
 
+## 起動の画面を撮る
+
+**`-load` を付けない起動では、起動の窓が出ている間、本体は MCP に答えない**（2026-11-27、OTRP v64、[#79](https://github.com/128-bit-net/pak256/issues/79)）。`game.py` の起動の待ちは時間切れになり、`capture_screen` も使えない。**その間の画面は `tools/title_shot.py` で撮る**（MIT。Windows だけ。Pillow が要る）。自分で起動した窓の中身を読むだけで、キーやクリックなどの入力は送らない。
+
+```
+python -X utf8 tools/title_shot.py --env <検証環境> --out work/title.png                     # 組み済みの build/pak/ などを入れる
+python -X utf8 tools/title_shot.py --env <検証環境> --out work/title.png --zip <配布の zip>
+```
+
+- 保存データの無い作業フォルダ（既定は `work/title_shot/`）を作る。写すのは実行ファイル・DLL・`config/` などで、`save/` と `settings.xml` は写さない。pak は `pak256/` に入れる（`demo.sve` を含む）。
+- 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak256/ -lang ja -mute -screensize 1600x900`。`-load` と `-mcp-port` は付けないので、ポートは使わない。
+- 起動から 30 秒（`--wait`）待って撮る。真っ黒なら撮り直す（描き直しの前に読むことがある）。本体が終わったとき・`FATAL ERROR` や通知の窓のときは失敗にする。
+- 撮ったら起動した PID を閉じ、作業フォルダを消す（`--keep` で残す）。
+
 ## 道路と線路の道が無い pak では起動できない
 
 `flat_512_left_v64` を指定して起動するとき、pak に次の 2 つが無いと本体が止まる（理由は `game.py` が出す `FATAL ERROR` の文。`game.py` は待たずに閉じる。2026-11-26、OTRP v64、[#128](https://github.com/128-bit-net/pak256/issues/128)・[#132](https://github.com/128-bit-net/pak256/issues/132)）。
@@ -315,6 +329,8 @@ python -X utf8 docs/records/2026-11-26_passengers/stats.py <出力.jsonl>
 ## 検査
 
 `tools/test_frames.py`: 地面の印・格子の線・タイルのカーソルの枠が地面の縁の画素と一致する（[ground.md](ground.md) の「枠の線」）。`tools/test_ground.py`: コミットしてある `ClimateTexture` の模様 8 枚が、斜め格子の周期（(128,64)・(128,-64)）でずらしても同じで、透明な画素が無い（Water は菱形なので見ない）。`tools/test_town_buildings.py`: 街の建物の `backimage` の季節の添字が 4 枚（夏・秋・冬・春）で、冬だけが右の絵を指し、右の絵が左と違う。
+
+`tools/test_title_shot.py`（ゲームは起動しない）: `title_shot.py` の作業フォルダ（保存データと `settings.xml` を写さない・他の物を消さない）、起動の引数（`-load`・`-mcp-port` を付けない）、黒い画面の撮り直し、本体の終了と `FATAL ERROR` で失敗すること、失敗しても閉じて片付けること。
 
 `tools/test_check_demo.py`: `check_demo.py` の保存データの名前の読み方（長さつきの名前・圧縮の形）と `makeobj list` の読み方、コミットしてある `demo/demo.sve` が読めること。
 

@@ -131,6 +131,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
+| `title_shot.py` | 起動の窓と後ろの地図を撮る道具（`-load` 無し・MCP 無し。[game-check.md](game-check.md) の「起動の画面を撮る」。Windows だけ） |
+| `test_title_shot.py` | `title_shot.py` の検査（ゲームは起動しない） |
 | `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
@@ -192,7 +194,7 @@ OTRP の fork の `simmain.cc` を読み、v64 で起動して確かめた（202
 3. 建てた直後の建物は、ゲームを進めて建設中の絵が終わってから保存する。
 4. 映したい場所に画面を合わせて保存し、`demo/demo.sve` に置き換える。圧縮は gzip・bzip2・無圧縮のどれか（`tools/check_demo.py` が読める形）。
 5. `python -X utf8 tools/build.py` の後、`python -X utf8 tools/check_demo.py` を流す。
-6. ゲームで確かめる: `-load` を付けずに起動して、地図が映ることを画面で見る（[記録](records/2026-11-27_demo-map.md)の `demo_shot.py`）。保存データの中に手元のパスや個人の情報が無いことも見る。
+6. ゲームで確かめる: `-load` を付けずに起動して、地図が映ることを画面で見る（`tools/title_shot.py`。[game-check.md](game-check.md) の「起動の画面を撮る」）。保存データの中に手元のパスや個人の情報が無いことも見る。
 
 ### 物を消す・名前を変えるとき
 
