@@ -127,7 +127,6 @@ class GameToolTest(Base):
 SLEEPER = [sys.executable, "-c", "import time; time.sleep(60)"]
 
 
-@unittest.skipUnless(os.name == "nt", "taskkill・tasklist が要る（Windows だけ。CI は Linux なので飛ばす）")
 class WorkDirTest(Base):
     """リポジトリの直下に work/ が無い状態（作ったばかりの worktree）。#119。"""
 
@@ -153,6 +152,7 @@ class WorkDirTest(Base):
         popen.assert_not_called()
 
 
+@unittest.skipUnless(os.name == "nt", "taskkill・tasklist が要る（Windows だけ。CI は Linux なので飛ばす）")
 class LifecycleTest(Base):
     """ゲームの代わりに眠るだけのプロセスを起動して、閉じ方と片付けを見る（本物のゲームは起動しない）。"""
 

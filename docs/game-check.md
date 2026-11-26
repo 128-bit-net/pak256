@@ -35,14 +35,14 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 
 - 画面は `Game.capture`（本体の `capture_screen`）で撮る。PowerShell の画面全体の撮影は真っ黒になる。
 
-### 作業フォルダを手で組むとき
+### 道具が行っていること（作業フォルダを手で組むとき）
 
-`game.py` が中で済ませていること。起動の手順を自分で組むのは、道具を直すときだけにする。
+上の一覧のほか、`game.py` が中で済ませていて、手で組むと踏むこと。起動の手順を自分で組むのは、道具を直すときだけにする。
 
 - 起動に `-singleuser` を付ける。無いと本体が作業フォルダでなく別の場所を見て、`settings.xml`・`themes/`・`save/` が見つからない（2026-11-25、#8）。
 - `themes/` を写す。無いと本体が止まる（2026-11-25、#6）。`settings.xml` は無くても起動する（#8）。
 - `settings.xml` を写して送信用の記録を消すときは、CDATA ごと消さず、中身だけを空にする。ごと消すと設定が壊れる（2026-11-25、#6）。
-- 昼夜は `config/simuconf.tab` の末尾の `day_night_shift = 0` で止める。昼まで早送りして撮り直すのは、昼夜が飛んで当てにならない（2026-11-25、#44）。
+- 昼夜は `config/simuconf.tab` の末尾の `day_night_shift = 0` で止める（pak の側の `<pak>/config/simuconf.tab` に足しても効く）。夜の灯りを確かめるときだけ外す（`--night`）。昼まで早送りして撮り直すのは、昼夜が飛んで当てにならない（2026-11-25、#44）。
 - `-load` の保存データの名前は、拡張子なしで渡すと確実。
 - 本体は起動画面（地図を作る前）の間は MCP に答えないので、スクリプトで新しい地図は作れない。平らな保存データを `-load` で読み、地形はスクリプトで作る（2026-11-25、#5）。新しい地図の作成画面で生える物（木など）はスクリプトで確かめられないので、PR の「確かめていないこと」に書く。
 
@@ -51,14 +51,14 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 保存データ `flat_512_left_v64` は x が 256 以上が雪の気候。温帯の物は x<256 に置く（2026-11-25、#11）。
 - 道路は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>")`、停留所は `command_x(tool_build_station).work(pl, coord3d, "<停留所の name>")`。停留所の引数に番号を付けた `"1,<name>"` は失敗する（2026-11-25、#44。`Game.road`・`Game.station`）。
 - 建物（車庫・停留所など）は、置いた直後は建設中の縞。`debug.set_game_speed(64)` で進めてから撮る（2026-11-25、#58。`Game.settle`）。
-- `run_squirrel` に渡す文字列の中に改行を入れない（`Game.sq` は流す前に止める。2026-11-25、#59）。
+- `run_squirrel` に渡す文字列の中に改行を入れない。呼ぶ側で書いた `\n` が本物の改行になって、コンパイルが通らない（`Game.sq` は流す前に止める。2026-11-25、#59）。
 - 街は `command_x(tool_add_city).work(pl, coord3d)`。最後の引数の文字列は省いてよい。`""+数値` の連結は Squirrel でエラーになる（2026-11-25、#11）。
 - 街は旅客などの輸送が無いと育たない。輸送の無い確かめでは `city_list_x()` の `change_size` で人口を足し、PR にそう書く（2026-11-25、#7〜#9）。
 - 街の建物を置く道具（`tool_build_house`）の引数は、建物の名前の前に 2 文字を付ける。1 文字目は気候の制限を外すか（`0` は外さない）、2 文字目は向き（`00<name>` は向き 0）。街の建物は、近くに街が無いと置けない（2026-11-26、#104。形は本体の `simtool.cc` の `tool_build_house_t::work_on_ground`）。
 - 木を植える道具は、公共のプレーヤーで呼ぶ（2026-11-26、#104）。地図の木の設定が「無し」だと、ほかのプレーヤーは植えられない（本体の `tool_plant_tree_t::work`）。森は `tool_forest`（`tools/tree_check.py`）。
 - 地形は `command_x.grid_raise`・`command_x.grid_lower` で作る。`grid_lower` は地下水位 −3 まで（2026-11-25、#5）。水は `command_x(tool_change_water_height).work(pl, pos, "1")`（#5）。
-- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。
-- 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。止めたときは、起動した PID が残っていないかを `tasklist` で確かめる（2026-11-25、#30）。
+- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。`Game` は起動のたびに作業フォルダを作り直し、足す引数は無いので、`game.append_day_night_off` を包んで足す（[例](records/2026-11-26_stop-overlap-screens/run.py)）。
+- 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。強制終了するとゲームが閉じられず、ポートを握ったまま残ることがある（Job Object に入れられた場合は閉じる。下の「別の道具から使う」）。止めたときは、起動した PID を `tasklist` で探して閉じる（2026-11-25、#30）。
 
 ## 別の道具から使う
 
