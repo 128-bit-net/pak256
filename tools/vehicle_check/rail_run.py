@@ -4,7 +4,7 @@
 
     python -X utf8 tools/vehicle_check/rail_run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> --port 47880 [--cities]
 
-ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。
+ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。--pak で別のフォルダの pak を使える。
 """
 import argparse
 import os
@@ -13,7 +13,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from game import Game  # noqa: E402
+from game import Game, add_pak_argument  # noqa: E402
 
 
 def main():
@@ -30,12 +30,13 @@ def main():
     ap.add_argument("--interval", type=float, default=5.0, help="撮る間隔（実時間の秒）")
     ap.add_argument("--speed", type=int, default=1, help="ゲームの速さ（1 が実時間）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    add_pak_argument(ap)
     args = ap.parse_args()
     if not args.env:
         sys.exit("検証環境を --env か PAK256_GAME_ENV で渡す")
     os.makedirs(args.out, exist_ok=True)
     ox, oy = (int(v) for v in args.origin.split(","))
-    with Game(args.env, args.save, args.port, client=args.mcp_client) as game:
+    with Game(args.env, args.save, args.port, client=args.mcp_client, pak_dir=args.pak) as game:
         head = (f'OX <- {ox}; OY <- {oy}; WAY <- "{args.way}"; CITIES <- {1 if args.cities else 0}; '
                 f'CARS <- 1; TRAILER <- {args.trailer};\n')
         with open(os.path.join(HERE, "rail.nut"), encoding="utf-8") as f:

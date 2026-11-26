@@ -5,7 +5,7 @@
 
     python -X utf8 tools/vehicle_check/monorail_run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> --port 47900
 
-ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。
+ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。--pak で別のフォルダの pak を使える。
 ツールバーを押す位置は 1600x900 の画面（左から 10 番目）。
 """
 import argparse
@@ -15,7 +15,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from game import Game  # noqa: E402
+from game import Game, add_pak_argument  # noqa: E402
 
 CONVOYS = ('local s=""; foreach (c in world.get_convoy_list()) { local p = c.get_pos();'
            ' s += p.x + " " + p.y + " " + p.z + " " + c.get_speed() + ";"; } return s')
@@ -93,13 +93,14 @@ def main():
     ap.add_argument("--origin", default="40,60")
     ap.add_argument("--run", type=float, default=90.0, help="収支を見る前の早送りの秒（速さ 64）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    add_pak_argument(ap)
     args = ap.parse_args()
     if not args.env:
         sys.exit("検証環境を --env か PAK256_GAME_ENV で渡す")
     os.makedirs(args.out, exist_ok=True)
     ox, oy = (int(v) for v in args.origin.split(","))
     elev, tun = oy + 20, oy + 40
-    with Game(args.env, args.save, args.port, client=args.mcp_client) as game:
+    with Game(args.env, args.save, args.port, client=args.mcp_client, pak_dir=args.pak) as game:
         head = f"OX <- {ox}; OY <- {oy};\n"
         # 街は線路を敷いた後に置く（先に置くと、街の建物が線の通り道をふさぐことがある）
         print("[monorail]", game.sq_file(os.path.join(HERE, "monorail.nut"), head=head), flush=True)

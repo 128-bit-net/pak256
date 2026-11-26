@@ -4,7 +4,7 @@ air.nut で空港 2 つ・街・旅客機 1 機を置き、往復する間の編
 
     python -X utf8 tools/vehicle_check/air_run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> --port 47880
 
-ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。
+ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。--pak で別のフォルダの pak を使える。
 """
 import argparse
 import os
@@ -13,7 +13,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from game import Game  # noqa: E402
+from game import Game, add_pak_argument  # noqa: E402
 
 AX, AY, BX, BY, LEN = 60, 100, 150, 100, 18
 QUERY = ('local s=""; foreach (c in world.get_convoy_list()) { local p = c.get_pos();'
@@ -48,11 +48,12 @@ def main():
     ap.add_argument("--interval", type=float, default=2.0, help="撮る間隔（実時間の秒）")
     ap.add_argument("--speed", type=int, default=1, help="ゲームの速さ（1 が実時間）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    add_pak_argument(ap)
     args = ap.parse_args()
     if not args.env:
         sys.exit("検証環境を --env か PAK256_GAME_ENV で渡す")
     os.makedirs(args.out, exist_ok=True)
-    with Game(args.env, args.save, args.port, client=args.mcp_client) as game:
+    with Game(args.env, args.save, args.port, client=args.mcp_client, pak_dir=args.pak) as game:
         setup(game)
         game.settle(20)  # 駅・格納庫の建設中の絵が終わるまで
         game.sq(f"debug.set_game_speed({args.speed}); gui.set_zoom(3); return 1")

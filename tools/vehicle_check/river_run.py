@@ -3,6 +3,7 @@
     python -X utf8 tools/vehicle_check/river_run.py --port <ポート> terrain      # 海と丘
     python -X utf8 tools/vehicle_check/river_run.py --port <ポート> enlarge      # 地図の拡大の窓を操作して 640x640 に。川が引かれる
 
+pak はゲームを起動する側で選ぶ（tools/game.py --interactive --pak <フォルダ>）。この道具はゲームを起動しないので --pak は受けない。
 拡大の窓の部品は gui.get_window_components で探して押す（窓の位置が変わっても押せる。詳しくは river_enlarge.nut）。
 """
 import argparse

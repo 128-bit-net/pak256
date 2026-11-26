@@ -21,6 +21,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 | `--port` | MCP のポート。必ず明示する。既定の範囲は 47800〜47999（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）で、作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
 | `--port-range` | ポートの範囲を変える。`下限-上限`（例 `47200-47299`）。pak256 の外の作業者が、自分に割り当てられた範囲で使うとき（[#128](https://github.com/128-bit-net/pak256/issues/128)）。環境変数 `PAK256_PORT_RANGE` でも渡せる（`game.py` を読み込む別の道具にも効く）。`Game(..., port_range="47200-47299")` も同じ。引数が環境変数より先 |
 | `--player-nr` | Squirrel（`--script`・`--send`・`--send-file`）を流すプレーヤー。公共は 1。省くと 0（下の「公共のプレーヤーで流す」） |
+| `--pak` | `build/pak/` の代わりに入れる pak のフォルダ（下の「pak の場所を指定する」） |
 | `--extra-pak` | 足りない物を別の pak から借りる（試験のときだけ。コミットしない） |
 | `--night` | 昼夜の切り替えを止めない（夜の灯りを確かめるとき） |
 | `--keep` | 閉じた後も作業フォルダ（既定は `work/game/<ポート>/`）を残す |
@@ -28,10 +29,25 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 | `--interactive` | 起動して命令を待つ（下の「開いたまま使う」） |
 | `--mcp-client` | OTRP 本体のリポジトリの `mcp_client.py`（環境変数 `MCP_CLIENT`。既定は pak256 の checkout の隣の `simutrans/` の中） |
 
+## pak の場所を指定する（`--pak`、#170）
+
+`--pak <フォルダ>` を付けると、`build/pak/` の代わりに、そのフォルダの直下の `*.pak` を入れる。省くと `build/pak/`。
+
+```
+python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47880 --pak <展開した所>/pak256 --capture <撮る PNG>
+python -X utf8 tools/vehicle_check/rail_run.py --env <検証環境> --save flat_512_left_v64 --port 47880 --out work/rail --pak <展開した所>/pak256
+```
+
+- **フォルダに `config/` があるとき**（配布の zip を展開した `pak256/`）は、`config/`・`text/`・`demo.sve` もそのフォルダの物を使う。リポジトリの物は混ぜない。
+- `config/` が無いとき（`build/pak/` の形）は、`config/`・`text/`・`demo/demo.sve` はリポジトリの物を使う。
+- フォルダが無い・直下に `*.pak` が無い・`config/` に `simuconf.tab` が無い・作業フォルダの中にある、のときは、作業フォルダを消す前に止まる。zip のファイルは渡せない（先に展開する）。
+- 受ける道具: `tools/game.py`（起動する呼び出し。`--send`・`--build` とは一緒に使えない）と、`tools/vehicle_check/` の `run.py`・`rail_run.py`・`rail_curve_run.py`・`air_run.py`・`monorail_run.py`・`tram_run.py`。`river_run.py` はゲームを起動しないので受けない（`game.py --interactive --pak <フォルダ>` で開いたゲームに流す）。
+- 自分の道具からは `Game(…, pak_dir=<フォルダ>)`。
+
 ## やること・やらないこと
 
 - 検証環境から写すのは、実行ファイル・DLL・`config/`・`font/`・`themes/`・`text/`・`script/`・`music/` と、指定した保存データだけ。**`settings.xml` は写さない**（本体が送信用の記録を持ち、起動のたびに使用状況を外へ送るため）。`pak128` などの絵・`addons/` も写さない。検証環境には書かない。
-- 手元で組んだ pak（`build/pak/` の自前の物と AMI）と `config/`・`text/` を、作業フォルダの `pak/` に入れる（配布の zip の `pak256/` と同じ中身）。
+- 手元で組んだ pak（`build/pak/` の自前の物と AMI。`--pak` を付けたときはそのフォルダの pak）と `config/`・`text/` を、作業フォルダの `pak/` に入れる（配布の zip の `pak256/` と同じ中身）。
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
 - 写した保存データの街の道路・街どうしの道路の名前を、pak の `config/simuconf.tab` の指定に書き換える（下の「保存データの道路名」）。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
@@ -136,7 +152,7 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 - Squirrel の文字列の中に改行を入れると、本体でコンパイルが通らない。Python の通常の文字列に書いたバックスラッシュ n は本物の改行になるので、`sq`・`sq_file` は流す前に `ValueError` で止める（文字列の外の改行・注釈の中・`@"…"` は構わない）。区切りに改行を使わないか、raw 文字列で渡す。
 - 親が強制終了されても閉じる: ゲームは起動のとき Windows の Job Object（`KILL_ON_JOB_CLOSE`）に入れる。`tools/game.py` を動かす Python を `TaskStop` などで強制終了しても、OS がゲームを終わらせ、ポートを握ったまま残らない（#30 で 47810 が残った）。それでも、長い確かめは強制終了せず待つ。入れられなかったときは `[game] Job Object に入れられなかった` と出る（Python が別の Job の中で、入れ子にできない環境）。
 - `tools/vehicle_check/run.py`（[vehicles.md](vehicles.md) の「試験」）はこの上で動く。
-- 配布の zip の中身だけで起動するときは、zip を展開して `*.pak`（と `ami_license.txt`）を 1 つのフォルダに集め、`Game(..., build=<その pak のフォルダの親>, root=<config/ と text/ のある所>)` を渡す。手元で組んだ物（`build/pak/`）や作業フォルダの `config/` を混ぜずに確かめられる（2026-11-25、#70。手順は `records/2026-11-25_alpha03-check.md` の 1）。
+- 配布の zip の中身だけで起動するときは、zip を展開して `Game(..., pak_dir=<展開した pak256/>)` を渡す（上の「pak の場所を指定する」）。手元で組んだ物（`build/pak/`）やリポジトリの `config/` を混ぜずに確かめられる。
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
 
@@ -336,4 +352,4 @@ python -X utf8 docs/records/2026-11-26_passengers/stats.py <出力.jsonl>
 
 `tools/test_package.py`: `package.py` の入れる物（`demo/demo.sve` が無ければ止まること）と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、保存データの写しの道路名の書き換え（合成の保存データ。gzip・bzip2・無圧縮、元のファイルが変わらないこと、扱えない形・一覧が無い・2 か所のとき触らないこと、止める指定）、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `player_nr`（クライアントへの渡し・道具のスクリプトの中の番号との一致・`city_road`・`@player`・`--player-nr`）、通知の窓の印（読みの境目・先に出た印）、`settle` の途中の FATAL、前の命令の実行中に順番が来なかった送りの理由・止まったときに待っていた命令へ返す理由、`work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、保存データの写しの道路名の書き換え（合成の保存データ。gzip・bzip2・無圧縮、元のファイルが変わらないこと、扱えない形・一覧が無い・2 か所のとき触らないこと、止める指定）、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）、FATAL ERROR の検知（ログの読み・起動の前の古いログを見ないこと・MCP の答えの待ちを打ち切ること・見張りの終わり方・コマンドの終了コード。偽のゲームを起動して待たずに閉じることは Windows だけ）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_run_pak.py`（ゲームは起動しない）: `--pak` を各道具が `Game` に渡すこと（省くと `None`）、`game.py` が `--build`・`--send` との組み合わせを止めること、フォルダに `config/` がある・無いときに入る物、入れられないフォルダで作業フォルダに触る前に止まること。`vehicle_check/` に `*run.py` を足したら、この検査の一覧にも足す。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

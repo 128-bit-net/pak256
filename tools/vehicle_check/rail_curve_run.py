@@ -5,7 +5,7 @@
 
     python -X utf8 tools/vehicle_check/rail_curve_run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> --port 47880
 
-ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。
+ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。--pak で別のフォルダの pak を使える。
 """
 import argparse
 import os
@@ -14,7 +14,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from game import Game  # noqa: E402
+from game import Game, add_pak_argument  # noqa: E402
 
 W, H = 30, 10  # rail_curve.nut のコの字の大きさ
 
@@ -39,6 +39,7 @@ def main():
     ap.add_argument("--rounds", type=int, default=2, help="コの字の往復の数（北→南と南→北で 1 往復）")
     ap.add_argument("--timeout", type=float, default=420.0, help="全体の待ち（実時間の秒）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    add_pak_argument(ap)
     args = ap.parse_args()
     if not args.env:
         sys.exit("検証環境を --env か PAK256_GAME_ENV で渡す")
@@ -46,7 +47,7 @@ def main():
     ox, oy = (int(v) for v in args.origin.split(","))
     spots = places(ox, oy)
     done = {}
-    with Game(args.env, args.save, args.port, client=args.mcp_client) as game:
+    with Game(args.env, args.save, args.port, client=args.mcp_client, pak_dir=args.pak) as game:
         head = f'OX <- {ox}; OY <- {oy}; WAY <- "{args.way}"; TRAILER <- {args.trailer};\n'
         with open(os.path.join(HERE, "rail_curve.nut"), encoding="utf-8") as f:
             result = game.sq(head + f.read(), timeout=90)
