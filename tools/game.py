@@ -34,6 +34,8 @@
 - config/simuconf.tab の末尾に day_night_shift = 0 を足して昼夜の切り替えを止める（夜の絵になって撮り直すのを防ぐ）。
   夜の灯りを見るときだけ --night。
 - ほかの設定を足すときは Game(..., simuconf_extra=["show_names = 0"])（本体と pak の simuconf.tab の先頭に足す。#122）。
+- 保存データの写しの街の道路・街どうしの道路の名前は、pak の config/simuconf.tab の指定に書き換える（新しい地図と同じ道路にする。#151）。
+  保存された名前そのものを確かめるときは --keep-save-roads・Game(..., rewrite_roads=False)。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
 - MCP のポートは必ず明示する。範囲の既定は pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）で、作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
@@ -47,16 +49,21 @@
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
 """
 import argparse
+import bz2
 import ctypes
 import glob
+import gzip
 import json
 import os
+import re
 import shutil
 import socket
+import struct
 import subprocess
 import sys
 import time
 import zipfile
+import zlib
 
 if os.name == "nt":
     from ctypes import wintypes
@@ -255,11 +262,145 @@ def prepend_lines(simuconf, lines):
         f.write("".join(line + nl for line in lines) + text)
 
 
-def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=ROOT, build=None, simuconf_extra=()):
+# --- 保存データの写しの道路名（#151） ---
+# 保存データは、街の道路・街どうしの道路の名前の一覧を自分で持つ（本体の settings_t::rdwr）。pak128 で作った地図を
+# pak256 で読むと、名前の道路が無くて本体が代わりを選ぶので、新しい地図と違う絵になる（#147）。写しの一覧を pak の指定にする。
+# 一覧の並び: 街の道路の数、(名前の長さ・名前・登場の月・退役の月) の繰り返し、街どうしの道路の数、同じ繰り返し。数はどれも 16bit。
+
+ROAD_KEYS = ("city_road", "intercity_road")
+ROAD_SEARCH = 16384  # 一覧を探す先頭の長さ（設定は保存データの初めの方にある）
+
+
+def road_settings(simuconf):
+    """simuconf.tab の city_road[n]・intercity_road[n] を {キー: [(名前, 登場の月, 退役の月), …]} で返す。
+
+    本体の読み方に合わせる（settings_t::parse_simuconf）: [0] の行があるキーだけ、同じキーは先の行、年は 12 倍、
+    省いた年は 0（本体が道路自身の年に置き換える）。
+    """
+    values = {}
+    if os.path.isfile(simuconf):
+        with open(simuconf, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                m = re.match(r"\s*((?:intercity|city)_road)\[(\d)\]\s*=(.*)", line)
+                if m:
+                    values.setdefault((m[1], int(m[2])), m[3].strip())
+
+    def months(text):
+        m = re.match(r"\s*(\d+)", text)
+        return int(m[1]) * 12 if m else 0
+
+    out = {}
+    for key in ROAD_KEYS:
+        if not values.get((key, 0)):
+            continue
+        roads = []
+        for i in range(10):
+            parts = values.get((key, i), "").split(",")
+            if parts[0]:
+                roads.append((parts[0].strip(), months("".join(parts[1:2])), months("".join(parts[2:3]))))
+        out[key] = roads
+    return out
+
+
+def _parse_roads(data, pos):
+    """data の pos から道路の一覧 1 つ（数と項目）を読んで ([(名前, 登場, 退役)], 次の位置) を返す。一覧の形でなければ None。"""
+    if pos + 2 > len(data):
+        return None
+    count = struct.unpack_from("<H", data, pos)[0]
+    pos += 2
+    if not 1 <= count <= 9:  # 本体は 10 以上を FATAL にする
+        return None
+    roads = []
+    for _ in range(count):
+        if pos + 2 > len(data):
+            return None
+        n = struct.unpack_from("<H", data, pos)[0]
+        pos += 2
+        if not 3 <= n <= 255 or pos + n + 4 > len(data):
+            return None
+        name = data[pos:pos + n]
+        if any(c < 0x20 or c == 0x7f for c in name):
+            return None
+        try:
+            name = name.decode("utf-8")
+        except UnicodeDecodeError:
+            return None
+        intro, retire = struct.unpack_from("<HH", data, pos + n)
+        if retire and intro > retire:
+            return None
+        roads.append((name, intro, retire))
+        pos += n + 4
+    return roads, pos
+
+
+def find_road_block(data):
+    """保存データ（展開した中身）の中の道路の 2 つの一覧を探し、(始まり, 終わり, {キー: 一覧}) の一覧を返す。"""
+    found = []
+    for start in range(min(len(data), ROAD_SEARCH)):
+        city = _parse_roads(data, start)
+        inter = city and _parse_roads(data, city[1])
+        if inter:
+            found.append((start, inter[1], {"city_road": city[0], "intercity_road": inter[0]}))
+    return found
+
+
+def _pack_roads(roads):
+    out = struct.pack("<H", len(roads))
+    for name, intro, retire in roads:
+        raw = name.encode("utf-8")
+        out += struct.pack("<H", len(raw)) + raw + struct.pack("<HH", intro, retire)
+    return out
+
+
+def rewrite_save_roads(sve, simuconf):
+    """保存データ sve（作業フォルダの写し）の道路の一覧を、simuconf の指定に書き換える。結果の説明を返す。
+
+    simuconf に指定の無い方の一覧は残す。指定が無い・同じ中身なら何もせず None。
+    読めない形（zstd など）・一覧が見つからない・2 か所以上に見えるときは、ファイルに触らずに理由を返す。
+    """
+    wanted = road_settings(simuconf)
+    if not wanted:
+        return None
+    with open(sve, "rb") as f:
+        raw = f.read()
+    if raw.startswith(b"\x1f\x8b"):
+        codec = gzip
+    elif raw.startswith(b"BZh"):
+        codec = bz2
+    elif raw.startswith(b"Simutrans "):
+        codec = None
+    else:
+        return "保存データの道路名は書き換えていない（読めない圧縮の形。gzip・bzip2・無圧縮だけ扱う）"
+    try:
+        data = codec.decompress(raw) if codec else raw
+    except (OSError, EOFError, ValueError, zlib.error) as e:
+        return f"保存データの道路名は書き換えていない（展開できない: {e}）"
+    if any(len(roads) > 9 for roads in wanted.values()):
+        return "保存データの道路名は書き換えていない（指定が 10 本以上。本体は読み込みで止まる）"
+    found = find_road_block(data)
+    if len(found) != 1:
+        return f"保存データの道路名は書き換えていない（道路の一覧が {len(found)} か所）"
+    start, end, old = found[0]
+    new = {key: wanted.get(key, old[key]) for key in ROAD_KEYS}
+    if new == old:
+        return None
+    data = data[:start] + b"".join(_pack_roads(new[key]) for key in ROAD_KEYS) + data[end:]
+    with open(sve, "wb") as f:
+        f.write(codec.compress(data) if codec else data)
+
+    def names(roads):
+        return " / ".join(f"{k}: {', '.join(r[0] for r in roads[k])}" for k in ROAD_KEYS)
+
+    return f"保存データの写しの道路名を書き換えた（{names(old)} → {names(new)}）"
+
+
+def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=ROOT, build=None, simuconf_extra=(),
+                    rewrite_roads=True):
     """検証環境 env の一部を作業フォルダ work に写し、pak と保存データを入れる。work が既にあれば作り直す。
 
     写す物: 実行ファイル・DLL・ENV_DIRS（settings.xml は写さない）・指定の保存データ 1 つ。pak は work/pak/ に install_pak で入れる。
     simuconf_extra は、本体と pak の config/simuconf.tab の両方に足す行の一覧（例: ["show_names = 0"]。night でも足す）。
+    rewrite_roads なら、保存データの写しの街の道路・街どうしの道路の名前を pak の config/simuconf.tab の指定にする（#151）。
     """
     simuconf_extra = check_simuconf_lines(simuconf_extra)  # 作業フォルダを消す前に止める
     if not os.path.isfile(os.path.join(env, exe)):
@@ -285,6 +426,11 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
         if not night:
             append_day_night_off(simuconf)
         prepend_lines(simuconf, simuconf_extra)
+    if rewrite_roads:
+        message = rewrite_save_roads(os.path.join(work, "save", save + ".sve"),
+                                     os.path.join(work, PAK_DIR, "config", "simuconf.tab"))
+        if message:
+            print(f"[game] {message}", flush=True)
     return placed
 
 
@@ -468,8 +614,10 @@ class Game:
     """作業フォルダを用意して本体を起動し、MCP で操作し、with を抜けるときに PID で閉じて作業フォルダを消す。"""
 
     def __init__(self, env, save, port, work=None, night=False, extra_paks=(), client=None, exe=EXE,
-                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None):
+                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None,
+                 rewrite_roads=True):
         check_port(port, port_range)
+        self.rewrite_roads = rewrite_roads
         self.simuconf_extra = check_simuconf_lines(simuconf_extra)
         self.env, self.save, self.port = os.path.abspath(env), save, port
         self.work = os.path.abspath(work or os.path.join(root, "work", "game", str(port)))
@@ -503,7 +651,7 @@ class Game:
         check_work(self.work, self.env, self.root)
         self.prepared = True
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build,
-                        simuconf_extra=self.simuconf_extra)
+                        simuconf_extra=self.simuconf_extra, rewrite_roads=self.rewrite_roads)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
             try:
@@ -906,6 +1054,8 @@ def main():
     ap.add_argument("--build", action="store_true", help="起動の前に tools/build.py を流す")
     ap.add_argument("--night", action="store_true", help="昼夜の切り替えを止めない（夜の灯りを見るとき）")
     ap.add_argument("--keep", action="store_true", help="閉じた後も作業フォルダを残す")
+    ap.add_argument("--keep-save-roads", action="store_true",
+                    help="保存データの写しの道路名を pak の指定に書き換えない（保存された名前を確かめるとき）")
     ap.add_argument("--work", help="作業フォルダ（既定は work/game/<ポート>/）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
     ap.add_argument("--interactive", action="store_true", help="起動して、命令を待つ（--send で流す）。@quit・無音・Ctrl+C で閉じる")
@@ -947,7 +1097,8 @@ def main():
         subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
     try:
         with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
-                  client=args.mcp_client, keep=args.keep, port_range=args.port_range) as g:
+                  client=args.mcp_client, keep=args.keep, port_range=args.port_range,
+                  rewrite_roads=not args.keep_save_roads) as g:
             if args.interactive:
                 print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
                 try:
