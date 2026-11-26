@@ -43,6 +43,16 @@ def collect_runtime(root=ROOT, build=BUILD):
         sys.exit("[package] build/pak/ に pak が無い（先に tools/build.py を流す）")
     for p in paks:
         files.append((f"{TOP}/{os.path.basename(p)}", p))
+    files += collect_settings(root)
+    demo = os.path.join(root, "demo", DEMO)
+    if os.path.isfile(demo):
+        files.append((f"{TOP}/{DEMO}", demo))
+    return files
+
+
+def collect_settings(root):
+    """(zip の中の名前, 元のファイル) のうち、root の config/ と text/ の物。"""
+    files = []
     for sub in ("config", "text"):
         base = os.path.join(root, sub)
         for dirpath, dirnames, filenames in os.walk(base):
@@ -53,9 +63,6 @@ def collect_runtime(root=ROOT, build=BUILD):
                 path = os.path.join(dirpath, name)
                 rel = os.path.relpath(path, root).replace(os.sep, "/")
                 files.append((f"{TOP}/{rel}", path))
-    demo = os.path.join(root, "demo", DEMO)
-    if os.path.isfile(demo):
-        files.append((f"{TOP}/{DEMO}", demo))
     return files
 
 

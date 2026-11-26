@@ -6,7 +6,7 @@
     python -X utf8 tools/vehicle_check/run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> \n        --port 47880 --vehicle pak256_sample_bus
 
 - ゲームの用意・起動・閉じ方・後片付けは tools/game.py（docs/game-check.md）。検証環境を写した作業フォルダで走らせ、pak256 の
-  pak は build/pak/ の物（先に tools/build.py）を入れる。昼夜は止めてある。
+  pak は build/pak/ の物（先に tools/build.py。--pak で別のフォルダ）を入れる。昼夜は止めてある。
 - 道路の車庫は AMI の物（ami_road_depot。#64）を使う。別の車庫を試すときは --depot で名前を渡し、
   足りない物は --extra-pak で別の pak から借りる（借りた物はコミットしない）。
 - MCP のクライアント（OTRP 本体のリポジトリの mcp_client.py）は --mcp-client か環境変数 MCP_CLIENT。
@@ -23,7 +23,7 @@ from PIL import Image, ImageStat
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from game import Game  # noqa: E402
+from game import Game, add_pak_argument  # noqa: E402
 
 # gui.jump で飛んだタイルの中心が出る所の、画面の真ん中からのずれ（1600x900・拡大 3 で、停留所に止まった編成から測った）
 JUMP_X, JUMP_Y = 106, 131
@@ -99,12 +99,13 @@ def main():
     ap.add_argument("--limit", type=int, default=480,
                     help="全体の秒数の上限。過ぎたら撮るのをやめてゲームを閉じる（外の timeout より短くする）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
+    add_pak_argument(ap)
     args = ap.parse_args()
     if not args.env:
         sys.exit("検証環境を --env か環境変数 PAK256_GAME_ENV で渡す")
 
     os.makedirs(args.out, exist_ok=True)
-    with Game(args.env, args.save, args.port, extra_paks=args.extra_pak, client=args.mcp_client) as game:
+    with Game(args.env, args.save, args.port, extra_paks=args.extra_pak, client=args.mcp_client, pak_dir=args.pak) as game:
         ox, oy = (int(v) for v in args.origin.split(","))
         with open(os.path.join(HERE, "course.nut"), encoding="utf-8") as f:
             nut = f.read()

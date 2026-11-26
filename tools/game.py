@@ -9,6 +9,7 @@
 
     --env は環境変数 PAK256_GAME_ENV でも渡せる（個人の絶対パスはリポジトリに書かない）。
     --build を付けると、起動の前に tools/build.py を流す。無ければ build/pak/ の物を使う。
+    --pak <フォルダ> を付けると、build/pak/ の代わりにそのフォルダの pak を使う（配布の zip を展開した pak256/ など。#170）。
 
 開いたままのゲームへ命令を 1 つずつ流す（#85。docs/game-check.md の「開いたまま使う」）:
     python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47900 --interactive   # 起動して待つ（背景で動かす）
@@ -172,7 +173,37 @@ def _zip_members(zip_path):
     return out
 
 
-def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=False):
+def pak_dir_sources(pak_dir, root=ROOT):
+    """pak のフォルダ pak_dir（--pak）から入れる (相対パス, 元のファイル) の一覧。入れられないときは RuntimeError。
+
+    pak は pak_dir の直下の *.pak。pak_dir に config/ があれば（配布の zip を展開した pak256/ の形）、config/・text/・
+    demo.sve も pak_dir の物を使う。無ければ（build/pak/ の形）root の物を使う。
+    """
+    if not os.path.isdir(pak_dir):
+        raise RuntimeError(f"pak のフォルダが無い: {pak_dir}")
+    paks = sorted(n for n in os.listdir(pak_dir) if n.endswith(".pak") and os.path.isfile(os.path.join(pak_dir, n)))
+    if not paks:
+        raise RuntimeError(f"pak のフォルダの直下に *.pak が無い: {pak_dir}")
+    sources = [(n, os.path.join(pak_dir, n)) for n in paks]
+    if os.path.isdir(os.path.join(pak_dir, "config")):
+        if not os.path.isfile(os.path.join(pak_dir, "config", "simuconf.tab")):
+            raise RuntimeError(f"pak のフォルダの config/ に simuconf.tab が無い: {pak_dir}")
+        base, demo = pak_dir, os.path.join(pak_dir, package.DEMO)
+    else:
+        base, demo = root, os.path.join(root, "demo", package.DEMO)
+    sources += [(arc.split("/", 1)[1], src) for arc, src in package.collect_settings(base)]
+    if os.path.isfile(demo):
+        sources.append((package.DEMO, demo))
+    return sources
+
+
+def add_pak_argument(ap):
+    """ゲームを起動する道具に共通の --pak（Game(pak_dir=…) に渡す）。"""
+    ap.add_argument("--pak", help="入れる pak のフォルダ（直下の *.pak。省くと build/pak/）。配布の zip を展開した pak256/ なら、"
+                                  "その config/・text/・demo.sve を使う")
+
+
+def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=False, pak_dir=None):
     """pak と config/・text/・demo.sve を dest（本体の pak のフォルダ）に入れる。
 
     dest の中身は配布の zip の pak256/ と同じ形（*.pak・config・text・demo.sve だけ。許諾の文は入れない）。
@@ -180,13 +211,19 @@ def install_pak(dest, root=ROOT, build=None, extra=(), zip_path=None, clean=Fals
     （配布用の許諾の検査は通さない。package.collect_runtime）。
     clean は、入れる前に dest の古い *.pak・demo.sve・config/・text/ を消す（テストプレイのフォルダの入れ替え。ほかの物は残す）。
     extra は、足りない物を別の pak から借りるときのファイル（試験のときだけ。コミットしない）。
+    pak_dir があれば、build/pak/ の代わりにそのフォルダから取る（pak_dir_sources。zip_path とは一緒に渡せない）。
     ゲームの作業フォルダ（Game）も、テストプレイのフォルダに入れる道具（tools/install_local.py。#38）も、これで入れる。
     入れた相対パスの一覧を返す。
     """
+    if zip_path and pak_dir:
+        raise ValueError("zip_path と pak_dir は一緒に渡せない")
     if zip_path:
         members = _zip_members(zip_path)
         if not any(rel.endswith(".pak") and "/" not in rel for rel, _ in members):
             raise RuntimeError(f"zip に pak が無い: {zip_path}")
+    elif pak_dir:
+        members = None
+        sources = pak_dir_sources(pak_dir, root)
     else:
         members = None
         build = build or os.path.join(root, "build")
@@ -395,12 +432,13 @@ def rewrite_save_roads(sve, simuconf):
 
 
 def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=ROOT, build=None, simuconf_extra=(),
-                    rewrite_roads=True):
+                    rewrite_roads=True, pak_dir=None):
     """検証環境 env の一部を作業フォルダ work に写し、pak と保存データを入れる。work が既にあれば作り直す。
 
     写す物: 実行ファイル・DLL・ENV_DIRS（settings.xml は写さない）・指定の保存データ 1 つ。pak は work/pak/ に install_pak で入れる。
     simuconf_extra は、本体と pak の config/simuconf.tab の両方に足す行の一覧（例: ["show_names = 0"]。night でも足す）。
     rewrite_roads なら、保存データの写しの街の道路・街どうしの道路の名前を pak の config/simuconf.tab の指定にする（#151）。
+    pak_dir は、build/pak/ の代わりに入れる pak のフォルダ（pak_dir_sources）。
     """
     simuconf_extra = check_simuconf_lines(simuconf_extra)  # 作業フォルダを消す前に止める
     if not os.path.isfile(os.path.join(env, exe)):
@@ -408,6 +446,11 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
     sve = os.path.join(env, "save", save + ".sve")
     if not os.path.isfile(sve):
         raise RuntimeError(f"保存データが無い: {sve}")
+    if pak_dir:  # 作業フォルダを消す前に止める
+        pak_dir_sources(pak_dir, root)
+        p, w = (os.path.normcase(os.path.realpath(d)) for d in (pak_dir, work))
+        if p == w or p.startswith(w + os.sep):
+            raise RuntimeError(f"pak のフォルダが作業フォルダの中にある（作り直すと消える）: {pak_dir}")
     if os.path.exists(work):
         shutil.rmtree(work)
     os.makedirs(os.path.join(work, "save"))
@@ -420,7 +463,7 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
         if os.path.isdir(os.path.join(env, d)):
             shutil.copytree(os.path.join(env, d), os.path.join(work, d))
     shutil.copyfile(sve, os.path.join(work, "save", save + ".sve"))
-    placed = install_pak(os.path.join(work, PAK_DIR), root, build, extra_paks)
+    placed = install_pak(os.path.join(work, PAK_DIR), root, build, extra_paks, pak_dir=pak_dir)
     # 本体の config/ と pak の config/ の両方に足す（pak の物が後に読まれる）
     for simuconf in (os.path.join(work, "config", "simuconf.tab"), os.path.join(work, PAK_DIR, "config", "simuconf.tab")):
         if not night:
@@ -615,8 +658,9 @@ class Game:
 
     def __init__(self, env, save, port, work=None, night=False, extra_paks=(), client=None, exe=EXE,
                  screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None,
-                 rewrite_roads=True):
+                 rewrite_roads=True, pak_dir=None):
         check_port(port, port_range)
+        self.pak_dir = os.path.abspath(pak_dir) if pak_dir else None
         self.rewrite_roads = rewrite_roads
         self.simuconf_extra = check_simuconf_lines(simuconf_extra)
         self.env, self.save, self.port = os.path.abspath(env), save, port
@@ -651,7 +695,7 @@ class Game:
         check_work(self.work, self.env, self.root)
         self.prepared = True
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build,
-                        simuconf_extra=self.simuconf_extra, rewrite_roads=self.rewrite_roads)
+                        simuconf_extra=self.simuconf_extra, rewrite_roads=self.rewrite_roads, pak_dir=self.pak_dir)
         cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
             try:
@@ -1052,6 +1096,7 @@ def main():
     ap.add_argument("--capture", help="撮る PNG のパス（Squirrel の後）")
     ap.add_argument("--extra-pak", action="append", default=[], help="借りる pak のファイル（試験のときだけ）")
     ap.add_argument("--build", action="store_true", help="起動の前に tools/build.py を流す")
+    add_pak_argument(ap)
     ap.add_argument("--night", action="store_true", help="昼夜の切り替えを止めない（夜の灯りを見るとき）")
     ap.add_argument("--keep", action="store_true", help="閉じた後も作業フォルダを残す")
     ap.add_argument("--keep-save-roads", action="store_true",
@@ -1074,6 +1119,10 @@ def main():
             sys.exit(f"--player-nr: {e}")
         if args.interactive:
             sys.exit("--player-nr は --interactive でなく、--send・--send-file の呼び出しに付ける")
+    if args.pak is not None and (args.send is not None or args.send_file):
+        sys.exit("--pak は起動する呼び出し（--interactive など）に付ける")
+    if args.pak is not None and args.build:
+        sys.exit("--build（build/pak/ を組む）と --pak は一緒に使わない")
     if args.send is not None or args.send_file:
         text = args.send
         if args.send_file:
@@ -1098,7 +1147,7 @@ def main():
     try:
         with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
                   client=args.mcp_client, keep=args.keep, port_range=args.port_range,
-                  rewrite_roads=not args.keep_save_roads) as g:
+                  rewrite_roads=not args.keep_save_roads, pak_dir=args.pak) as g:
             if args.interactive:
                 print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
                 try:
