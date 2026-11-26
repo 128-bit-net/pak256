@@ -6,6 +6,7 @@
     b_old・a_old    ../2026-11-26_ami333-screens/scene.py の出力
     b_new・a_new    scene.py の出力
     b_seamk・a_seamk seam_scene.py の出力
+    b_seam・a_seam   ../2026-11-26_snow-road-seam-screens/scene.py の出力（道路名を書き換える既定。街の道路は ami_road_local）
     b_con・a_con    ../2026-11-26_ami333-screens/concrete_scene.py の出力
 切り抜き（1・3・4・5）は ../2026-11-26_ami333-screens/compare.py で作る。コンクリートの列は、左が alpha.7、中が alpha.8、右が道路のコンクリート（alpha.8）。
 """
@@ -62,6 +63,9 @@ rows.append(row(cells))
 for box, text in (((808, 325, 1000, 385), "road (x=808 y=325)"), ((800, 355, 940, 415), "sidewalk inner edge (x=800 y=355)")):
     rows.append(row([label(shot(f, "city").crop(box).resize(((box[2] - box[0]) * 6, (box[3] - box[1]) * 6), Image.NEAREST),
                            f"{t}  {text}  x6") for t, f in (("before", seam_b), ("after", seam_a))]))
+rows.append(row([label(shot(os.path.join(root, side + "_seam"), "city").crop((240, 220, 1360, 870)).resize((800, 464), Image.LANCZOS),
+                       f"{text}  snow city road = ami_road_local (default)")
+                 for text, side in (("before (alpha.7)", "b"), ("after (alpha.8)", "a"))]))
 stack(rows).save(os.path.join(out, "2_snow_city.png"))
 
 # コンクリートの粒（切り抜きの位置は #134 の concrete_montage.py と同じ）
