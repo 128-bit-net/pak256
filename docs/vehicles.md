@@ -82,6 +82,23 @@
 - **曲がり・坂**（[#71](https://github.com/128-bit-net/pak256/issues/71)。画面は [記録](records/2026-11-25_rail-leftovers.md)）: 車体は 1 枚の絵で、曲がりの角のタイルでは進む向きの斜めに描かれる。AMI の線路の 90° の曲がりは 1 タイルの中で折れるので、20m（`length=12`）の車体は角の外へはみ出して草地に掛かって見える（付随車との継ぎ目も折れない）。坂では車体が水平のまま走り、1 段の坂をまたぐ継ぎ目に段差が出るが、車輪はどちらの車もレールの上に乗った。**直さない**: 1 両 1 枚の絵はこの本体の決まりで、はみ出しを無くすには車両を短くして両数を増やすか、車両ごとに曲がり用の絵を足すしかなく、仮の絵の段階では釣り合わない。見えたことは記録に残した。
 - 旅客は、駅（`pak256_train_station`。[stations.md](stations.md)）で積み降ろす。信号（`pak256_rail_signal`。[signals.md](signals.md)）を置き、1 本の線路に複数の編成を走らせる試験は `tools/vehicle_check/signal.nut`（#73）。車庫は AMI の `ami_rail_depot`（`ami_rail.pak`）。
 
+## モノレールの車両
+
+[#156](https://github.com/128-bit-net/pak256/issues/156)。軌道は AMI の 256 版の跨座式の桁（`ami_monorail_straddle`・高架 `ami_monorail_straddle_elev_*`・トンネル `ami_monorail_straddle_tunnel`）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/monorail/monorail/`、描く道具は `objects/vehicle/monorail/draw_monorail.py`（MIT。`python -X utf8 objects/vehicle/monorail/draw_monorail.py`。Pillow だけで動く）。検査は `tools/test_vehicles.py` の `TestMonorail`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_monorail` | モノレール / Monorail | `Passagiere` | 15m・3.0m・5.0m（裾の下端から） | 9 | 82 | 100 | 330 | 80 | 18 | 482000 | 29 | 1930 |
+
+- **値の目安**: pak128 のモノレールの車両 `PMNV-TC-1_Turbo_Car` の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名・連結の指定は写していない（扱いは線路の車両と同じ）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1985）。引退年は書かない。
+- **動力**: `engine_type: diesel`。電化（AMI の `ami_monorail_power`）を張らなくても走るようにした。
+- **連結**: 指定は無い。1 両で走り、何両でもつなげる。
+- **長さと位置**: 線路の車両と同じ決まり（15m → `length=9`、軌道の中心に描く、車体の前の端が基準点）。どの向きも 256 のセルに収まる。
+- **大きさ**: 幅と高さは線路の車両の倍率（1.40・1.20）で描く（幅 4.2m・高さ 6.0m）。モノレールの手本の絵は測っていない（pak128.Japan の手本との比べは無い）。
+- **桁との合わせ方**: AMI の桁は幅 2.24m・上面 1.85m。車体の裾（スカート）を地面まで下ろして桁の側面を隠し、床の下面を 2.4m にした。車体の端の面は桁の通る所を空けた。
+- **懸垂式**: AMI の懸垂式（`ami_monorail_suspended_*`）も同じ `monorail_track` なので、ツールバーに出てこの車両も走れるはずだが、絵は跨座式用なので合わない（ゲームでは確かめていない）。
+- **ゲームでの確かめ**: `tools/vehicle_check/monorail_run.py`（`monorail.nut`・`monorail_city.nut`）が、地上・高架・トンネル・曲がりの 4 本の線を作って撮り、運んだ数と収支を出す。画面と結果は[記録](records/2026-11-26_monorail.md)。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。

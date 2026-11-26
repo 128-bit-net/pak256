@@ -31,6 +31,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
 | `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
+| `objects/station/monorail_stops/`・`objects/vehicle/monorail/` | モノレールの駅と車両（跨座式。[stations.md](stations.md)・[vehicles.md](vehicles.md)） | #156 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。

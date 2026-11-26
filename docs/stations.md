@@ -56,6 +56,18 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 - 1x1 タイル、`level` 2（容量。本体は level × 32。値は仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
 - 駅（`pak256_train_station`）: 線路（AMI の `ami_rail_ballast`）の脇に、高さ 0.9m のホームと屋根つきの待合を置く。線路はタイルの中央（c = 0.43〜0.57。道床の幅 約 3.4m）を通ると見て、近い側（c = 0.66〜0.98）にホームを置いた。向きの絵・シートの並びは下の「向きの絵」のとおり。**列車は 2 両で 24 単位 = 1.5 タイルあるので、駅は 2〜3 タイル並べて置く**（1 タイルだと編成がはみ出す）。ゲームで 3 タイルを並べ、気動車 + 付随車が停まって旅客を積み降ろしできた（[記録](records/2026-11-25_rail-train.md)）。信号と一緒の確かめは [記録](records/2026-11-26_rail-signal.md)（上の辺と下の辺に 3 タイルずつ置き、4 編成が周回した）。
 
+## モノレールの駅
+
+[#156](https://github.com/128-bit-net/pak256/issues/156)。置き場は `objects/station/monorail_stops/`。`draw_stops.py`（MIT）が、線路の駅の道具を読んで PNG と表を書き出す（`python -X utf8 objects/station/monorail_stops/draw_stops.py`）。向きの絵・道具の絵の形は線路の駅と同じ。
+
+| `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
+|---|---|---|---|---|---|
+| `pak256_monorail_station` | `building` | `stop` | `monorail_track` | 旅客（`enables_pax`） | モノレールの駅 / Monorail Station |
+
+- 1x1 タイル、`level` 2（仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
+- 跨座式の桁の手前（c = 0.62〜0.96）に、柱で支えた高さ 2.4m（車両の床の高さ）のホームと屋根を置く。ホームは車両より手前なので、前の絵に描く。
+- 車両は `length=9`（1 タイルは 16）なので、1 両なら 1 タイル、2〜3 両つなぐなら 2 タイル並べる。確かめでは 3 タイル並べた。
+
 ## 下の地面
 
 停留所と駅は今ある道（道路・線路）の升に載せて建てるので、下の地面は道の升の物がそのまま描かれる。表に `needs_ground` は書かない（道から離して置く拡張の建物を作るときは要る。[buildings.md](buildings.md) の「下の地面」。#126）。

@@ -48,8 +48,9 @@ class StationTest(unittest.TestCase):
         for p, d in stops():
             self.assertEqual(d["type"], "stop", p)
             self.assertEqual(d["obj"], "building", p)
-            self.assertIn(d["waytype"], ("road", "track"), p)
-            self.assertEqual(d["waytype"] == "track", "rail_stops" in p.replace(os.sep, "/"), f"{p}: 置き場と waytype が合わない")
+            self.assertIn(d["waytype"], ("road", "track", "monorail_track"), p)
+            folder = {"road": "road_stops", "track": "rail_stops", "monorail_track": "monorail_stops"}[d["waytype"]]
+            self.assertEqual(os.path.basename(os.path.dirname(p)), folder, f"{p}: 置き場と waytype が合わない")
             self.assertEqual(str(d["dims"]), f"1,1,{LAYOUTS}", p)
             self.assertTrue(d.get("enables_pax") or d.get("enables_post") or d.get("enables_ware"), f"{p}: 何も扱わない")
             sheet = os.path.join(os.path.dirname(p), os.path.basename(p)[:-5] + ".png")
