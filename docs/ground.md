@@ -55,6 +55,7 @@
 
 ## 絵を足す・直すとき
 
+- 地面の決まりを変えるときは、進捗管理から AMI の進捗管理へ知らせる（AMI の `check_ground_mask.py` が同じ決まりを持っている）。
 - 壁と柵は、地面の高さ 0 の菱形に合わせて描く。本体が段の分だけ上に動かす。
 - 絵の色は RGBA で、透明は α = 0。`0xE7FFFF` と、makeobj が特別な色にする物（`draw_ground.py` の `_SPECIAL`）は使わない。
 - 斜め格子の周期: ClimateTexture と Water は、`(128,64)` ずらしても `(128,-64)` ずらしても同じ模様になるように描く（隣のタイルとつなげるため）。`draw_ground.py` の `lattice()` と `vnoise()` がその座標。ClimateTexture は `tools/test_ground.py` が、コミットしてある PNG で確かめる（Water は菱形で、ずらした先が重ならないので対象外）。
