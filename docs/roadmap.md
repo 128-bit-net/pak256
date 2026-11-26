@@ -99,7 +99,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 - ツールバーのアイコンを、何の道具か分かる絵にする（[#66](https://github.com/128-bit-net/pak256/issues/66)。済み）。
 - 車両の顔ぶれと時代（登場年・引退年）。
 - 路面電車・船と港（仮の 2 種と港 3 つは [#154](https://github.com/128-bit-net/pak256/issues/154)）・飛行機と空港（仮の旅客機 1 種と空港の物は [#155](https://github.com/128-bit-net/pak256/issues/155)）・モノレール。
-- 歩行者・街の車・煙・音（街の車は [#173](https://github.com/128-bit-net/pak256/issues/173) で仮の 3 種を入れた）。
+- 歩行者・街の車・煙・音（歩行者は [#172](https://github.com/128-bit-net/pak256/issues/172) で仮の 3 種。[pedestrians.md](pedestrians.md)。街の車は [#173](https://github.com/128-bit-net/pak256/issues/173) で仮の 3 種を入れた）。
 - 街の建物の数。
 
 ### 4. ベータ
