@@ -32,11 +32,11 @@
 | `2026-11-25_coal-truck-screens/5_convoys.png` | 編成一覧。石炭トラックの収益 |
 | `2026-11-25_coal-truck-screens/6_factories.png` | 産業一覧。発電所に届いた石炭 |
 
-![積んだトラックと炭鉱の荷役所](2026-11-25_coal-truck-screens/1_loaded_103.png?raw=true)
-![積んだ・空・積んだ（4 倍）](2026-11-25_coal-truck-screens/crops_x4.png?raw=true)
-![財務の窓](2026-11-25_coal-truck-screens/4_finances.png?raw=true)
-![編成一覧](2026-11-25_coal-truck-screens/5_convoys.png?raw=true)
-![産業一覧](2026-11-25_coal-truck-screens/6_factories.png?raw=true)
+![積んだトラックと炭鉱の荷役所](2026-11-25_coal-truck-screens/1_loaded_103.png)
+![積んだ・空・積んだ（4 倍）](2026-11-25_coal-truck-screens/crops_x4.png)
+![財務の窓](2026-11-25_coal-truck-screens/4_finances.png)
+![編成一覧](2026-11-25_coal-truck-screens/5_convoys.png)
+![産業一覧](2026-11-25_coal-truck-screens/6_factories.png)
 
 ## 確かめていないこと
 

@@ -1,0 +1,35 @@
+{
+  "$comment": "docs-lint の設定。検査するのはリポジトリ直下と docs/ の md。livingDocs は常に最新に保つ文書の一覧で、docs/ に規格・決め事の文書を足すときはここにも足す。日付付きの記録は docs/records/。CI は .github/workflows/docs-lint.yml（流し方は CONTRIBUTING.md の「文書の検査」）。",
+  "scanRoots": {
+    "recursive": ["docs"],
+    "flat": ["."]
+  },
+  "ledgers": [],
+  "recordDirs": ["docs/records"],
+  "adrDir": "docs/adr",
+  "templateDir": "docs/templates",
+  "forbiddenFileNames": ["INDEX.md", "index.md", "TODO.md"],
+  "forbiddenDirNames": ["temp", "tmp", "draft", "wip"],
+  "dependencyDebtHeader": "| Package | Current | Target | Blocker | Type | Revisit condition | Recorded |",
+  "dependencyDebtTypes": ["temporary", "infra", "behavior-change"],
+  "livingDocs": [
+    "CONTRIBUTING.md",
+    "CREDITS.md",
+    "LICENSE.md",
+    "docs/buildings.md",
+    "docs/concept.md",
+    "docs/config.md",
+    "docs/game-check.md",
+    "docs/goods.md",
+    "docs/ground.md",
+    "docs/gui.md",
+    "docs/industry.md",
+    "docs/layout.md",
+    "docs/roadmap.md",
+    "docs/signals.md",
+    "docs/standards.md",
+    "docs/stations.md",
+    "docs/trees.md",
+    "docs/vehicles.md"
+  ]
+}

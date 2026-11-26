@@ -105,6 +105,9 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_trees.py` | 木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないこと、表（.yaml）の気候・季節、各気候の木と `simuconf.tab` の食い違いの検査（Pillow・PyYAML が要る） |
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
 | `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること（Pillow が要る） |
+| `test_ground.py` | コミットしてある気候の地面の模様（`texture-climate.png`）が、斜め格子の周期で隣のタイルとつながり、透明な画素が無いことの検査（[ground.md](ground.md)。Pillow が要る） |
+| `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
+| `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
@@ -145,7 +148,7 @@ pak256/CREDITS.md
 pak256/ami_license.txt  AMI の pak を入れたときだけ
 ```
 
-CI は `.github/workflows/ci.yml`。
+CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.github/workflows/docs-lint.yml`（全部の PR と main への push。版は `ci.env`）。
 
 - PR と main への push: `tools/test_*.py` の検査（`test_datgen.py` など）→ `tools/build.py`（pak を組む）→ `tools/package.py`。zip は artifact `pak256-zip` に置く。
 - makeobj は警告（`Warning`）でも終了コード 0 なので、`build.py` がログの `Warning`・`ERROR` の行で失敗にする。CI も同じ。

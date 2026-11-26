@@ -54,6 +54,29 @@ with Game(env, "flat_512_left_v64", 47880) as g:
 - 停留所の名前は物の `name` だけ（`"1,<name>"` の形は失敗する）。
 - 本体の 1 か月は約 13 分。街の育ちは `debug.set_game_speed(128)`（1 年が約 50 秒）で早送りして見る。
 
+## 気候と月（`Game.climate`・`Game.wait_month`、#109）
+
+```python
+g.climate(100, 100, 113, 113, "desert")   # 矩形の気候を塗る（番号 1〜7 か名前。z は既定 0）
+g.wait_month(0)                          # 月が 0（1 月）になるまで早送りして、速さを 1 に戻す
+time.sleep(8)                            # 木などの絵が季節に合わせて入れ替わるのを待つ
+```
+
+- **気候は地形の後に塗る。** 地形を変える（`grid_raise`・`grid_lower`・水位）と、気候が高さで決まり直して、塗った気候が消える（#101 で湖の水位を上げた後に塗り直した。[記録](records/2026-11-26_climate-ground-screens.md)）。
+- 気候の番号は 1 砂漠・2 熱帯・3 地中海・4 温帯・5 ツンドラ・6 岩・7 雪（名前は `desert`・`tropic`・`mediterran`・`temperate`・`tundra`・`rocky`・`arctic`。`game.CLIMATES`）。0（水）は塗る手では扱わない（地面が水になる・水の上を塗ると水位が下がる）。水は `tool_change_water_height` で入れる。
+- 本体は 1 タイルも変わらなくても成功を返すので、塗れたかは画面で見る。塗るのは道具 `tool_set_climate`（矩形）。
+- 月は 0 始まり（0 = 1 月）。`world.get_time().month` で読める。本体の季節は月だけで決まり（OTRP の `simworld.cc` の `month_to_season`。`game.MONTH_TO_SEASON`）、スクリプトから季節を直に指定する手が無いので、目的の月まで早送りする。
+
+| 季節（番号） | 月（0 始まり） | 撮るのに使う月（`game.SEASON_MONTHS`） |
+|---|---|---|
+| 夏（0） | 5〜8（6〜9 月） | 6 |
+| 秋（1） | 9〜10（10〜11 月） | 9 |
+| 冬（2） | 11・0〜2（12〜3 月） | 0 |
+| 春（3） | 3〜4（4〜5 月） | 3 |
+
+- `wait_month` は、既にその月なら何もしない。月の中の日付はそろえられない。目的の月が過ぎた直後なら約 1 年分を早送りする（本体の 1 か月は約 13 分で、速さ 64 なら 1 年は数分）。待ちの上限は `timeout`（実時間の秒。既定 420）。街の建物の絵の添字も、この季節の番号（[buildings.md](buildings.md)）。
+- 開いたまま使うときは `--send "@month 0" --timeout 480`。気候は Squirrel を直に流す（`command_x(tool_set_climate).work(...)`）。
+
 ## 開いたまま使う（`--interactive`・`--send`、#85）
 
 窓を `gui.click` で順に開いて撮るなど、結果を見ながら 1 つずつ進めたいときの入口。自作の枠は要らない。AMI の `ingame/game.sh`（起動 / `RUN` / `CAPTURE` / `STOP`）と同じ形で、`game.py` が起動・見張り・閉じるまでを持つ。
@@ -76,6 +99,7 @@ python -X utf8 tools/game.py --port 47900 --send "@quit"
 | `@capture <PNG>` | 画面を撮る（パスは送る側の今のフォルダからの相対） |
 | `@dialog <名前か番号>` | 窓を開く（下の表） |
 | `@settle [秒]` | 建設中の絵が終わるまで進める（既定 15 秒） |
+| `@month <月>` | 月が 0〜11（0 = 1 月）になるまで早送りする（上の「気候と月」。`--timeout` を長くする） |
 | `@quit` | ゲームを閉じて終わる |
 
 - 仕組み: 見張る側は作業フォルダ（既定 `work/game/<ポート>/`）の `inbox/` に置かれた命令のファイルを番号順に 1 つずつ流し、結果を `.out` に書く。`--send` は同じポート（`--work` を使ったなら同じ値）を渡す。
@@ -143,4 +167,6 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 ## 検査
 
-`tools/test_game.py`（ゲームは起動しない）: 開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_ground.py`: コミットしてある `ClimateTexture` の模様 8 枚が、斜め格子の周期（(128,64)・(128,-64)）でずらしても同じで、透明な画素が無い（Water は菱形なので見ない）。`tools/test_town_buildings.py`: 街の建物の `backimage` の季節の添字が 4 枚（夏・秋・冬・春）で、冬だけが右の絵を指し、右の絵が左と違う。
+
+`tools/test_game.py`（ゲームは起動しない）: 気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。

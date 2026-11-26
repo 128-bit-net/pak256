@@ -1,9 +1,8 @@
 """木を各気候・各季節でゲームに撮る道具（docs/trees.md、#102）。MIT License。
 
 平らな保存データに、気候ごとの区画（tropic・desert・mediterran・temperate・tundra・arctic と、雪線の上の温帯）を作り、
-`tool_forest` で林を置き、ゲームの月を進めて、同じ場所の夏・秋・冬・春を撮る。本体の季節は月で決まる
-（OTRP の `simworld.cc` の `month_to_season`: 1 始まりの月で 12〜3 月 冬、4〜5 月 春、6〜9 月 夏、10〜11 月 秋）ので、月が目的になるまで
-`debug.set_game_speed` で進める。
+`tool_forest` で林を置き、ゲームの月を進めて、同じ場所の夏・秋・冬・春を撮る。気候を塗る手と月を進める手は
+`tools/game.py` の `Game.climate`・`Game.wait_month`（本体の季節は月で決まる。docs/game-check.md の「気候と月」）。
 
     python -X utf8 tools/tree_check.py --env <検証環境> --port 47841 --out work/tree_check
 
@@ -16,7 +15,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from game import Game  # noqa: E402
+from game import SEASON_MONTHS, Game  # noqa: E402
 
 N = 14          # 区画の一辺（タイル）
 STEP = 22       # 区画の間隔
@@ -26,8 +25,8 @@ PLOTS = [
     ("tropic", 2, 0), ("desert", 1, 0), ("mediterran", 3, 0), ("temperate", 4, 0),
     ("tundra", 5, 0), ("arctic", 7, 0), ("temperate_high", 4, 14),
 ]
-# 季節ごとに撮る月（0 始まり）。本体の month_to_season に合う月
-SEASONS = [("summer", 6), ("autumn", 9), ("winter", 0), ("spring", 3)]
+# 季節ごとに撮る月（0 始まり）
+SEASONS = list(SEASON_MONTHS.items())
 
 
 def prepare_plot(g, idx, name, climate, lift):
@@ -37,26 +36,10 @@ def prepare_plot(g, idx, name, climate, lift):
         g.sq(f"local pl = player_x(0); for (local k = 0; k < {lift}; k++) for (local x = {x - 1}; x <= {x + N + 1}; x++) "
              f"for (local y = {y - 1}; y <= {y + N + 1}; y++) command_x.grid_raise(pl, coord3d(x, y, k)); return 1", timeout=240)
     z = lift
-    g.sq(f"local pl = player_x(0); for (local x = {x}; x < {x + N}; x++) for (local y = {y}; y < {y + N}; y++) "
-         f"command_x.change_climate_at(pl, coord3d(x, y, {z}), {climate}); return 1", timeout=120)
+    g.climate(x, y, x + N - 1, y + N - 1, climate, z=z, timeout=120)  # 地形（台地）の後に塗る
     r = g.sq(f'return command_x(tool_forest).work(player_x(0), coord3d({x}, {y}, {z}), coord3d({x + N - 1}, {y + N - 1}, {z}), "")')
     print(f"[tree_check] {name}: forest -> {r}")
     return x + N // 2, y + N // 2
-
-
-def wait_month(g, target, timeout=420):
-    """ゲームの月が target になるまで進める。"""
-    end = time.time() + timeout
-    g.sq("debug.set_game_speed(64); return 1")
-    try:
-        while time.time() < end:
-            m = int(g.sq("return world.get_time().month"))
-            if m == target:
-                return
-            time.sleep(0.4)
-        raise RuntimeError(f"月 {target} にならなかった")
-    finally:
-        g.sq("debug.set_game_speed(1); return 1")
 
 
 def montage(src, dst):
@@ -117,7 +100,7 @@ def main():
             centers[name] = prepare_plot(g, idx, name, climate, lift)
         g.sq(f"gui.set_zoom({args.zoom}); return 1")
         for season, month in SEASONS:
-            wait_month(g, month)
+            g.wait_month(month)
             time.sleep(8)  # 木の絵が季節に合わせて入れ替わるのを待つ
             for name, (cx, cy) in centers.items():
                 g.sq(f"gui.jump(coord({cx}, {cy})); return 1")
