@@ -24,7 +24,7 @@ r("pier_e", command_x(tool_build_station).work(pl, coord3d(39, 84, -1), "pak256_
 r("pier_w", command_x(tool_build_station).work(pl, coord3d(60, 84, -1), "pak256_pier"));
 r("quay", command_x(tool_build_station).work(pl, coord3d(49, 93, -1), "pak256_quay"));
 
-// 車庫: 海につながる短い運河（南の岸）の行き止まり。本体は開けた海の上には車庫を置かせない
+// 車庫: 海につながる短い運河（南の岸）の行き止まり。水の升に直に置くなら岸に接した升（四方が水の升は本体が断る）
 local depot_desc = null;
 foreach (d in building_desc_x.get_building_list(building_desc_x.depot)) if (d.get_name() == "ami_canal_depot") depot_desc = d;
 if (depot_desc == null) return s + "no ami_canal_depot";

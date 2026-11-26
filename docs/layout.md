@@ -106,7 +106,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
 | `test_trees.py` | 木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないこと、表（.yaml）の気候・季節、各気候の木と `simuconf.tab` の食い違いの検査（Pillow・PyYAML が要る） |
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
-| `test_stations.py` | 停留所・駅の表の検査: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること、道路の停留所の絵が画面で道路の白線の内側に掛からないこと（#115）（Pillow が要る） |
+| `test_stations.py` | 停留所・駅・港の表の検査（港は `PortTest`: 型・向きの数・シート・`draw_ports.py` が書く表と同じこと・`stations.md` に載ること。#154）: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること、道路の停留所の絵が画面で道路の白線の内側に掛からないこと（#115）（Pillow が要る） |
 | `test_ground.py` | コミットしてある気候の地面の模様（`texture-climate.png`）が、斜め格子の周期で隣のタイルとつながり、透明な画素が無いことの検査（[ground.md](ground.md)。Pillow が要る） |
 | `test_needs_ground.py` | 道の上でない建物・産業の表に `needs_ground: 1` があることの検査（[buildings.md](buildings.md) の「下の地面」。PyYAML が要る） |
 | `test_frames.py` | 地面の印（`Marker`）・格子の線（`Borders`）・タイルのカーソルの枠が、地面の絵の縁と画素単位で一致し、両端の高さが同じ辺が横 2px・縦 1px の階段であることの検査（[ground.md](ground.md) の「枠の線」。Pillow が要る） |
@@ -123,7 +123,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。船と港の確かめは `ship.nut`・`ship_ports.nut`（#154）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
