@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 CELL = 512  # AMI の 256 版のセルの一辺（pak256 のアドオンは makeobj の pak512）
 TRANSPARENT = (231, 255, 255)
@@ -47,14 +47,14 @@ def outlines(cell):
     """セルの絵の上と下の輪郭 {x: y}（透明でない画素の最初と最後の行）。"""
     rgba = cell.convert("RGBA")
     width, height = rgba.size
-    data = rgba.tobytes()
+    r, g, b = ImageChops.difference(rgba.convert("RGB"), Image.new("RGB", rgba.size, TRANSPARENT)).split()
+    colored = ImageChops.lighter(ImageChops.lighter(r, g), b).point(lambda v: 255 if v else 0)
+    mask = ImageChops.darker(colored, rgba.getchannel("A").point(lambda v: 255 if v else 0))
     top, bottom = {}, {}
-    for y in range(height):
-        for x in range(width):
-            r, g, b, a = data[(y * width + x) * 4:(y * width + x) * 4 + 4]
-            if a and (r, g, b) != TRANSPARENT:
-                top.setdefault(x, y)
-                bottom[x] = y
+    for x in range(width):
+        box = mask.crop((x, 0, x + 1, height)).getbbox()
+        if box:
+            top[x], bottom[x] = box[1], box[3] - 1
     return top, bottom
 
 

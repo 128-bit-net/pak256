@@ -278,6 +278,16 @@ def find_dat_linter():
         f"{DAT_LINTER_CACHE} に入る。ほかの場所なら DAT_LINTER_BIN で渡す）")
 
 
+def step_way_edges(ami, partial):
+    log("検査: 道の縁の段（tools/check_way_edges.py）")
+    count, problems = check_way_edges.check(os.path.join(ami, "src256"), partial)
+    if partial and not count and not problems:  # 試しで道の無い対象（壁など）だけを描いた
+        log("道のセルが無いので、縁の段は調べない")
+        return
+    if not check_way_edges.report(count, problems):
+        die("道の縁の段の検査に落ちた（#111。AMI の持ち分マスクが 256 の大きさで作られているかを見る）")
+
+
 def step_check(ami, env, partial):
     env = dict(env)
     if partial:
@@ -285,9 +295,7 @@ def step_check(ami, env, partial):
     for c in CHECKS_PARTIAL if partial else CHECKS_FULL:
         log(f"検査: {' '.join(c)}")
         run([sys.executable, "-X", "utf8", *c], cwd=ami, env=env)
-    log("検査: 道の縁の段（tools/check_way_edges.py）")
-    if not check_way_edges.report(*check_way_edges.check(os.path.join(ami, "src256"), partial)):
-        die("道の縁の段の検査に落ちた（#111。AMI の持ち分マスクが 256 の大きさで作られているかを見る）")
+    step_way_edges(ami, partial)
     if not partial:
         log("検査: dat_linter lint --tile-size 512 src256")
         run([find_dat_linter(), "lint", "--tile-size", "512", "."], cwd=os.path.join(ami, "src256"), env=env)

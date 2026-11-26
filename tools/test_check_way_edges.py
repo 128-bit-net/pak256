@@ -32,11 +32,21 @@ image[-][0]=x.0.1,-128,-64
 image[ns][0]=x.0.0,-128,-64
 diagonal[sw][0]=> x.0.0,-128,-64
 """
+KEYS_DAT = """obj=way
+image[ns]=x.0.0
+image[ns][1]=> x.1.2,-128,-64
+diagonal[sw][0]=x.2.3,-128,-64
+imageup[3][0]=x.3.0,-128,-64
+"""
 
 
 class WayCellsTest(unittest.TestCase):
     def test_keys(self):
         self.assertEqual(c.way_cells(DAT), [("image[ns][0]", "x", 0, 0), ("diagonal[sw][0]", "x", 0, 0)])
+
+    def test_season_reference_and_slope(self):
+        self.assertEqual(c.way_cells(KEYS_DAT),
+                         [("image[ns]", "x", 0, 0), ("image[ns][1]", "x", 1, 2), ("diagonal[sw][0]", "x", 2, 3)])
 
     def test_skips_elevated_and_other_objects(self):
         self.assertEqual(c.way_cells(DAT.replace("system_type=0", "system_type=1")), [])
