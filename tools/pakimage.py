@@ -62,7 +62,7 @@ def parse_pak(data):
         kind = data[pos:pos + 4].rstrip(b"\0").decode("latin1")
         count, size = struct.unpack_from("<HH", data, pos + 4)
         pos += 8
-        if size == 0xFFFF:  # 大きい節は、続く 4 バイトが長さ
+        if size == 0xFFFF and version != 1001:  # 大きい節は、続く 4 バイトが長さ（版 1001 には無い）
             size = struct.unpack_from("<I", data, pos)[0]
             pos += 4
         if pos + size > len(data):
@@ -108,10 +108,11 @@ class Picture:
         version = body[6]
         if version == 3:
             self.x, self.y, self.w, _, self.h, _ = struct.unpack_from("<hhhBhB", body, 0)
-        elif version in (1, 2):
+        elif version == 2:
             self.x, self.y, self.w, self.h = struct.unpack_from("<hhBB", body, 0)
         else:
-            raise PakError(f"画像の版 {version} は読めない（1〜3）")
+            # 版 0・1 は本体が行の左端をずらして読む古い形。今の makeobj は書かない
+            raise PakError(f"画像の版 {version} は読めない（2・3 だけ）")
         words = struct.unpack_from(f"<{(len(body) - 10) // 2}H", body, 10)
         self.pixels = {}
         i = 0

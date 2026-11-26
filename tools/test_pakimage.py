@@ -59,6 +59,8 @@ class TestFormat(unittest.TestCase):
         words = [0, 1, 0x001F, 0]
         p = pakimage.Picture(pakimage.parse_pak(pak(img(1, 2, 1, 1, words, version=2))).children[0].body)
         self.assertEqual(p.pixels, {(1, 2): 0x001F})
+        with self.assertRaises(pakimage.PakError):
+            pakimage.Picture(pakimage.parse_pak(pak(img(1, 2, 1, 1, words, version=1))).children[0].body)
 
     def test_colors(self):
         self.assertEqual(pakimage.rgba(0x7C00), (255, 0, 0, 255))
@@ -175,6 +177,44 @@ class TestRoundTrip(unittest.TestCase):
             # 切り抜きの (100, 200) は 2 倍の大きさの (8, 8)
             self.assertEqual(im.getpixel((8, 8)), (255, 0, 0))
             self.assertEqual(im.getpixel((0, 0)), (96, 128, 96))
+
+    def test_documented_paths(self):
+        """docs/game-check.md の道筋の表（WAY・VHCL・BUIL）が、makeobj の書く順と合うこと。"""
+        d = self.tmp.name
+        sheet = Image.new("RGBA", (2048, 256), TRANSPARENT)
+        for col in range(8):
+            sheet.putpixel((col * 256 + col, 100), RED)  # 列 col の画素は x = col
+        sheet.save(os.path.join(d, "n.png"))
+        way = "obj=way\nname=t_way\ncopyright=t\nwaytype=road\n"
+        for season in (0, 1):
+            way += f"image[-][{season}]=n.0.{season}\nimageup[3][{season}]=n.0.{2 + season}\n"
+            way += f"frontimage[-][{season}]=n.0.{4 + season}\n"
+        car = "obj=vehicle\nname=t_car\ncopyright=t\nwaytype=road\n"
+        car += "emptyimage[s]=n.0.0\nemptyimage[w]=n.0.1\n"
+        car += "freight=Passagiere\nfreightimage[s]=n.0.2\nfreightimage[w]=n.0.3\n"
+        house = "obj=building\nname=t_house\ncopyright=t\ntype=res\ndims=1,1,1\n"
+        for season in (0, 1):
+            house += f"backimage[0][0][0][0][0][{season}]=n.0.{season}\n"
+            house += f"frontimage[0][0][0][0][0][{season}]=n.0.{2 + season}\n"
+        with open(os.path.join(d, "n.dat"), "w", encoding="ascii") as f:
+            f.write("-\n".join((way, car, house)) + "-\n")
+        r = subprocess.run([MAKEOBJ, "pak256", "n.pak", "n.dat"], cwd=d, capture_output=True, text=True, errors="replace")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        found = {pakimage.object_name(o): o for _, o in pakimage.objects([os.path.join(d, "n.pak")])}
+
+        def columns(name):
+            out = {}
+            for where, n in pakimage.images(found[name]):
+                p = pakimage.Picture(n.body)
+                if not p.empty:
+                    out[pakimage.path_text(where)] = min(p.pixels)[0]
+            return out
+
+        # 平ら（番号 0）・坂（3）: 夏 2・3、雪 6・7、手前の夏 9、手前の雪 12
+        self.assertEqual(columns("t_way"), {"2/0": 0, "3/0": 2, "6/0": 1, "7/0": 3, "9/0": 4, "12/0": 5})
+        self.assertEqual(columns("t_car"), {"4/0": 0, "4/1": 1, "5/0": 2, "5/1": 3})
+        # 2×季節+(0 奥・1 手前)
+        self.assertEqual(columns("t_house"), {"2/0/0/0": 0, "2/1/0/0": 2, "2/2/0/0": 1, "2/3/0/0": 3})
 
     def test_unknown_image(self):
         with self.assertRaises(SystemExit):
