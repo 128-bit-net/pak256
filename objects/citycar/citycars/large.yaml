@@ -1,0 +1,18 @@
+# 大型の街の車（絵は仮）。この表と PNG は draw_citycars.py が書き出す。直すときはスクリプトを直して流し直す。
+# 画面の大きさは pak128 の手本（MS_28_mercedes_brown）の 2 倍（docs/vehicles.md の「街の車」）。値は手本に合わせた。
+obj: citycar
+name: pak256_citycar_large
+copyright: pak256.LongScale チーム
+distributionweight: 3
+intro_year: 1930
+intro_month: 1
+speed: 50
+image:            # 向きごとの絵
+  s: large.0.0
+  w: large.0.1
+  sw: large.0.2
+  se: large.0.3
+  n: large.0.4
+  e: large.0.5
+  ne: large.0.6
+  nw: large.0.7

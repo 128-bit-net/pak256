@@ -61,6 +61,23 @@
 - 曲がり・十字路・坂・向かい合う 2 台のすれ違い（[#116](https://github.com/128-bit-net/pak256/issues/116)。[記録](records/2026-11-26_truck-curves-passing.md)）: 郵便と石炭のトラックは舗装の中を走り、すれ違いで重ならない。車体は坂でも水平のまま。
 - `style: panel` の車両（部分に分けた箱）は、面の向きを部分の箱の中心から決める。車体全体の中心から決めると、前の部分の後ろの面を手前向きと誤り、運転台の上に塗り重なる（郵便のトラックで起きた。#116。検査は `test_nothing_painted_over_the_skirt`）。
 
+## 街の車
+
+[#173](https://github.com/128-bit-net/pak256/issues/173)。街の中を勝手に走る自家用車（本体の `obj: citycar`）。置き場は `objects/citycar/citycars/`、描く道具は `draw_citycars.py`（MIT。道路の車両の道具の面の決まりを読んで使う）。直すときはスクリプトの表（`CARS`）を直して流し直す（`python -X utf8 objects/citycar/citycars/draw_citycars.py`。Pillow だけで動く）。検査は `tools/test_citycars.py`。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。
+
+| `name` | 画面の名前（ja / en） | 手本（pak128 の `citycars`） | `distributionweight` | `speed` | `intro_year` |
+|---|---|---|---|---|---|
+| `pak256_citycar_small` | 街の車（小型） / Small Car | `MS_30s_car_white` | 3 | 50 | 1930 |
+| `pak256_citycar_sedan` | 街の車（セダン） / Sedan | `ms_1932_dodge_green` | 3 | 50 | 1930 |
+| `pak256_citycar_large` | 街の車（大型） / Large Car | `MS_28_mercedes_brown` | 3 | 50 | 1930 |
+
+- 値（`distributionweight`・`speed`）は手本と同じ（機能上の数値だけで、dat の文・絵は写していない）。登場年は pak256 の開始年（1930）、引退年は書かない（仮に広く取る。時代の幅は車両の時代の段で決める）。
+- 手本の寸法は、pak128 の `citycars` の PNG を、車両と同じ測り方（[standards.md](standards.md) の 4 章。`sw` の外接枠の横 = 長さ、`se` の横 = 幅、`sw` の縦 − 幅の半分 = 高さ）で測った（2026-11-27）。
+- 大きさは道路の車両と同じ「pak128 の手本の 2 倍」。表は [standards.md](standards.md) の 4 章。手本の幅はバス（11px）と同じなので、画面の幅もバスと同じ 22px になる。
+- citycar の dat に `length` は無いので、描く長さは目標の長さ（px）をそのまま単位に直す（端数のまま）。
+- 描画位置は道路の車両と同じ（右側の車線・車体の前の端が基準点）。本体は左側通行のずれを `private_car_t::get_screen_offset` で道路の車両と同じに足す（`vehicle/simroadtraffic.cc`）。
+- ゲームで走らせた結果と、街が車を出す数の本体の式は [記録](records/2026-11-27_citycars.md)。
+
 ## 線路の車両
 
 [#46](https://github.com/128-bit-net/pak256/issues/46)（気動車と付随車）。線路は AMI の 256 版の `ami_rail_ballast`（`ami-256-alpha.2`）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/rail/<名前>/`（`railcar`・`railcar_trailer`）。描く道具は `objects/vehicle/rail/draw_trains.py`（MIT）で、道路の車両の道具（`draw_vehicles.py`）の箱を組む関数・色の決まりを読んで使う。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/rail/draw_trains.py`。Pillow だけで動く）。車両を足すときは `VEHICLES` に 1 件足し、この表に 1 行足す。検査は `tools/test_vehicles.py` の `TestRailVehicles`。
