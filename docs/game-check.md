@@ -12,6 +12,8 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 
 起動 → Squirrel（`--script` は何本でも。順に流す）→ 撮影 → PID で閉じる → 作業フォルダを消す、まで行う。
 
+出力を `> work/…log` に残すときは、先に `mkdir -p work` する。作業フォルダの `work/` は `game.py` が自分で作るが、リダイレクトの先はシェルが `game.py` より前に開くので、作ったばかりの worktree（`work/` が無い）ではゲームが起動しない。後ろに別のコマンドを続けていると、全体の終了コードは 0 に見える（#109・#119）。
+
 | 引数 | 意味 |
 |---|---|
 | `--env` | 本体の検証環境（環境変数 `PAK256_GAME_ENV` でも渡せる）。個人の絶対パスはリポジトリに書かない |
@@ -30,6 +32,33 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
 - ゲームは**起動したときの PID で閉じる**（実行ファイルの名前では止めない）。閉じた後に `tasklist` で残りを確かめ、残ったら知らせて終了コード 1 で終わる（その作業フォルダは消せないので残す）。
+
+- 画面は `Game.capture`（本体の `capture_screen`）で撮る。PowerShell の画面全体の撮影は真っ黒になる。
+
+### 道具が行っていること（作業フォルダを手で組むとき）
+
+上の一覧のほか、`game.py` が中で済ませていて、手で組むと踏むこと。起動の手順を自分で組むのは、道具を直すときだけにする。
+
+- 起動に `-singleuser` を付ける。無いと本体が作業フォルダでなく別の場所を見て、`settings.xml`・`themes/`・`save/` が見つからない（2026-11-25、#8）。
+- `themes/` を写す。無いと本体が止まる（2026-11-25、#6）。`settings.xml` は無くても起動する（#8）。
+- `settings.xml` を写して送信用の記録を消すときは、CDATA ごと消さず、中身だけを空にする。ごと消すと設定が壊れる（2026-11-25、#6）。
+- 昼夜は `config/simuconf.tab` の末尾の `day_night_shift = 0` で止める（pak の側の `<pak>/config/simuconf.tab` に足しても効く）。夜の灯りを確かめるときだけ外す（`--night`）。昼まで早送りして撮り直すのは、昼夜が飛んで当てにならない（2026-11-25、#44）。
+- `-load` の保存データの名前は、拡張子なしで渡すと確実。
+- 本体は起動画面（地図を作る前）の間は MCP に答えないので、スクリプトで新しい地図は作れない。平らな保存データを `-load` で読み、地形はスクリプトで作る（2026-11-25、#5）。新しい地図の作成画面で生える物（木など）はスクリプトで確かめられないので、PR の「確かめていないこと」に書く。
+
+## スクリプトで物を置くときの癖
+
+- 保存データ `flat_512_left_v64` は x が 256 以上が雪の気候。温帯の物は x<256 に置く（2026-11-25、#11）。
+- 道路は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>")`、停留所は `command_x(tool_build_station).work(pl, coord3d, "<停留所の name>")`。停留所の引数に番号を付けた `"1,<name>"` は失敗する（2026-11-25、#44。`Game.road`・`Game.station`）。
+- 建物（車庫・停留所など）は、置いた直後は建設中の縞。`debug.set_game_speed(64)` で進めてから撮る（2026-11-25、#58。`Game.settle`）。
+- `run_squirrel` に渡す文字列の中に改行を入れない。呼ぶ側で書いた `\n` が本物の改行になって、コンパイルが通らない（`Game.sq` は流す前に止める。2026-11-25、#59）。
+- 街は `command_x(tool_add_city).work(pl, coord3d)`。最後の引数の文字列は省いてよい。`""+数値` の連結は Squirrel でエラーになる（2026-11-25、#11）。
+- 街は旅客などの輸送が無いと育たない。輸送の無い確かめでは `city_list_x()` の `change_size` で人口を足し、PR にそう書く（2026-11-25、#7〜#9）。
+- 街の建物を置く道具（`tool_build_house`）の引数は、建物の名前の前に 2 文字を付ける。1 文字目は気候の制限を外すか（`0` は外さない）、2 文字目は向き（`00<name>` は向き 0）。街の建物は、近くに街が無いと置けない（2026-11-26、#104。形は本体の `simtool.cc` の `tool_build_house_t::work_on_ground`）。
+- 木を植える道具は、公共のプレーヤーで呼ぶ（2026-11-26、#104）。地図の木の設定が「無し」だと、ほかのプレーヤーは植えられない（本体の `tool_plant_tree_t::work`）。森は `tool_forest`（`tools/tree_check.py`）。
+- 地形は `command_x.grid_raise`・`command_x.grid_lower` で作る。`grid_lower` は地下水位 −3 まで（2026-11-25、#5）。水は `command_x(tool_change_water_height).work(pl, pos, "1")`（#5）。
+- 画面に出る名札を消すには、起動の前に作業フォルダの `config/simuconf.tab` の末尾へ `show_names = 0` を足す（2026-11-26、#104）。`Game` は起動のたびに作業フォルダを作り直し、足す引数は無いので、`game.append_day_night_off` を包んで足す（[例](records/2026-11-26_stop-overlap-screens/run.py)。`--night` ではこの関数が呼ばれない）。
+- 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。強制終了するとゲームが閉じられず、ポートを握ったまま残ることがある（Job Object に入れられた場合は閉じる。下の「別の道具から使う」）。止めたときは、起動した PID を `tasklist` で探して閉じる（2026-11-25、#30）。
 
 ## 別の道具から使う
 
@@ -169,4 +198,6 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 `tools/test_frames.py`: 地面の印・格子の線・タイルのカーソルの枠が地面の縁の画素と一致する（[ground.md](ground.md) の「枠の線」）。`tools/test_ground.py`: コミットしてある `ClimateTexture` の模様 8 枚が、斜め格子の周期（(128,64)・(128,-64)）でずらしても同じで、透明な画素が無い（Water は菱形なので見ない）。`tools/test_town_buildings.py`: 街の建物の `backimage` の季節の添字が 4 枚（夏・秋・冬・春）で、冬だけが右の絵を指し、右の絵が左と違う。
 
-`tools/test_game.py`（ゲームは起動しない）: 気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
+
+`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
