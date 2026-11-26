@@ -17,7 +17,8 @@ build(OX + 5, OY + 5, OX + 5, OY + 11);
 build(OX - 3, OY + 4, OX + 2, OY + 4);
 build(OX + 5, OY + 3, OX + 11, OY + 3);
 out += " slopes:";
-foreach (p in [[OX + 3, OY - 1], [OX + 5, OY + 9], [OX - 1, OY + 4], [OX + 9, OY + 3]]) {
+// 台の格子点は x が OX〜OX+8、y が OY〜OY+8。坂の升は北が y = OY-1、南が y = OY+8、西が x = OX-1、東が x = OX+8
+foreach (p in [[OX + 3, OY - 1], [OX + 5, OY + 8], [OX - 1, OY + 4], [OX + 8, OY + 3]]) {
 	local g = t(p[0], p[1]);
 	out += " " + p[0] + "," + p[1] + ",z" + g.z + ",s" + g.get_slope() + ",way=" + (g.get_way(wt_water) != null);
 }
