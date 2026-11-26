@@ -1,4 +1,4 @@
-# トンネルの中の地面。並びは Sidewalk と同じ
+# トンネルの中の地面。番号は坂の imageid（本体が引くのは 0・3・…・24）
 Obj=misc
 Name=TunnelTexture
 copyright=pak256.LongScale チーム

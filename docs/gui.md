@@ -30,7 +30,7 @@
 | symbol | `Logo` | `sym_logo` | 128px | バナー（起動後の最初の窓）の絵。`BigLogo` と同じ意匠 |
 | symbol | `BigLogo` | `sym_biglogo` | 192px × 4 | 読み込み中の大きなロゴ。4 枚（左上・右上・左下・右下）を 2×2 に並べる。意匠は `logo.py`（#78、記録は [records/2026-11-25_logo-screens.md](records/2026-11-25_logo-screens.md)） |
 | misc | `Construction` | `construction` | 256px | 工事中の地面 10 枚（0 基礎の穴・1 観光地(街)・2 観光地(田舎)・3 記念物・4 工場・5 役場・6 その他・7 住宅・8 商業・9 工業）。縞の菱形 |
-| misc | `Sidewalk`・`TunnelTexture` | `sidewalk`・`tunnel_texture` | 256px | 坂ごとの地面 27 枚（下の「坂の番号」） |
+| misc | `Sidewalk`・`TunnelTexture` | `sidewalk`・`tunnel_texture` | 256px | 坂ごとの地面。番号は 27（下の「坂の番号」） |
 | misc | `RibiArrow` | `ribi_arrow` | 256px | 一方通行の矢印。番号 = ribi（北 1・東 2・南 4・西 8） |
 | misc | `PowerSource`・`PowerDest` | `power_source`・`power_dest` | 256px | 送電網の印の円。0 止まっている・1 動いている（本体は動作中を 1 番で引く）。冬の絵（2）は無い |
 
@@ -46,7 +46,23 @@
 
 ### 坂の番号（`Sidewalk`・`TunnelTexture`）
 
-本体は `ground_desc_t::slopetable` で、単段の坂 15 通り（`sw + 3*se + 9*ne + 27*nw` が 0・1・3・4・9・10・12・13・27・28・30・31・36・37・39）を 0〜14、複段の坂を `slopetable + 12` で 12〜26 にする。12〜14 は単段と複段で重なる（本体の決まり）ので、単段の絵を置いた。雪の絵（`+1`・`+2`）は描いていない（本体は雪の絵が無いと通常の絵を使う）。
+本体は坂（`sw + 3*se + 9*ne + 27*nw`）を `ground_desc_t::slopetable` で番号にする（単段はその値、複段は半分の高さの坂の値 + 12）。道の乗る坂の番号は、すべて 3 の倍数になる。
+
+| 坂 | 平ら | 単段 4 向き（4・12・28・36） | 複段 4 向き（8・24・56・72） |
+|---|---|---|---|
+| 番号 | 0 | 3・6・9・12 | 15・18・21・24 |
+
+`Sidewalk` は、この番号を起点に 3 つずつ使う（`boden.cc` の `boden_t::calc_image_internal`。[#136](https://github.com/128-bit-net/pak256/issues/136)）。
+
+| 置く番号 | 本体が引くとき | pak256 の中身 |
+|---|---|---|
+| 番号 + 0 | 下の 2 つ以外 | 夏の絵 |
+| 番号 + 1 | 雪線以上か、雪の気候 | 雪の絵（夏と同じ形の仮の絵） |
+| 番号 + 2 | 坂で、高さが雪線の 1 つ下 | 空き（本体は夏の絵を使う） |
+
+`+1`・`+2` は、絵があると本体がそのまま使う。**別の坂の絵を置かない**（番号を詰めて並べると、雪の街の道路に別の坂の絵が出て、灰色の三角に見える）。並びは `tools/test_gui.py` の `test_sidewalk_numbers` が検査する。
+
+`TunnelTexture` は、本体が番号 + 0 だけを引く（`tunnelboden.cc`）。27 個の番号の全部に絵があるが、使われるのは 3 の倍数の 9 個。
 
 ## アイコンの絵
 
