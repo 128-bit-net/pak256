@@ -447,7 +447,8 @@ class ClimateMonthTest(unittest.TestCase):
         self.assertEqual(g.sent, [])
 
     def test_season_table(self):
-        self.assertEqual(len(game.MONTH_TO_SEASON), 12)
+        # 本体の month_to_season（1〜3 月 冬・4〜5 月 春・6〜9 月 夏・10〜11 月 秋・12 月 冬）
+        self.assertEqual(game.MONTH_TO_SEASON, (2,) * 3 + (3,) * 2 + (0,) * 4 + (1,) * 2 + (2,))
         # 撮る月が、その季節（0 夏・1 秋・2 冬・3 春）に当たる
         for name, nr in (("summer", 0), ("autumn", 1), ("winter", 2), ("spring", 3)):
             self.assertEqual(game.MONTH_TO_SEASON[game.SEASON_MONTHS[name]], nr, name)
