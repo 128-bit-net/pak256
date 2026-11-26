@@ -19,6 +19,8 @@ class PedestrianTest(unittest.TestCase):
         self.assertIn(len(D.WALKERS), (2, 3))
         names = [w["name"] for w in D.WALKERS]
         self.assertEqual(len(names), len(set(names)))
+        offsets = [w["offset"] for w in D.WALKERS]
+        self.assertEqual(len(offsets), len(set(offsets)), "種類ごとに歩く線を変える（同じ所に重ならないように）")
 
     def test_committed_files_match_script(self):
         from PIL import Image
@@ -67,6 +69,22 @@ class PedestrianTest(unittest.TestCase):
                 x, y = D.foot_offset_px(direction, spec["offset"])
                 self.assertAlmostEqual(abs(x) * 2, shift, msg=f"{spec['name']} {direction}")
                 self.assertAlmostEqual(abs(y) * 4, shift, msg=f"{spec['name']} {direction}")
+
+    def test_feet_on_the_right_side_in_every_direction(self):
+        """足元は進む向きの右側にある。斜めの向きは、本体のずれが半分になる（vehicle/pedestrian.cc の get_screen_offset）。"""
+        for spec in D.WALKERS:
+            o = spec["offset"]
+            axis = (256 - 2 * o) / 4  # 軸の向きの横のずれ（px）。縦はその半分
+            expected = {"s": (axis, axis / 2), "w": (axis, axis / 2), "n": (axis, axis / 2), "e": (axis, axis / 2),
+                        "se": (axis, 0), "nw": (axis, 0), "sw": (0, axis / 2), "ne": (0, axis / 2)}
+            for direction in D.V.DIRECTIONS:
+                with self.subTest(spec["name"], direction=direction):
+                    x, y = D.foot_offset_px(direction, o)
+                    self.assertAlmostEqual(abs(x), expected[direction][0])
+                    self.assertAlmostEqual(abs(y), expected[direction][1])
+                    hx, hy = D.V.HEADING[direction]
+                    rx, ry = -hy, hx  # 地面の右の向き。画面では (128(x−y), 64(x+y))
+                    self.assertGreater(x * 128 * (rx - ry) + y * 64 * (rx + ry), 0, "足元が進む向きの右側に無い")
 
     def test_documented(self):
         with open(os.path.join(ROOT, "docs", "pedestrians.md"), encoding="utf-8") as f:

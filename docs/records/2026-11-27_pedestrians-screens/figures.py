@@ -62,6 +62,13 @@ stack([labeled(crop("scene_h16/temperate_meet_03.png", (-200, -120, 200, 100)), 
        labeled(crop("scene_h16/temperate_meet_05.png", (-200, -120, 200, 100)), "温帯（バス・郵便のトラック）")],
       "2_temperate.png")
 
+# 5. 大きさごとにゲームで歩いた画面（10px・24px の pak の回。16px は 2 の画面と同じ場面）
+box = (-200, -120, 200, 100)
+stack([labeled(crop("scene_h10/temperate_meet_00.png", box), "10px の pak（温帯。停留所の人と郵便のトラック）"),
+       labeled(crop("scene_h16/temperate_meet_05.png", box), "16px の pak（温帯。停留所の人とバス）"),
+       labeled(crop("scene_h24/snow_meet_00.png", (-200, -150, 300, 70)), "24px の pak（雪の気候。路肩の人とバス）")],
+      "5_size_ingame.png")
+
 # 3. 雪の気候
 stack([labeled(crop("scene_h16/snow_03.png", (-320, -220, 0, -10)), "雪の気候（バス停のそば）"),
        labeled(crop("scene_h16/snow_meet_05.png", (-40, -90, 260, 90)), "雪の気候（郵便のトラックと建物）")], "3_snow.png")

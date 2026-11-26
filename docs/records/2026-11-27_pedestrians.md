@@ -8,7 +8,9 @@
 
 ![大きさの比べ](2026-11-27_pedestrians-screens/1_size_compare.png)
 
-10px・16px・24px のそれぞれの pak でも、同じ場面をゲームで撮って確かめた。
+手本の背丈の測り方は [pedestrians.md](../pedestrians.md) の「大きさ」。10px・16px・24px のそれぞれの pak でも、同じ手順でゲームを撮った（歩行者の出る場所は回ごとに違う）。
+
+![大きさごとのゲームの画面](2026-11-27_pedestrians-screens/5_size_ingame.png)
 
 ## ゲームで歩いた画面（16px）
 
