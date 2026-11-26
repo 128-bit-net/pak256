@@ -1,4 +1,4 @@
-"""道路の停留所と線路の駅の表の検査（docs/stations.md）。
+"""道路の停留所・線路の駅・路面電車の停留所の表の検査（docs/stations.md）。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
@@ -11,11 +11,15 @@ import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAYOUTS = 8
+# 置き場（objects/station/ の下のフォルダ）と waytype の対応
+FOLDER_WAYTYPE = {"road_stops": "road", "rail_stops": "track", "tram_stops": "tram_track", "monorail_stops": "monorail_track"}
 
 
 def stops():
-    """objects/station/ の全部の表。停留所（type: stop）でない表があれば、検査で落とす。"""
+    """objects/station/ の全部の表。停留所（type: stop）でない表があれば、検査で落とす。港（objects/station/ports/）は PortTest が見る。"""
     for p in sorted(glob.glob(os.path.join(ROOT, "objects", "station", "**", "*.yaml"), recursive=True)):
+        if os.path.basename(os.path.dirname(p)) == "ports":
+            continue
         with open(p, encoding="utf-8") as f:
             yield p, yaml.safe_load(f)
 
@@ -48,9 +52,7 @@ class StationTest(unittest.TestCase):
         for p, d in stops():
             self.assertEqual(d["type"], "stop", p)
             self.assertEqual(d["obj"], "building", p)
-            self.assertIn(d["waytype"], ("road", "track", "monorail_track"), p)
-            folder = {"road": "road_stops", "track": "rail_stops", "monorail_track": "monorail_stops"}[d["waytype"]]
-            self.assertEqual(os.path.basename(os.path.dirname(p)), folder, f"{p}: 置き場と waytype が合わない")
+            self.assertEqual(d["waytype"], FOLDER_WAYTYPE[os.path.basename(os.path.dirname(p))], f"{p}: 置き場と waytype が合わない")
             self.assertEqual(str(d["dims"]), f"1,1,{LAYOUTS}", p)
             self.assertTrue(d.get("enables_pax") or d.get("enables_post") or d.get("enables_ware"), f"{p}: 何も扱わない")
             sheet = os.path.join(os.path.dirname(p), os.path.basename(p)[:-5] + ".png")
@@ -82,7 +84,7 @@ class StationTest(unittest.TestCase):
                 self.assertTrue(has_art(2, 0), f"{sheet}: 道具の絵が空")
 
     def test_road_stops_off_the_lane_lines(self):
-        """道路の停留所の絵は、後ろ・前のどちらも、画面で白線より内側（道路の中央の側）に画素を置かない（#115）。
+        """道路の停留所と路面電車の停留所の絵は、後ろ・前のどちらも、画面で白線より内側（道路の中央の側）に画素を置かない（#115・#153）。
 
         白線の外側の端は draw_stops.py の LINE_FAR・LINE_NEAR（ami_road_local の値）。画素を地面（高さ 0）の座標に戻して調べるので、
         高い物が画面の上へ伸びて道路に掛かる場合も落ちる。
@@ -90,7 +92,7 @@ class StationTest(unittest.TestCase):
         from PIL import Image
         ds = road_stop_script()
         for p, d in stops():
-            if d["waytype"] != "road":
+            if d["waytype"] not in ("road", "tram_track"):
                 continue
             sheet = os.path.join(os.path.dirname(p), os.path.basename(p)[:-5] + ".png")
             with Image.open(sheet) as im:
@@ -142,6 +144,44 @@ class StationTest(unittest.TestCase):
             self.assertEqual(cells[1:4], [f"`{d['obj']}`", f"`{d['type']}`", f"`{d['waytype']}`"], p)
             for key in ("enables_pax", "enables_post", "enables_ware"):
                 self.assertEqual(key in cells[4], bool(d.get(key)), f"{p}: 表の扱う貨物と {key} が合わない")
+
+
+class PortTest(unittest.TestCase):
+    """港（objects/station/ports/。#154）の表・シート・draw_ports.py が書く物・stations.md の表。"""
+
+    PORTS = {"pier": ("habour", 4), "quay": ("dock", 4), "canal_wharf": ("stop", 8)}
+    DIR = os.path.join(ROOT, "objects", "station", "ports")
+
+    def script(self):
+        spec = importlib.util.spec_from_file_location("draw_ports", os.path.join(self.DIR, "draw_ports.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_tables_and_sheets(self):
+        from PIL import Image
+        mod = self.script()
+        self.assertEqual(set(mod.PORTS), set(self.PORTS))
+        for key, (kind, layouts) in self.PORTS.items():
+            with open(os.path.join(self.DIR, key + ".yaml"), encoding="utf-8", newline="") as f:
+                raw = f.read().replace("\r\n", "\n")
+            self.assertEqual(raw, mod.table(key, mod.PORTS[key]), key)
+            d = yaml.safe_load(raw)
+            self.assertEqual((d["obj"], d["type"], str(d["dims"])), ("building", kind, f"1,1,{layouts}"), key)
+            self.assertEqual(d.get("waytype"), "water" if kind == "stop" else None, key)
+            self.assertEqual(sorted(d["backimage"]), list(range(layouts)), key)
+            with Image.open(os.path.join(self.DIR, key + ".png")) as im:
+                self.assertEqual(im.size, (256 * layouts, 256 * 3), key)
+                im = im.convert("RGB")
+                for i in range(layouts):
+                    cell = im.crop((i * 256, 0, i * 256 + 256, 256))
+                    self.assertGreater(len(set(cell.getdata())), 1, f"{key}: 向き {i} が空")
+
+    def test_documented(self):
+        with open(os.path.join(ROOT, "docs", "stations.md"), encoding="utf-8") as f:
+            text = f.read()
+        for key in self.PORTS:
+            self.assertIn(f"`pak256_{key}`", text)
 
 
 if __name__ == "__main__":

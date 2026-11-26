@@ -624,6 +624,19 @@ def g_slope_tool(c):
     arrow(c, 78, 28, 0, 30, YEL, 8, 12)
 
 
+def g_tram_tool(c):
+    """路面電車の道具: 前から見た車体と、その下の 2 本のレール。"""
+    c.line([(64, 14), (64, 28)], 6, GRY)
+    c.line([(46, 14), (82, 14)], 6, GRY)
+    c.rect(34, 28, 94, 96, YEL, r=14, outline=W, w=3)
+    c.rect(44, 40, 84, 66, DRK, r=4)
+    c.rect(34, 76, 94, 86, RED)
+    for x in (48, 80):
+        c.ell(x - 5, 82, x + 5, 92, W)
+    for x0, x1 in ((46, 30), (82, 98)):
+        c.line([(x0, 98), (x1, 118)], 7, W)
+
+
 def g_road_tool(c):
     road(c)
 
@@ -648,6 +661,28 @@ def g_rail_tool(c):
 def g_rail_x(c):
     """線路の撤去: 線路の帯に赤い ×。"""
     rail(c, 56, 56, 0.85)
+    badge(c, "x")
+
+
+def ship(c, x=64, y=64, k=1.0):
+    """船: 船体と上の船室・煙突、下に波。"""
+    c.xf(x, y, k)
+    c.poly([(14, 66), (114, 66), (96, 94), (30, 94)], (70, 120, 200), outline=W, w=3)
+    c.rect(40, 42, 82, 66, W)
+    for i in range(3):
+        c.rect(46 + i * 12, 48, 54 + i * 12, 58, BLU)
+    c.rect(66, 22, 78, 42, RED)
+    c.line([(16, 108), (36, 102), (56, 108), (76, 102), (96, 108), (112, 104)], 7, BLU)
+    c.xf()
+
+
+def g_ship_tool(c):
+    ship(c)
+
+
+def g_canal_x(c):
+    """運河の撤去: 水路に赤い ×。"""
+    c.poly([(34, 14), (62, 14), (90, 100), (14, 100)], (60, 110, 160), outline=W, w=3)
     badge(c, "x")
 
 
@@ -678,6 +713,36 @@ def g_signal_x(c):
     c.rect(26, 14, 62, 50, DRK, r=6, outline=W, w=3)
     c.ell(34, 22, 54, 42, GRN)
     c.line([(24, 112), (64, 112)], 7, GRY)
+    badge(c, "x")
+
+
+def plane(c, cx, cy, k):
+    """上から見た飛行機（右上を向く）。"""
+    c.xf(cx, cy, k)
+    c.line([(28, 100), (100, 28)], 15)
+    c.poly([(58, 70), (16, 52), (28, 40), (80, 48)], W)  # 左の翼
+    c.poly([(58, 70), (76, 112), (88, 100), (80, 48)], W)  # 右の翼
+    c.poly([(36, 92), (14, 86), (22, 78), (44, 84)], W)  # 左の尾翼
+    c.poly([(36, 92), (42, 114), (50, 106), (44, 84)], W)  # 右の尾翼
+    c.xf()
+
+
+def runway_strip(c, cx, cy, k):
+    """上へ細くなる滑走路の帯（中心の破線）。"""
+    c.xf(cx, cy, k)
+    c.poly([(40, 14), (88, 14), (114, 114), (14, 114)], DRK, outline=W, w=3)
+    for y in (24, 54, 86):
+        c.line([(64, y), (64, y + 16)], 7, YEL)
+    c.xf()
+
+
+def g_air_tool(c):
+    plane(c, 64, 64, 1.0)
+
+
+def g_airstrip_x(c):
+    """滑走路・誘導路の撤去。"""
+    runway_strip(c, 56, 56, 0.85)
     badge(c, "x")
 
 
@@ -906,6 +971,7 @@ ICONS = {
     # ツールバーの行で指定する番号（BarTools）
     ("bar", 0): g_slope_tool,
     ("bar", 1): g_rail_tool,
+    ("bar", 3): g_tram_tool,
     ("bar", 4): g_road_tool,
     ("bar", 7): g_special,
     ("bar", 8): g_list,
@@ -941,6 +1007,10 @@ ICONS = {
     ("bar", 45): g_newgame,
     ("bar", 46): g_rail_x,
     ("bar", 47): g_signal_x,
+    ("bar", 48): g_ship_tool,
+    ("bar", 49): g_canal_x,
+    ("bar", 52): g_air_tool,
+    ("bar", 53): g_airstrip_x,
     ("bar", 56): g_monorail_x,
     ("bar", 57): g_monorail_tool,
 }
@@ -950,6 +1020,8 @@ BG = {      # 地の色を変える絵（気候は色で見分けやすくする
     ("bar", 20): (170, 56, 50),
     ("bar", 46): (170, 56, 50),
     ("bar", 47): (170, 56, 50),
+    ("bar", 49): (170, 56, 50),
+    ("bar", 53): (170, 56, 50),
     ("bar", 56): (170, 56, 50),
     ("bar", 32): (30, 90, 170),
     ("bar", 33): (190, 150, 60),

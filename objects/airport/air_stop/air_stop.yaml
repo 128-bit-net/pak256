@@ -1,0 +1,19 @@
+# 空港の建物（絵は仮）。この表と PNG は ../draw_airport.py が書き出す（docs/airport.md）。
+# 空港の駅（駐機場とターミナル）。誘導路の行き止まりに置く。向き 4 通り
+obj: building
+name: pak256_airport
+copyright: pak256.LongScale チーム
+type: stop
+waytype: air
+enables_pax: 1
+enables_post: 1
+level: 2
+intro_year: 1900
+noinfo: 1
+dims: 1,1,4
+icon: "> air_stop.2.0"
+backimage:        # backimage[向き][y][x][高さ][コマ]。向きは 0 南につながる・1 東・2 北・3 西
+  0: {0: {0: {0: {0: air_stop.0.0}}}}
+  1: {0: {0: {0: {0: air_stop.0.1}}}}
+  2: {0: {0: {0: {0: air_stop.0.2}}}}
+  3: {0: {0: {0: {0: air_stop.0.3}}}}

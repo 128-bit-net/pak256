@@ -67,6 +67,8 @@ pak256_bus_stop
 Bus Stop
 pak256_truck_stop
 Truck Loading Bay
+pak256_tram_stop
+Tram Stop
 pak256_train_station
 Train Station
 pak256_rail_signal
@@ -81,6 +83,28 @@ pak256_railcar
 Railcar
 pak256_railcar_trailer
 Railcar Trailer
+pak256_tram
+Tram
+pak256_ferry
+Passenger Ship
+pak256_cargo_ship
+Cargo Ship
+pak256_pier
+Pier
+pak256_quay
+Quay
+pak256_canal_wharf
+Canal Wharf
+pak256_runway
+Runway
+pak256_taxiway
+Taxiway
+pak256_airport
+Airport
+pak256_hangar
+Hangar
+pak256_airliner
+Airliner
 pak256_monorail_station
 Monorail Station
 pak256_monorail

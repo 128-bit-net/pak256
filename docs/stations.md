@@ -92,6 +92,37 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 - 道路の停留所の道具の絵は、後ろ（奥の側）の絵だけから作る（手前の歩道まで入れると小さくなる。#115）。下の重ね方は線路の駅の物。
 - 道具の絵（`icon`）は、2 行 0 列のセルの左上の角に置いた 192px の角丸の四角（地の色に、向き 0 の後ろと前を重ねた駅の絵を収めたもの。`draw_stops.py` の `tool_icon`）。192px にしたのは、本体がアイコンを `icon_height`（48）に収まる最大の倍率（192 なら 1/4 でちょうど 48）で縮めるため。四角を左上の角から隙間なく置くのは、絵に透明な所があると本体が見える範囲だけを縮めて置くため、枠がずれて灰色の空きに見えたからで、これが線路・道路のツールバーの灰色のアイコンだった（[#71](https://github.com/128-bit-net/pak256/issues/71)。記録は [records/2026-11-25_rail-leftovers.md](records/2026-11-25_rail-leftovers.md)）。`cursor` は書かない（置くときのカーソルが出るかは未確認）。
 
+## 港（pak256 の物）
+
+[#154](https://github.com/128-bit-net/pak256/issues/154)。絵は仮（箱を数式で描いた物）で、pak128 の絵は使っていない。AMI の 256 版には港が無いので pak256 の物にした。置き場は `objects/station/ports/`。`draw_ports.py`（MIT）が PNG と表を書き出す。検査は `tools/test_stations.py` の `PortTest`。
+
+| `name` | `type` | 建てる所 | 画面の名前（ja / en） |
+|---|---|---|---|
+| `pak256_pier` | `habour`（桟橋） | 水に面した 1 段の坂 | 桟橋 / Pier |
+| `pak256_quay` | `dock`（岸壁） | 水に面した平らな土地（水面と同じ高さ） | 岸壁 / Quay |
+| `pak256_canal_wharf` | `stop`・`waytype: water` | 運河（AMI の `ami_canal`）の道の上 | 運河の船着き場 / Canal Wharf |
+
+- どれも 1x1 タイル、旅客・郵便・貨物を扱う（`enables_pax`・`enables_post`・`enables_ware`）。`level` 4、登場年 1900（値は仮）、建設費・維持費は書いていない（本体の既定）。
+- 向きは桟橋・岸壁が 4 通り（水のある側が南・東・北・西の順）、運河の船着き場は停留所と同じ 8 通り。
+- ダイヤの行き先は港の升でなく、手前の水面の升を指す（港の升を指すと、スクリプトでは「2 つ未満」と断られた）。
+- 桟橋は、坂の上の端から板の斜路で下り、水の側は杭の上の平らな板。岸壁は 1m の敷き面と上屋・係船柱。船着き場は運河の両脇の板と待合の小屋で、船はその間を通る。
+- 車庫は AMI の `ami_canal_depot`。**海では岸に接した升に置く**（四方のどこかが陸の水の升）。四方が水の升は、本体が「Depots must be built on flat dead-end way tiles!」で断った（OTRP v64、2026-11-26。辺 4 通りと角 4 通りは建ち、四方が水の 3 升は断られた）。海につながる短い運河の行き止まりにも建ち、そこから出た船が海を走った。陸の運河では行き止まりに置く。
+- 川は確かめていない。川の物（`river_type` に指定する道）が pak に無いため。[#158](https://github.com/128-bit-net/pak256/issues/158) で行う。
+- ゲームでの確かめは [記録](records/2026-11-26_ships.md)。
+
+# 路面電車の停留所（pak256 の物）
+
+[#153](https://github.com/128-bit-net/pak256/issues/153)。置き場は `objects/station/tram_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す。道路の停留所の `draw_stops.py` の関数と定数（白線の外の帯、向きの絵、道具の絵）を読んで使う（写して増やさない）。
+
+| `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
+|---|---|---|---|---|---|
+| `pak256_tram_stop` | `building` | `stop` | `tram_track` | 旅客（`enables_pax`。郵便・貨物は扱わない） | 路面電車の停留所 / Tram Stop |
+
+- 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
+- 奥の側に緑の屋根の待合（高さ 2.9m）のある乗り場、手前の側に低い歩道。設備は道路の停留所と同じく白線の外に置くので、道路に敷いた軌道でも土の上の専用の軌道でも使う（`tools/test_stations.py` の白線の検査は `tram_track` の停留所にも掛かる）。
+- 向きの絵は下の「向きの絵」と同じ並び。置くのは直線の軌道の升だけ（交差する道の升には置けない。街の道がつながった升に置こうとすると `No through station here!` になった）。
+- ゲームでの確かめは [記録](records/2026-11-26_tram.md)。
+
 # 道路の車庫（AMI の物）
 
 道路の車庫は、仮の物（`pak256_road_depot`。[#58](https://github.com/128-bit-net/pak256/issues/58)）を [#64](https://github.com/128-bit-net/pak256/issues/64) で消し、AMI の 256 版の `ami_road_depot`（`ami-256-alpha.2` の `ami_road.pak`。[layout.md](layout.md) の「AMI の 256 版を同梱する」）に置き換えた。pak256 には車庫を置かない。ゲームでの確かめは [記録](records/2026-11-25_ami-road-depot.md)。

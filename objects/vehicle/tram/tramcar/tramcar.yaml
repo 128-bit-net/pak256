@@ -1,0 +1,34 @@
+# 路面電車（絵は仮）。この表と PNG は draw_tram.py が書き出す。直すときはスクリプトを直して流し直す。
+# 実物 12m ÷ 1.65 = 7.27 → length 7（docs/vehicles.md）。
+# 架線（路面軌道の way-object）がどの pak にも無いので、engine_type は架線の要らない diesel にする。
+obj: vehicle
+name: pak256_tram
+copyright: pak256.LongScale チーム
+waytype: tram_track
+freight: Passagiere
+payload: 72
+engine_type: diesel
+power: 113
+speed: 50
+gear: 110
+intro_year: 1930
+cost: 1308000
+runningcost: 55
+weight: 18
+length: 7
+constraint:
+  prev:
+    0: none
+    1: pak256_tram
+  next:
+    0: none
+    1: pak256_tram
+emptyimage:       # 向きごとの絵（画像名,x の位置合わせ,y の位置合わせ）
+  s: "tramcar.0.0"
+  w: "tramcar.0.1"
+  sw: "tramcar.0.2"
+  se: "tramcar.0.3"
+  n: "tramcar.0.4"
+  e: "tramcar.0.5"
+  ne: "tramcar.0.6"
+  nw: "tramcar.0.7"

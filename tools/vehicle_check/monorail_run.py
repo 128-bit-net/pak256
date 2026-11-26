@@ -6,7 +6,7 @@
     python -X utf8 tools/vehicle_check/monorail_run.py --env <検証環境> --save flat_512_left_v64 --out <撮った絵の場所> --port 47900
 
 ゲームの用意・起動・閉じ方は tools/game.py（docs/game-check.md）。pak は build/pak/ の物（先に tools/build.py）。
-ツールバーを押す位置は 1600x900 の画面（左から 7 つ目）。
+ツールバーを押す位置は 1600x900 の画面（左から 10 番目）。
 """
 import argparse
 import os
@@ -125,8 +125,8 @@ def main():
         shot(game, args.out, "corner", ox + 14, curve + 1)
         c = wait_diagonal(game, ox + 17, ox + 20, curve + 10)
         shot(game, args.out, "diagonal", c or ox + 18, curve + (c - (ox + 14) if c else 4) + 14)
-        # ツールバー（左から 7 つ目。1600x900）
-        game.sq("gui.close_all_windows(); gui.click(312, 24); return 1")
+        # ツールバー（左から 10 番目。1600x900）
+        game.sq("gui.close_all_windows(); gui.click(456, 24); return 1")
         time.sleep(1)
         game.capture(os.path.join(args.out, "toolbar.png"))
         game.sq("gui.close_all_windows(); return 1")
