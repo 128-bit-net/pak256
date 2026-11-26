@@ -50,7 +50,10 @@ def wait_for(game, y, cond, timeout=240):
             return c
         time.sleep(0.2)
     print(f"[monorail] y={y} の編成が条件に合わなかった", flush=True)
-    return convoy_on(game, y)
+    c = convoy_on(game, y)
+    if c is None:
+        sys.exit(f"[monorail] y={y} の編成が無い")
+    return c
 
 
 def positions(game):
@@ -69,12 +72,12 @@ def wait_on(game, x, y0, y1, stopped, timeout=240):
     return None
 
 
-def wait_diagonal(game, x0, x1, timeout=240):
+def wait_diagonal(game, x0, x1, ymin, timeout=240):
     """曲がりの線の斜めの区間（x が x0〜x1）にいる編成の x を返す。"""
     end = time.time() + timeout
     while time.time() < end:
         for cx, cy, _, v in positions(game):
-            if x0 <= cx <= x1 and cy > 130 and v:
+            if x0 <= cx <= x1 and cy > ymin and v:
                 return cx
         time.sleep(0.1)
     print("[monorail] 斜めの区間に編成が来なかった", flush=True)
@@ -120,7 +123,7 @@ def main():
         shot(game, args.out, "ns_station", ox + 14, c or curve + 9)
         c = wait_on(game, ox + 14, curve, curve + 2, stopped=False)
         shot(game, args.out, "corner", ox + 14, curve + 1)
-        c = wait_diagonal(game, ox + 17, ox + 20)
+        c = wait_diagonal(game, ox + 17, ox + 20, curve + 10)
         shot(game, args.out, "diagonal", c or ox + 18, curve + (c - (ox + 14) if c else 4) + 14)
         # ツールバー（左から 7 つ目。1600x900）
         game.sq("gui.close_all_windows(); gui.click(312, 24); return 1")

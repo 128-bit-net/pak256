@@ -436,8 +436,9 @@ class TestMonorail(unittest.TestCase):
     def test_cells_at_rule_position(self):
         for spec, _, _, img in self.each():
             for i, d in enumerate(V.DIRECTIONS):
-                pts = [V.to_screen(x, y, z * V.RAIL_HEIGHT_SCALE)
-                       for x, y in self.mod.footprint(spec, d) for z in (0.0, self.mod.HEIGHT_M)]
+                whole = V.footprint(d, V.length_units(spec["real_length_m"]), self.mod.WIDTH_M * V.RAIL_WIDTH_SCALE,
+                                    V.FRONT_UNITS, centered=True)
+                pts = [V.to_screen(x, y, z * V.RAIL_HEIGHT_SCALE) for x, y in whole for z in (0.0, self.mod.HEIGHT_M)]
                 ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
                 self.assertTrue(0 <= ex[0] and ex[2] <= V.CELL and 0 <= ex[1] and ex[3] <= V.CELL, f"{d}: セルに収まらない {ex}")
                 box = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).getchannel("A").getbbox()
@@ -449,6 +450,13 @@ class TestMonorail(unittest.TestCase):
         # 車体は AMI の桁より広く、床の下面は桁の上面より高い（裾が桁の側面を隠す）
         self.assertGreater(self.mod.WIDTH_M * V.RAIL_WIDTH_SCALE, self.mod.BEAM_WIDTH_M)
         self.assertGreaterEqual(self.mod.FLOOR_M * V.RAIL_HEIGHT_SCALE, self.mod.BEAM_TOP_M)
+
+    def test_floor_matches_station_platform(self):
+        path = os.path.join(ROOT, "objects", "station", "monorail_stops", "draw_stops.py")
+        spec = importlib.util.spec_from_file_location("monorail_draw_stops", path)
+        stops = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(stops)
+        self.assertAlmostEqual(stops.PLATFORM_Z, self.mod.FLOOR_M * V.RAIL_HEIGHT_SCALE)
 
     def test_no_special_colors_and_binary_alpha(self):
         for spec, _, _, img in self.each():
