@@ -67,6 +67,8 @@ pak256_bus_stop
 バス停
 pak256_truck_stop
 トラックの荷役所
+pak256_tram_stop
+路面電車の停留所
 pak256_train_station
 駅
 pak256_rail_signal
@@ -81,6 +83,8 @@ pak256_railcar
 気動車
 pak256_railcar_trailer
 気動車の付随車
+pak256_tram
+路面電車
 pak256_runway
 滑走路
 pak256_taxiway

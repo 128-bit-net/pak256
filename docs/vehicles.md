@@ -82,6 +82,22 @@
 - **曲がり・坂**（[#71](https://github.com/128-bit-net/pak256/issues/71)。画面は [記録](records/2026-11-25_rail-leftovers.md)）: 車体は 1 枚の絵で、曲がりの角のタイルでは進む向きの斜めに描かれる。AMI の線路の 90° の曲がりは 1 タイルの中で折れるので、20m（`length=12`）の車体は角の外へはみ出して草地に掛かって見える（付随車との継ぎ目も折れない）。坂では車体が水平のまま走り、1 段の坂をまたぐ継ぎ目に段差が出るが、車輪はどちらの車もレールの上に乗った。**直さない**: 1 両 1 枚の絵はこの本体の決まりで、はみ出しを無くすには車両を短くして両数を増やすか、車両ごとに曲がり用の絵を足すしかなく、仮の絵の段階では釣り合わない。見えたことは記録に残した。
 - 旅客は、駅（`pak256_train_station`。[stations.md](stations.md)）で積み降ろす。信号（`pak256_rail_signal`。[signals.md](signals.md)）を置き、1 本の線路に複数の編成を走らせる試験は `tools/vehicle_check/signal.nut`（#73）。車庫は AMI の `ami_rail_depot`（`ami_rail.pak`）。
 
+## 路面電車
+
+[#153](https://github.com/128-bit-net/pak256/issues/153)。軌道と車庫は AMI の 256 版の `ami_tram`・`ami_tram_depot`（`ami_tram.pak`。`waytype=tram_track`）。軌道は道路の上にも土の上にも敷ける。停留所は pak256 の `pak256_tram_stop`（[stations.md](stations.md)）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/tram/`、描く道具は `objects/vehicle/tram/draw_tram.py`（MIT。道路の車両の道具の面の決まりを読んで使う）。直すときは `SPEC` を直して流し直す（`python -X utf8 objects/vehicle/tram/draw_tram.py`）。検査は `tools/test_vehicles.py` の `TestTram`。
+
+| `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `pak256_tram` | 路面電車 / Tram | `Passagiere` | 12m・2.2m・3.5m | 7 | 72 | 50 | 113 | 110 | 18 | 1308000 | 55 | 1930 |
+
+- **値の目安**: pak128 の路面電車（`MHz_TRAM_1930`）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（石炭のトラックと同じ扱い。法律の専門家には確かめていない）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1925）。値の釣り合いは roadmap の段階 4 で見直す。
+- **架線**: `engine_type` は `diesel`（架線の要らない種類）にした。`waytype=tram_track` の架線（way-object）は、pak256 にも AMI にも無い。AMI の側に架線ができたら、`electric` にして集電装置を描くかを見直す。手本の pak128 の路面電車はどれも `electric`。
+- **大きさ**: [standards.md](standards.md) の 4 章。画面で長さ 79px・幅 22px・高さ 23px（目標 82・22・25）。
+- **位置**: 線路の車両と同じで、車線のずれを付けず軌道の中心（基準点）に描く（`footprint(centered=True)`）。道路に敷いた軌道では道路の中央を走る。本体は路面電車を線路の車両（`rail_vehicle_t`）として扱う。
+- **連結**: `constraint` は、単独か路面電車どうしだけ（`none` と `pak256_tram`）。本体は線路の車庫でも路面電車を扱うが、気動車とはつながない。
+- 煙・音・引退年は書かない。郵便・貨物の路面電車は無い。
+- **曲がり**: 車体は 1 枚の絵で、角のタイルでは進む向きの斜めに描かれる。`length=7` は 1 タイルの半分より短く、AMI の路面軌道の 90° の曲がりで車体は軌道の内側へ少し寄るが、道路の舗装の中に収まる。2 両連結では継ぎ目が折れない。坂は確かめていない（[記録](records/2026-11-26_tram.md)）。
+
 ## 試験
 
 描画位置が道路に合うかを、ゲームで走らせて撮る道具が `tools/vehicle_check/`（MIT）にある。
@@ -93,6 +109,8 @@
 - 右側通行: 手元の右側通行の保存データは使えなかった（起動画面で止まる）。`draw_bus.py --emulate-right` で、左側通行のずれを先に引いた絵（名前に `_right_test`）を書き、左側通行の地図で走らせると、右側通行の地図での見え方と同じ所に出る（本体は左側通行で絵をずらすだけなので）。
 - 線路の車両の試験は `tools/vehicle_check/rail_run.py` と `rail.nut`（#46）。東西の直線の線路に、駅 2 つ（3 タイルずつ）と AMI の車庫を置き、気動車 + 付随車の 1 編成を 2 つの駅の間で往復させて、一定の間隔で撮る（`--cities` で街を 2 つ置いて旅客を運ばせ、財務の窓も撮る。`--trailer 0` で 1 両だけ。`toolbar_rail.png` は線路のツールバー）。使い方は `rail_run.py` の先頭。曲がり・坂は `tools/vehicle_check/rail_curve_run.py` と `rail_curve.nut`（#71）。コの字の線路（東に 90° の曲がり 2 つ、北の辺に高さ 1 の丘）に、駅 2 つと車庫を置き、気動車 + 付随車が通るときに、先頭のタイルを真ん中にして撮る（使い方は `rail_curve_run.py` の先頭）。線路の丘は、先に地面を上げてから 1 タイルずつ敷く（線路を敷いた後では地面が上がらず、長く敷くと本体が丘をよける経路を選ぶ）。
 - 道路の停留所は pak256 の物（#94。`tools/vehicle_check/road_stop_bus.nut`・`road_stop_coal.nut` で確かめた）、車庫（#64）は AMI の `ami_road_depot` を使う（借りる pak は要らない）。
+
+路面電車の試験は `tools/vehicle_check/tram_run.py` と `tram.nut`・`tram_cities.nut`（#153）。道路の上の軌道と専用の軌道（90° の曲がり 3 つ）に停留所 2 組と車庫を置き、1 編成を往復させて角と停留所を撮り、財務の窓を撮る（`--cars 2` で 2 両連結）。使い方は `tram_run.py` の先頭。
 
 #40 で撮った画面は [records/2026-11-25_vehicle-rules.md](records/2026-11-25_vehicle-rules.md)。#41 のバスと郵便のトラックをゲームで走らせた記録は [records/2026-11-25_bus-mail.md](records/2026-11-25_bus-mail.md)。
 
