@@ -128,7 +128,8 @@ class SaveRoadTest(Base):
         conf = os.path.join(self.tmp.name, "s.tab")
         put(conf, self.CONFIG)
         path = os.path.join(self.tmp.name, "a.sve")
-        cases = {"圧縮": b"\x28\xb5\x2f\xfd" + self.data, "0 か所": self.HEAD + self.TAIL,
+        cases = {"圧縮": b"\x28\xb5\x2f\xfd" + self.data, "展開できない": gzip.compress(self.data)[:20],
+                 "0 か所": self.HEAD + self.TAIL,
                  "2 か所": self.HEAD + self.OLD + self.TAIL + self.OLD + self.TAIL}
         for reason, raw in cases.items():
             with self.subTest(reason=reason):
@@ -153,9 +154,19 @@ class SaveRoadTest(Base):
         wanted = game.road_settings(os.path.join(game.ROOT, "config", "simuconf.tab"))
         self.assertEqual(sorted(wanted), ["city_road", "intercity_road"])
 
-    def test_game_and_command_pass_the_switch(self):
-        self.assertTrue(game.Game(self.env, "map", 47880).rewrite_roads)
-        self.assertFalse(game.Game(self.env, "map", 47880, rewrite_roads=False).rewrite_roads)
+    def test_game_passes_the_switch_to_prepare(self):
+        client = os.path.join(self.tmp.name, "mcp_client.py")
+        put(client)
+        for kwargs, expected in (({}, True), ({"rewrite_roads": False}, False)):
+            g = game.Game(self.env, "map", 47880, client=client, work=self.work, root=self.root, **kwargs)
+            with mock.patch.object(game, "port_in_use", return_value=False), \
+                    mock.patch.object(g, "alive_mcp", return_value=False), \
+                    mock.patch.object(game, "prepare_workdir", side_effect=RuntimeError("stop")) as prepare:
+                with self.assertRaisesRegex(RuntimeError, "stop"):
+                    g.start()
+            self.assertEqual(prepare.call_args.kwargs["rewrite_roads"], expected)
+
+    def test_command_passes_the_switch(self):
         for flag, expected in (([], True), (["--keep-save-roads"], False)):
             argv = ["game.py", "--env", self.env, "--save", "map", "--port", "47880", *flag]
             with mock.patch.object(sys, "argv", argv), mock.patch.object(game, "Game") as made:

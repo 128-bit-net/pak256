@@ -63,6 +63,7 @@ import subprocess
 import sys
 import time
 import zipfile
+import zlib
 
 if os.name == "nt":
     from ctypes import wintypes
@@ -370,7 +371,12 @@ def rewrite_save_roads(sve, simuconf):
         codec = None
     else:
         return "保存データの道路名は書き換えていない（読めない圧縮の形。gzip・bzip2・無圧縮だけ扱う）"
-    data = codec.decompress(raw) if codec else raw
+    try:
+        data = codec.decompress(raw) if codec else raw
+    except (OSError, EOFError, ValueError, zlib.error) as e:
+        return f"保存データの道路名は書き換えていない（展開できない: {e}）"
+    if any(len(roads) > 9 for roads in wanted.values()):
+        return "保存データの道路名は書き換えていない（指定が 10 本以上。本体は読み込みで止まる）"
     found = find_road_block(data)
     if len(found) != 1:
         return f"保存データの道路名は書き換えていない（道路の一覧が {len(found)} か所）"
