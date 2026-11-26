@@ -28,14 +28,15 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
-| `objects/vehicle/<rail\|road\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)） | #40 |
+| `objects/vehicle/<rail\|road\|air\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)。飛行機は [airport.md](airport.md)） | #40 |
+| `objects/airport/` | 滑走路・誘導路・空港の駅・格納庫。[airport.md](airport.md) | #155 |
 | `objects/scenery/` | 木・岩などの景観の物 | #9 |
 | `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
-- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
+- 道路・線路・駅などのインフラは置かない（AMI に任せる。[roadmap.md](roadmap.md) の「進め方」）。例外は、道路の停留所・線路の駅（`objects/station/`。#44・#46・#73・#94）と線路の信号（`objects/signal/`。#73）、飛行機の滑走路・誘導路・駅・格納庫（`objects/airport/`。AMI に無い。#155）。pak256 の物として持つ（2026-11-26、ユーザー。[stations.md](stations.md)・[signals.md](signals.md)）。道路の車庫は #64 で AMI の物に置き換えた。
 
 ## 物のフォルダの中身
 
@@ -112,6 +113,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_frames.py` | 地面の印（`Marker`）・格子の線（`Borders`）・タイルのカーソルの枠が、地面の絵の縁と画素単位で一致し、両端の高さが同じ辺が横 2px・縦 1px の階段であることの検査（[ground.md](ground.md) の「枠の線」。Pillow が要る） |
 | `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
 | `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
+| `test_air.py` | 飛行機と空港の表・絵（スクリプトの出力と同じか・道の絵がタイルからはみ出さないか・旅客機の大きさ）と飛行機のツールバーの検査（Pillow・PyYAML が要る） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `check_way_edges.py` | AMI の 256 版の道（`obj=way`）の絵の縁が、横 4px・縦 2px の階段になっていないかの検査（256 の段は横 2px・縦 1px。#111）。`build_ami256.py` の `check` の段が流す。単独なら `python -X utf8 tools/check_way_edges.py <AMI の src256>` |
@@ -123,7 +125,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。

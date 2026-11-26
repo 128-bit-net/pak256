@@ -23,4 +23,6 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/station/rail_stops`（線路の駅。絵は簡単な物。`draw_stops.py` は MIT） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/signal/rail_signal`（線路の閉塞信号。絵は簡単な物。`draw_signal.py` は MIT） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/vehicle/rail/railcar`・`objects/vehicle/rail/railcar_trailer`（気動車と付随車。絵は仮。値は pak128 の気動車の機能上の数値と同じ） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_trains.py` は MIT） |
+| `objects/airport/runway`・`objects/airport/taxiway`・`objects/airport/air_stop`・`objects/airport/air_depot`（滑走路・誘導路・空港の駅・格納庫。絵は仮。滑走路と誘導路の値は pak128 の初期の物を目安にした） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_airport.py` は MIT） |
+| `objects/vehicle/air/airliner`（旅客機。絵は仮。値は pak128 の Junkers Ju 52 の機能上の数値と同じ） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_aircraft.py` は MIT） |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |

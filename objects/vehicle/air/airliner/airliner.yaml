@@ -1,0 +1,30 @@
+# 旅客機（絵は仮）。この表と PNG は ../draw_aircraft.py が書き出す。直すときはスクリプトを直して流し直す。
+# 値は pak128 の Junkers Ju 52 の機能上の数値（docs/airport.md）。
+obj: vehicle
+name: pak256_airliner
+copyright: pak256.LongScale チーム
+waytype: air
+cell_size: 512
+freight: Passagiere
+payload: 18
+engine_type: diesel
+power: 1599
+speed: 211
+gear: 50
+intro_year: 1930
+cost: 2110146
+runningcost: 65
+weight: 7
+length: 13
+constraint:       # 1 機で飛ぶ（前にも後ろにもつながない）
+  prev: {0: none}
+  next: {0: none}
+emptyimage:       # 向きごとの絵（画像名,x の位置合わせ,y の位置合わせ）
+  s: "airliner.0.0,-128,-128"
+  w: "airliner.0.1,-128,-128"
+  sw: "airliner.0.2,-128,-128"
+  se: "airliner.0.3,-128,-128"
+  n: "airliner.0.4,-128,-128"
+  e: "airliner.0.5,-128,-128"
+  ne: "airliner.0.6,-128,-128"
+  nw: "airliner.0.7,-128,-128"
