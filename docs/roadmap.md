@@ -26,7 +26,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 | 道路・線路など | 道路・線路・路面軌道・高架・橋・トンネル・車庫（道路の車庫は AMI の `ami_road_depot`。[#64](https://github.com/128-bit-net/pak256/issues/64)）・架線・踏切・道路標識・運河・モノレール | AMI | 要る（道路・線路。線路は [#46](https://github.com/128-bit-net/pak256/issues/46) で `ami-256-alpha.2` の `ami_rail_ballast` と `ami_rail_depot` を使った） |
 | 駅・停留所 | 駅・バス停・トラックの荷役所・港・空港の建物 | 線路の駅は pak256（[#73](https://github.com/128-bit-net/pak256/issues/73)。AMI は駅を作らない、2026-11-26）。バス停と荷役所は、仮に pak256 で作り（[#44](https://github.com/128-bit-net/pak256/issues/44)）、AMI の 256 版に置き換えた（[#72](https://github.com/128-bit-net/pak256/issues/72)）が、2026-11-26 に pak256 の物に戻した（[#94](https://github.com/128-bit-net/pak256/issues/94)） | 要る（バス停・荷役所・駅。どれも pak256 の物） |
 | 信号 | 線路の信号 | pak256（[#73](https://github.com/128-bit-net/pak256/issues/73)。2026-11-26 に AMI から変えた） | 要る（1 種） |
-| 空港・港の道 | 滑走路・誘導路・船の航路の物 | AMI（#264） | 要らない |
+| 空港・港の道 | 滑走路・誘導路・船の航路の物 | 滑走路・誘導路は pak256（[#155](https://github.com/128-bit-net/pak256/issues/155)。AMI の 256 版に無い。[airport.md](airport.md)）。航路の物は AMI（#264） | α には要らなかった（滑走路・誘導路は α0.5 で入れた） |
 | 電線 | 電線・変電所 | AMI（#264） | 要らない |
 | 街 | 役場・住宅・商業・工業の建物（`cityrules.tab` の段ごと）・記念物・本社 | pak256 | 要る（役場と、段ごとに数軒） |
 | 産業 | 工場・発電所と貨物のつながり | pak256 | 要る（1 本の連鎖） |
@@ -97,7 +97,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 - 線路・車庫・列車・駅（#46。線路は AMI の 256 版、駅と列車は仮の絵。済み）と、信号（pak256 の閉塞信号。#73、済み）。道路の停留所は pak256 の物（#94、済み）。
 - ツールバーのアイコンを、何の道具か分かる絵にする（[#66](https://github.com/128-bit-net/pak256/issues/66)。済み）。
 - 車両の顔ぶれと時代（登場年・引退年）。
-- 路面電車・船と港（仮の 2 種と港 3 つは [#154](https://github.com/128-bit-net/pak256/issues/154)）・飛行機と空港・モノレール。
+- 路面電車・船と港（仮の 2 種と港 3 つは [#154](https://github.com/128-bit-net/pak256/issues/154)）・飛行機と空港（仮の旅客機 1 種と空港の物は [#155](https://github.com/128-bit-net/pak256/issues/155)）・モノレール。
 - 歩行者・街の車・煙・音。
 - 街の建物の数。
 
