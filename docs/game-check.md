@@ -95,6 +95,9 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 街の建物を置く道具（`tool_build_house`）の引数は、建物の名前の前に 2 文字を付ける。1 文字目は気候の制限を外すか（`0` は外さない）、2 文字目は向き（`00<name>` は向き 0）。街の建物は、近くに街が無いと置けない（2026-11-26、#104。形は本体の `simtool.cc` の `tool_build_house_t::work_on_ground`）。
 - 木を植える道具は、公共のプレーヤーで呼ぶ（2026-11-26、#104）。地図の木の設定が「無し」だと、ほかのプレーヤーは植えられない（本体の `tool_plant_tree_t::work`）。森は `tool_forest`（`tools/tree_check.py`）。
 - 地形は `command_x.grid_raise`・`command_x.grid_lower` で作る。`grid_lower` は地下水位 −3 まで（2026-11-25、#5）。水は `command_x(tool_change_water_height).work(pl, pos, "1")`（#5）。
+- **`run_squirrel` に渡すコードの日本語の文字列リテラルは、本体に化けて届く**（窓の題 `マップの拡張` が 18 バイトなのに、同じ字のリテラルは 30 バイトで一致しなかった）。画面の日本語と比べず、英字の文字列（部品の `text` が `enlarge map` など）か位置・並びで見分ける（2026-11-27、#158、OTRP v64）。
+- **`grid_lower` で地下水位まで掘っても水にならない。** 掘った後に `command_x(tool_change_water_height).work(pl, coord3d, "1")` で水を入れ、`is_water()` で確かめる。海が無い地図では川も引かれない（2026-11-27、#158）。
+- **窓の位置は開くたびに違うことがあるので、`gui.click` の座標を決め打ちしない。** `gui.get_windows()` と `gui.get_window_components(id)` の `screen_bounds` から部品を探して押す（2026-11-27、#158）。地図の拡大の窓（`gui.open_dialog_tool(24)`）はこの形で操作でき、拡大で川を引かせられる（例は `tools/vehicle_check/river_enlarge.nut`・`river_run.py`）。
 - 画面に出る名札を消すには、`Game(..., simuconf_extra=["show_names = 0"])` で起動する（下の「設定を足す」。2026-11-26、#122）。
 - 長い確かめは `tools/game.py` を動かす Python を強制終了せずに待つ。強制終了するとゲームが閉じられず、ポートを握ったまま残ることがある（Job Object に入れられた場合は閉じる。下の「別の道具から使う」）。止めたときは、起動した PID を `tasklist` で探して閉じる（2026-11-25、#30）。
 

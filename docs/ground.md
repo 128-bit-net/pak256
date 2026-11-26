@@ -45,6 +45,8 @@
 
 `Shore`（本体が重ねる海岸の絵）は、pak128 にも無く、本体も無くて動く（`ground_desc_t::shore` が空のときは何も重ねない）ので作らなかった。
 
+川は地面でなく水の道なので、`objects/river/` にある（[config.md](config.md) の「川」）。地面の形と画素の置き方は `draw_ground.py` の関数を使う。
+
 ## 確かめたこと
 
 - `LightTexture` 81 枚・`Slopes`・`Basement` 22 枚の形は、2 倍にした pak128 の同じ番号の絵（比べるためだけに読んだ。コピーしていない）と重なりを比べて、全部が合う。`SlopeTrans`・`ShoreTrans` は重なる領域の向きが合う。
