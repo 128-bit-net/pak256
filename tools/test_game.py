@@ -439,6 +439,22 @@ class FatalLogTest(Base):
             with self.assertRaises(game.GameFatalError):
                 g.sq("return 1")
 
+    def test_finds_notify_window_mark_even_split(self):
+        # FATAL ERROR を出さない通知の窓（dr_fatal_notify。#142）。印が読みの境目で割れても見つける
+        g = self.game()
+        self.log("x" * 100 + "\ndr_fatal_notify: ERR")
+        self.assertIsNone(g.fatal())
+        self.log("OR: The file 'ground.Outside.pak' was not found in\n'pak'.\n")
+        message = g.fatal()
+        self.assertTrue(message.startswith("dr_fatal_notify: ERROR: The file 'ground.Outside.pak'"), message)
+        with self.assertRaises(game.GameFatalError):
+            g.check_fatal()
+
+    def test_earliest_mark_wins(self):
+        g = self.game()
+        self.log("FATAL ERROR: a\ndr_fatal_notify: ERROR: b\n")
+        self.assertTrue(g.fatal().startswith("FATAL ERROR: a"))
+
     def test_client_wait_is_cut_by_fatal(self):
         # 答えないクライアントを待つ間に FATAL が出たら、timeout を待たずに失敗する
         client = os.path.join(self.tmp.name, "slow.py")
@@ -570,10 +586,25 @@ class DialogSettleTest(unittest.TestCase):
     def game(self):
         g = game.Game("e", "m", 47880, work="w", client=__file__)
         g.sent = []
-        patch = mock.patch.object(game.Game, "sq", lambda self_, code, timeout=30: g.sent.append(code) or "1")
+        patch = mock.patch.object(game.Game, "sq", lambda self_, code, timeout=30, player_nr=0: g.sent.append(code) or "1")
         patch.start()
         self.addCleanup(patch.stop)
         return g
+
+    def clock(self, sleep_effect=None):
+        """time.sleep が時計を進める偽の時計。戻り値は sleep に渡った秒の一覧。"""
+        now, slept = [0.0], []
+
+        def sleep(sec):
+            slept.append(sec)
+            now[0] += sec
+            if sleep_effect:
+                sleep_effect(len(slept))
+        for name, fn in (("monotonic", lambda: now[0]), ("sleep", sleep)):
+            patch = mock.patch.object(game.time, name, fn)
+            patch.start()
+            self.addCleanup(patch.stop)
+        return slept
 
     def test_dialog_by_name_and_number(self):
         g = self.game()
@@ -601,9 +632,10 @@ class DialogSettleTest(unittest.TestCase):
 
     def test_settle_speeds_up_then_restores(self):
         g = self.game()
-        with mock.patch.object(game.time, "sleep") as sl:
-            g.settle(7)
-        sl.assert_called_once_with(7)
+        slept = self.clock()
+        g.settle(7)
+        self.assertAlmostEqual(sum(slept), 7)
+        self.assertLessEqual(max(slept), game.FATAL_POLL)
         self.assertEqual(g.sent, ["debug.set_game_speed(64); return 1", "debug.set_game_speed(1); return 1"])
 
     def test_settle_restores_speed_when_interrupted(self):
@@ -612,6 +644,87 @@ class DialogSettleTest(unittest.TestCase):
             with self.assertRaises(KeyboardInterrupt):
                 g.settle(7)
         self.assertEqual(g.sent[-1], "debug.set_game_speed(1); return 1")
+
+    def test_settle_stops_waiting_when_fatal(self):
+        # 待ちの途中の FATAL は、秒数を待ち切らずに知らせる（#142）
+        g = self.game()
+
+        def die(n):
+            if n == 3:
+                g.fatal_message = "FATAL ERROR: x - while settling"
+        slept = self.clock(die)
+        with mock.patch.object(g, "check_fatal", lambda: game.Game.check_fatal(g)), \
+                mock.patch.object(g, "fatal", lambda: g.fatal_message):
+            with self.assertRaises(game.GameFatalError):
+                g.settle(600)
+        self.assertEqual(len(slept), 3)
+
+
+class PlayerNrTest(unittest.TestCase):
+    """player_nr（公共のプレーヤー）で流す（#142）。"""
+
+    def client_args(self, call):
+        g = game.Game("e", "m", 47880, work="w", client=__file__)
+        sent = []
+
+        def client(self_, *args, timeout):
+            sent.append(args)
+            return subprocess.CompletedProcess(args, 0, '{"result": "1"}\n', "")
+        with mock.patch.object(game.Game, "_client", client):
+            call(g)
+        return sent[-1]
+
+    def test_sq_passes_player_nr_to_client(self):
+        self.assertEqual(self.client_args(lambda g: g.sq("return 1")), ("--player-nr", "0", "--run-squirrel", "return 1"))
+        self.assertEqual(self.client_args(lambda g: g.sq("return 1", player_nr=1))[:2], ("--player-nr", "1"))
+
+    def test_helpers_use_the_same_player_in_script_and_call(self):
+        for call in (lambda g: g.road(1, 2, 3, 4, player_nr=1), lambda g: g.station(1, 2, "s", player_nr=1),
+                     lambda g: g.climate(1, 2, 3, 4, "desert", player_nr=1), lambda g: g.city_road(1, 2, 3, 4)):
+            args = self.client_args(call)
+            self.assertEqual(args[:2], ("--player-nr", "1"))
+            self.assertIn("player_x(1)", args[3])
+        self.assertIn("player_x(0)", self.client_args(lambda g: g.road(1, 2, 3, 4))[3])
+
+    def test_city_road(self):
+        self.assertEqual(self.client_args(lambda g: g.city_road(1, 2, 3, 4, z=5))[3],
+                         'return command_x(tool_build_cityroad).work(player_x(1), coord3d(1,2,5), coord3d(3,4,5), "")')
+
+    def test_sq_file_passes_player_nr(self):
+        with tempfile.TemporaryDirectory() as t:
+            p = os.path.join(t, "a.nut")
+            put(p, "return 1")
+            self.assertEqual(self.client_args(lambda g: g.sq_file(p, player_nr=1))[:2], ("--player-nr", "1"))
+
+    def test_bad_player_nr(self):
+        g = game.Game("e", "m", 47880, work="w", client=__file__)
+        for bad in (-1, 16, True, "1", None):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                g.sq("return 1", player_nr=bad)
+
+    def test_player_directive(self):
+        calls = []
+
+        class G:
+            def sq(self, code, timeout=30, player_nr=0):
+                calls.append((code, player_nr))
+                return "ok"
+        game.run_command(G(), "@player 1 return 1")
+        self.assertEqual(calls, [("return 1", 1)])
+        for bad in ("@player", "@player 1", "@player x return 1", "@player 1 @capture a.png"):
+            with self.assertRaises(ValueError, msg=bad):
+                game.run_command(G(), bad)
+
+    def test_main_send_wraps_player_nr(self):
+        sent = []
+        argv = ["game.py", "--port", "47880", "--player-nr", "1", "--send", "return 1"]
+        with mock.patch.object(game, "send_command", lambda inbox, text, timeout: sent.append(text) or (True, "")), \
+                mock.patch.object(sys, "argv", argv), self.assertRaises(SystemExit):
+            game.main()
+        self.assertEqual(sent, ["@player 1 return 1"])
+        with mock.patch.object(sys, "argv", argv[:-1] + ["@capture a.png"]), self.assertRaises(SystemExit) as cm:
+            game.main()
+        self.assertIn("--player-nr", str(cm.exception.code))
 
 
 PARENT = """
@@ -657,7 +770,7 @@ class ClimateMonthTest(unittest.TestCase):
         g.sent = []
         rest = list(months)
 
-        def sq(self_, code, timeout=30):
+        def sq(self_, code, timeout=30, player_nr=0):
             g.sent.append(code)
             if code == "return world.get_time().month":
                 return str(rest.pop(0) if len(rest) > 1 else rest[0])
@@ -786,7 +899,13 @@ class InboxTest(unittest.TestCase):
                 out = f.read()
             self.assertTrue(out.startswith("error\n"))
             self.assertIn("during command", out)
-            self.assertTrue(os.path.isfile(os.path.join(inbox, "2.cmd")))  # 次の命令は流さない
+            # 待っていた次の命令は流さず、理由を返す（#142）
+            self.assertFalse(os.path.exists(os.path.join(inbox, "2.cmd")))
+            with open(os.path.join(inbox, "2.out"), encoding="utf-8") as f:
+                out = f.read()
+            self.assertTrue(out.startswith("error\n"))
+            self.assertIn("流さなかった", out)
+            self.assertIn("during command", out)
 
     def test_run_command(self):
         g = self.Fake()
@@ -856,6 +975,55 @@ class InboxTest(unittest.TestCase):
             os.makedirs(inbox)
             put(os.path.join(inbox, "1.cmd"), "@quit")
             with mock.patch("builtins.open", flaky):
+                game.serve_inbox(self.Fake(), inbox, 30, 0.01, lambda *_: None)
+            self.assertTrue(os.path.isfile(os.path.join(inbox, "1.out")))
+
+    def test_waiting_send_says_which_command_is_running(self):
+        # 前の命令が長くて順番が来なかった 2 つ目の送りに、理由を返す（#142）
+        release = threading.Event()
+        self.addCleanup(release.set)  # 途中で落ちても見張りの待ちを解く
+
+        class Slow(self.Fake):
+            def sq(self, code, timeout=30, player_nr=0):
+                if code.startswith("long"):
+                    release.wait(10)
+                return "done"
+
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            th = threading.Thread(target=game.serve_inbox, args=(Slow(), inbox, 30, 0.02, lambda *_: None))
+            th.start()
+            first = []
+            while not os.path.isdir(inbox):
+                time.sleep(0.01)
+            sender = threading.Thread(target=lambda: first.append(game.send_command(inbox, "long_one()", 10)))
+            sender.start()
+            while not os.path.isfile(os.path.join(inbox, game.BUSY)):
+                time.sleep(0.01)
+            with self.assertRaises(RuntimeError) as cm:
+                game.send_command(inbox, "return 2", 0.3)
+            self.assertIn("long_one()", str(cm.exception))
+            self.assertIn("順番が来なかった", str(cm.exception))
+            self.assertEqual([n for n in os.listdir(inbox) if n.endswith(".cmd")], [])  # 取り下げた
+            release.set()
+            sender.join(10)
+            self.assertEqual(first, [(True, "done")])
+            self.assertFalse(os.path.exists(os.path.join(inbox, game.BUSY)))
+            game.send_command(inbox, "@quit", 5)
+            th.join(5)
+
+    def test_busy_file_failure_does_not_stop_the_command(self):
+        # 送る側が busy を開いている間の PermissionError で、命令を失わない（#142）
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            put(os.path.join(inbox, "1.cmd"), "@quit")
+            real = game.write_result
+
+            def locked(path, body):
+                if os.path.basename(path) == game.BUSY:
+                    raise PermissionError(path)
+                real(path, body)
+            with mock.patch.object(game, "write_result", locked):
                 game.serve_inbox(self.Fake(), inbox, 30, 0.01, lambda *_: None)
             self.assertTrue(os.path.isfile(os.path.join(inbox, "1.out")))
 
