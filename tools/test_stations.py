@@ -108,6 +108,28 @@ class StationTest(unittest.TestCase):
                                 bad.append((x, y, round(c, 3)))
                     self.assertEqual(bad[:5], [], f"{sheet}: {row} 行 {col} 列が道路に掛かる（{len(bad)} 画素）")
 
+    def test_bus_stop_back_edge(self):
+        """バス停の後ろの絵の歩道は、タイルの端（c = 0）の近くまである（#139）。
+
+        歩道の上面の色（CONCRETE）の画素の中心を地面の座標に戻した c の最小で調べる。今の絵の値は、
+        c = 0 から描くと 0.010〜0.014、c = 0.015 から描くと 0.021〜0.029。タイルの外（c = -0.012）まで伸ばすと -0.006〜0.002（下限の 0.005 で落ちる）。
+        """
+        from PIL import Image
+        ds = road_stop_script()
+        sheet = os.path.join(ROOT, "objects", "station", "road_stops", "bus_stop.png")
+        with Image.open(sheet) as im:
+            px = im.convert("RGB").load()
+        for col in range(LAYOUTS):
+            cs = []
+            for y in range(256):
+                for x in range(256):
+                    if px[col * 256 + x, y] != ds.CONCRETE:
+                        continue
+                    a, b = (x + 0.5 - 128) / 128, (y + 0.5 - 128) / 64
+                    cs.append((b + a) / 2 if col % 2 == 0 else (b - a) / 2)
+            self.assertTrue(cs, f"{sheet}: {col} 列に歩道が無い")
+            self.assertTrue(0.005 <= min(cs) < 0.018, f"{sheet}: {col} 列の歩道の奥の端 c = {min(cs):.4f}")
+
     def test_listed_in_docs(self):
         """docs/stations.md の駅の表に、全部の停留所が、扱う貨物とともに載っている。"""
         with open(os.path.join(ROOT, "docs", "stations.md"), encoding="utf-8") as f:
