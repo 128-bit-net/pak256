@@ -58,6 +58,8 @@
 - 積み荷の絵: 石炭のトラックだけが `freightimage`（シートの 2 行目。荷台に石炭の山）を持つ。バスと郵便のトラックは空の絵（`emptyimage`）だけ。連結（`constraint`）・煙・音・引退年も書いていない。
 - 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
 - 車庫は AMI の 256 版の `ami_road_depot`（[stations.md](stations.md)）を使う。
+- 曲がり・十字路・坂・向かい合う 2 台のすれ違い（[#116](https://github.com/128-bit-net/pak256/issues/116)。[記録](records/2026-11-26_truck-curves-passing.md)）: 郵便と石炭のトラックは舗装の中を走り、すれ違いで重ならない。車体は坂でも水平のまま。
+- `style: panel` の車両（部分に分けた箱）は、面の向きを部分の箱の中心から決める。車体全体の中心から決めると、前の部分の後ろの面を手前向きと誤り、運転台の上に塗り重なる（郵便のトラックで起きた。#116。検査は `test_nothing_painted_over_the_skirt`）。
 
 ## 線路の車両
 

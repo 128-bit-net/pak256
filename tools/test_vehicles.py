@@ -300,6 +300,27 @@ class TestRoadVehicles(unittest.TestCase):
                 for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
                     self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
 
+    def test_nothing_painted_over_the_skirt(self):
+        # 車輪の暗い帯はいちばん下なので、帯より下の画素に車体の赤は出ない。部分の後ろの面を手前向きと誤ると、前の面の上に塗り重なる（#116）
+        for spec, _, img in self.each():
+            if spec["name"] != "pak256_mail_truck":
+                continue
+            for i, d in enumerate(V.DIRECTIONS):
+                cell = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL))
+                px = cell.load()
+                bad = 0
+                for x in range(V.CELL):
+                    dark = False
+                    for y in range(V.CELL):
+                        r, g, b, a = px[x, y]
+                        if not a:
+                            continue
+                        if max(r, g, b) < 48:
+                            dark = True
+                        elif dark and r > 100 and g < 80:
+                            bad += 1
+                self.assertEqual(bad, 0, f"{spec['name']} {d}")
+
     def test_no_special_colors_and_binary_alpha(self):
         for spec, _, img in self.each():
             found = set()
