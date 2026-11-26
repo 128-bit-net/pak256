@@ -455,6 +455,44 @@ class FatalLogTest(Base):
         self.assertLess(time.monotonic() - start, 15)
 
 
+class FatalMainTest(unittest.TestCase):
+    """コマンドとしての main() が、エラーの文を出して 0 以外で終わる（#132）。ゲームは偽物（CI でも回る）。"""
+
+    class Fake:
+        left_over = False
+        work = "w"
+
+        def __init__(self, *a, **k):
+            self.closed = False
+            FatalMainTest.last = self
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            self.closed = True
+
+        def check_fatal(self):
+            raise game.GameFatalError("FATAL ERROR: x - at the end")
+
+    def run_main(self, cls):
+        argv = ["game.py", "--env", "e", "--save", "m", "--port", "47880"]
+        with mock.patch.object(game, "Game", cls), mock.patch.object(sys, "argv", argv):
+            with self.assertRaises(SystemExit) as cm:
+                game.main()
+        return cm.exception.code  # 文字列の code は、stderr に出して終了コード 1
+
+    def test_fatal_while_starting(self):
+        class FailsToStart(self.Fake):
+            def __enter__(self):
+                raise game.GameFatalError("FATAL ERROR: x - at start")
+        self.assertIn("FATAL ERROR: x - at start", self.run_main(FailsToStart))
+
+    def test_fatal_after_last_command_is_not_success(self):
+        self.assertIn("FATAL ERROR: x - at the end", self.run_main(self.Fake))
+        self.assertTrue(self.last.closed)
+
+
 @unittest.skipUnless(os.name == "nt", "taskkill・tasklist が要る（Windows だけ。CI は Linux なので飛ばす）")
 class FatalStartTest(Base):
     """FATAL ERROR を出して眠る偽のゲームを起動して、待たずに閉じることを見る（#132）。"""
