@@ -33,7 +33,8 @@
 - ほかの設定を足すときは Game(..., simuconf_extra=["show_names = 0"])（本体と pak の simuconf.tab の先頭に足す。#122）。
 - 起動に -singleuser・-set_workdir・-lang ja・-objects・-load・-mcp-port を付ける。
 - ゲームは起動したときの PID で閉じる（実行ファイルの名前では止めない）。閉じた後に tasklist で残りを確かめ、残ったら知らせる。
-- MCP のポートは、pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）の中を必ず明示する。作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
+- MCP のポートは必ず明示する。範囲の既定は pak256 の作業者全体の範囲（PORT_MIN〜PORT_MAX = 47800〜47999）で、作業者ごとに進捗管理から割り当てられる範囲は、その中の一部。
+  別の範囲を割り当てられた作業者は、--port-range・Game(port_range=…)・環境変数 PAK256_PORT_RANGE のどれかで範囲を渡す（"下限-上限"。#128）。
 - この道具を動かす Python が強制終了されても、ゲームは閉じる（Windows の Job Object。KILL_ON_JOB_CLOSE。#59）。
 - Squirrel の文字列リテラルの中に改行を入れない（Python の通常の文字列のバックスラッシュ n が本物の改行になって、コンパイルが通らない）。入れたら流す前に止める。
 - pak を入れる処理は install_pak（tools/install_local.py のテストプレイのフォルダへ入れる道具と共通。zip も渡せる。#38）。
@@ -65,7 +66,8 @@ PAK_DIR = "pak"
 DAY_NIGHT_OFF = "day_night_shift = 0"
 MARK = ".game_py_workdir"  # この道具が作った作業フォルダの目印（他の物を rmtree しないため）
 SCREENSIZE = "1600x900"
-PORT_MIN, PORT_MAX = 47800, 47999  # pak256 の作業者全体の MCP のポートの範囲。作業者ごとの割り当てはこの中
+PORT_MIN, PORT_MAX = 47800, 47999  # MCP のポートの範囲の既定（pak256 の作業者全体の範囲。作業者ごとの割り当てはこの中）
+PORT_RANGE_ENV = "PAK256_PORT_RANGE"  # 範囲を変える環境変数（"下限-上限"。別のリポジトリの作業者が使うとき。#128）
 # gui.open_dialog_tool(番号) の窓の番号（OTRP 本体の simmenu.h の DIALOG_*。順に 0 から）。使う物だけ。docs/game-check.md に表
 DIALOGS = {
     "help": 0, "options": 1, "minimap": 2, "lineoverview": 3, "messages": 4, "finances": 5, "players": 6,
@@ -270,9 +272,25 @@ def launch_command(work, save, port, exe=EXE, screensize=SCREENSIZE):
             "-load", save, "-freeplay", "-mute", "-lang", "ja", "-mcp-port", str(port), "-screensize", screensize]
 
 
-def check_port(port):
-    if not PORT_MIN <= port <= PORT_MAX:
-        raise RuntimeError(f"MCP のポートは {PORT_MIN}〜{PORT_MAX} の中で明示する: {port}")
+def resolve_port_range(port_range=None):
+    """MCP のポートの範囲 (下限, 上限) を決める。引数（組か "下限-上限"）、環境変数 PORT_RANGE_ENV、PORT_MIN〜PORT_MAX の順。"""
+    where = "port_range"
+    if port_range is None:
+        where, port_range = PORT_RANGE_ENV, os.environ.get(PORT_RANGE_ENV) or (PORT_MIN, PORT_MAX)
+    try:
+        parts = port_range.split("-") if isinstance(port_range, str) else port_range
+        lo, hi = (int(str(p)) for p in parts)
+    except (TypeError, ValueError):
+        raise RuntimeError(f"{where} は「下限-上限」（例 47200-47299）で渡す: {port_range!r}") from None
+    if not 1 <= lo <= hi <= 65535:
+        raise RuntimeError(f"{where} の範囲が正しくない（1 ≦ 下限 ≦ 上限 ≦ 65535）: {port_range!r}")
+    return lo, hi
+
+
+def check_port(port, port_range=None):
+    lo, hi = resolve_port_range(port_range)
+    if not lo <= port <= hi:
+        raise RuntimeError(f"MCP のポートは {lo}〜{hi} の中で明示する（範囲は --port-range か環境変数 {PORT_RANGE_ENV} で変えられる）: {port}")
 
 
 def port_in_use(port):
@@ -421,8 +439,8 @@ class Game:
     """作業フォルダを用意して本体を起動し、MCP で操作し、with を抜けるときに PID で閉じて作業フォルダを消す。"""
 
     def __init__(self, env, save, port, work=None, night=False, extra_paks=(), client=None, exe=EXE,
-                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=()):
-        check_port(port)
+                 screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None):
+        check_port(port, port_range)
         self.simuconf_extra = check_simuconf_lines(simuconf_extra)
         self.env, self.save, self.port = os.path.abspath(env), save, port
         self.work = os.path.abspath(work or os.path.join(root, "work", "game", str(port)))
@@ -707,7 +725,8 @@ def main():
     ap = argparse.ArgumentParser(description="ゲームを起動して Squirrel を流し、撮って、閉じる")
     ap.add_argument("--env", default=os.environ.get("PAK256_GAME_ENV"), help="検証環境（環境変数 PAK256_GAME_ENV）")
     ap.add_argument("--save", help="保存データの名前（拡張子なし）")
-    ap.add_argument("--port", type=int, required=True, help=f"MCP のポート（{PORT_MIN}〜{PORT_MAX}。割り当てられた範囲の中）")
+    ap.add_argument("--port", type=int, required=True, help=f"MCP のポート（既定の範囲は {PORT_MIN}〜{PORT_MAX}。割り当てられた範囲の中）")
+    ap.add_argument("--port-range", help=f"ポートの範囲を変える「下限-上限」（環境変数 {PORT_RANGE_ENV} でも渡せる）")
     ap.add_argument("--script", action="append", default=[], help="流す Squirrel のファイル（順に流す）")
     ap.add_argument("--capture", help="撮る PNG のパス（Squirrel の後）")
     ap.add_argument("--extra-pak", action="append", default=[], help="借りる pak のファイル（試験のときだけ）")
@@ -742,7 +761,7 @@ def main():
     if args.build:
         subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "build.py")], check=True)
     with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
-              client=args.mcp_client, keep=args.keep) as g:
+              client=args.mcp_client, keep=args.keep, port_range=args.port_range) as g:
         if args.interactive:
             print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
             try:

@@ -160,13 +160,45 @@ class GameToolTest(Base):
             self.assertIn(flag, cmd)
 
     def test_port_range(self):
-        game.check_port(47880)
-        game.check_port(47999)
-        game.check_port(47800)
-        self.assertEqual((game.PORT_MIN, game.PORT_MAX), (47800, 47999))
-        for p in (47799, 48000):
+        with mock.patch.dict(os.environ):
+            os.environ.pop(game.PORT_RANGE_ENV, None)
+            game.check_port(47880)
+            game.check_port(47999)
+            game.check_port(47800)
+            self.assertEqual((game.PORT_MIN, game.PORT_MAX), (47800, 47999))
+            for p in (47799, 48000, 47200):
+                with self.assertRaises(RuntimeError):
+                    game.check_port(p)
+
+    def test_port_range_from_argument(self):
+        with mock.patch.dict(os.environ, {game.PORT_RANGE_ENV: "47500-47599"}):  # 引数が環境変数より先
+            for port_range in ("47200-47299", (47200, 47299)):
+                game.check_port(47200, port_range)
+                game.check_port(47299, port_range)
+                for p in (47199, 47300, 47500):
+                    with self.assertRaises(RuntimeError):
+                        game.check_port(p, port_range)
+            game.Game("e", "m", 47200, work="w", client=__file__, port_range="47200-47299")
+
+    def test_port_range_from_environment(self):
+        with mock.patch.dict(os.environ, {game.PORT_RANGE_ENV: "47200-47299"}):
+            game.Game("e", "m", 47250, work="w", client=__file__)  # port_range を渡さない道具からも効く
             with self.assertRaises(RuntimeError):
-                game.check_port(p)
+                game.check_port(47880)
+
+    def test_port_range_follows_patched_defaults(self):
+        # スクリプトで PORT_MIN・PORT_MAX を差し替えて使っている物（#128 より前の書き方）も効く
+        with mock.patch.dict(os.environ, {game.PORT_RANGE_ENV: ""}), \
+                mock.patch.object(game, "PORT_MIN", 47200), mock.patch.object(game, "PORT_MAX", 47299):
+            game.check_port(47200)
+
+    def test_bad_port_range(self):
+        for bad in ("47200", "47200-", "a-b", "47299-47200", "0-10", "47200-70000", "1-2-3", (47200,), 47200):
+            with self.assertRaises(RuntimeError, msg=repr(bad)):
+                game.check_port(47200, bad)
+        with mock.patch.dict(os.environ, {game.PORT_RANGE_ENV: "oops"}):
+            with self.assertRaisesRegex(RuntimeError, game.PORT_RANGE_ENV):
+                game.check_port(47880)
 
 
 SLEEPER = [sys.executable, "-c", "import time; time.sleep(60)"]
