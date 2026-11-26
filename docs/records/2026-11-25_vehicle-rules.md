@@ -19,23 +19,23 @@
 
 ### 左側通行の 8 方向
 
-![左側通行の 8 方向](2026-11-25_vehicle-rules-screens/1_left-8dirs.png?raw=true)
+![左側通行の 8 方向](2026-11-25_vehicle-rules-screens/1_left-8dirs.png)
 
 ラベルは「向き_両数_回る向き_タイルの座標」。`e` の絵の赤れんがの建物は借りた車庫、`w` の絵の旗と黄色の印は借りた停留所。
 
 ### 右側通行の写しの 8 方向
 
-![右側通行の写しの 8 方向](2026-11-25_vehicle-rules-screens/2_right-8dirs.png?raw=true)
+![右側通行の写しの 8 方向](2026-11-25_vehicle-rules-screens/2_right-8dirs.png)
 
 ### 停留所・2 両連結・曲がり
 
-![停留所・2 両連結・曲がり](2026-11-25_vehicle-rules-screens/3_stop-coupled-corner.png?raw=true)
+![停留所・2 両連結・曲がり](2026-11-25_vehicle-rules-screens/3_stop-coupled-corner.png)
 
 左から: 停留所（45,40）に止まった 2 両連結、東向きの 2 両連結（46,40）、南西の角（40,60）を曲がる 2 両連結、同じ角の手前の反時計回りの 1 両。
 
 ### 試験の印
 
-![試験の印](2026-11-25_vehicle-rules-screens/4_marker.png?raw=true)
+![試験の印](2026-11-25_vehicle-rules-screens/4_marker.png)
 
 `--marker` の絵。桃色の枠が車体の地面の枠、青の線が前の端、青の点が基準点、桃色の十字がタイルの中心。左から: 停留所（45,40）に止まった反時計回りの 1 両、東向きの 2 両連結（46,40）、SE 向き（55,44）、南西の角（40,60）の 2 両連結。前の端（青の線）が車体の前に、基準点が車線の上に来ている。
 

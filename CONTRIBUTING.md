@@ -31,6 +31,18 @@ pak256.LongScale は、チームで共同管理する pak セットです。作�
 - dat の `copyright=` には、元の作者名を書きます。直した版は「元の作者名 / 改変: 直した人」の形にします。
 - 作者の名前を使って、直した版を作者が認めたように見せてはいけません（許諾の 2(a)(6)）。
 
+## 文書の検査
+
+md の置き場とリンクは [docs-lint](https://github.com/128na/docs-lint) で検査し、CI でも回ります（設定は [tools/docs-policy.json](tools/docs-policy.json)）。リポジトリの直下で次を実行します（版は [ci.env](ci.env) の `DOCS_LINT_REF`。Node が要ります）。
+
+```
+npx --yes -p "github:128na/docs-lint#v1.1.0" docs-lint
+```
+
+- 日付付きの記録は `docs/records/YYYY-MM-DD_slug.md`（slug は小文字の英数とハイフン）に置きます。
+- `docs/` の直下に規格・決め事の文書を足すときは、`tools/docs-policy.json` の `livingDocs` にも足します。
+- 画像などへの相対リンクに `?raw=true` を付けないでください（リンク切れと見なされます。md の中の相対リンクは、付けなくても GitHub で表示されます）。PR や issue の本文の絶対 URL には付けて構いません。
+
 ## 規格
 
 車両・建物・木・産業・駅の大きさ（縮尺・長さ・描画位置・セル・高さ）の規格は [docs/standards.md](docs/standards.md) にまとめています。決めた背景は [docs/concept.md](docs/concept.md)、貨物は [docs/goods.md](docs/goods.md) です。
