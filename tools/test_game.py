@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import tempfile
+import threading
 import time
 import unittest
 from unittest import mock
@@ -385,6 +386,106 @@ class LifecycleTest(Base):
         game.check_work(os.path.join(self.tmp.name, "fresh"), self.env, self.root)
 
 
+class FatalLogTest(Base):
+    """game.log の FATAL ERROR を見つける（#132）。ゲームは起動しない。"""
+
+    def game(self):
+        g = game.Game("e", "m", 47880, work=self.work, client=__file__)
+        g.proc = object()  # 起動したことにする（fatal() は中身を使わない）
+        patch = mock.patch.object(game, "FATAL_FLUSH", 0)
+        patch.start()
+        self.addCleanup(patch.stop)
+        return g
+
+    def log(self, text, mode="a"):
+        os.makedirs(self.work, exist_ok=True)
+        with open(os.path.join(self.work, "game.log"), mode, encoding="utf-8", newline="") as f:
+            f.write(text)
+
+    def test_no_log_or_no_fatal(self):
+        g = self.game()
+        self.assertIsNone(g.fatal())
+        self.log("Warning: something\nERROR: not fatal\n")
+        self.assertIsNone(g.fatal())
+        g.check_fatal()
+
+    def test_finds_fatal_appended_later_even_split(self):
+        g = self.game()
+        self.log("x" * 100 + "\nFATAL ER")
+        self.assertIsNone(g.fatal())
+        self.log("ROR: karte_t::load() - No road found at all!\nAborting program execution ...\n")
+        message = g.fatal()
+        self.assertTrue(message.startswith("FATAL ERROR: karte_t::load() - No road found at all!"), message)
+        with self.assertRaises(game.GameFatalError) as cm:
+            g.check_fatal()
+        self.assertIn("No road found at all!", str(cm.exception))
+
+    def test_loadsave_form(self):
+        g = self.game()
+        self.log('FATAL ERROR during reading of "a.sve"\n')
+        self.assertIsNotNone(g.fatal())
+
+    def test_old_log_is_ignored_before_start(self):
+        g = self.game()
+        g.proc = None  # 起動の前（--keep で残った前の回の game.log）
+        self.log("FATAL ERROR: old\n")
+        self.assertIsNone(g.fatal())
+
+    def test_remembered_after_close_and_sends_nothing(self):
+        g = self.game()
+        self.log("FATAL ERROR: x - y\n")
+        self.assertIsNotNone(g.fatal())
+        with mock.patch.object(game.subprocess, "Popen", side_effect=AssertionError("送ってはいけない")):
+            with self.assertRaises(game.GameFatalError):
+                g.sq("return 1")
+
+    def test_client_wait_is_cut_by_fatal(self):
+        # 答えないクライアントを待つ間に FATAL が出たら、timeout を待たずに失敗する
+        client = os.path.join(self.tmp.name, "slow.py")
+        put(client, "import time\ntime.sleep(60)\n")
+        g = self.game()
+        g.client = client
+        self.log("")
+        timer = threading.Timer(1, self.log, args=("FATAL ERROR: x - y\n",))
+        timer.start()
+        self.addCleanup(timer.cancel)
+        start = time.monotonic()
+        with self.assertRaises(game.GameFatalError):
+            g.sq("return 1", timeout=40)
+        self.assertLess(time.monotonic() - start, 15)
+
+
+@unittest.skipUnless(os.name == "nt", "taskkill・tasklist が要る（Windows だけ。CI は Linux なので飛ばす）")
+class FatalStartTest(Base):
+    """FATAL ERROR を出して眠る偽のゲームを起動して、待たずに閉じることを見る（#132）。"""
+
+    def test_start_fails_fast_closes_and_cleans(self):
+        fake = [sys.executable, "-c",
+                "import sys, time; print('FATAL ERROR: x - No road found at all!', file=sys.stderr, flush=True); time.sleep(60)"]
+        g = game.Game(self.env, "map", 47880, work=self.work, client=__file__, root=self.root, build=self.build)
+        pids = []
+        orig = game.subprocess.Popen
+
+        def spy(*a, **k):
+            p = orig(*a, **k)
+            if a and a[0] == fake:
+                pids.append(p.pid)
+            return p
+        start = time.monotonic()
+        with mock.patch.object(game, "launch_command", lambda *a, **k: fake), \
+                mock.patch.object(game, "port_in_use", lambda p: False), \
+                mock.patch.object(game.Game, "alive_mcp", lambda self_: False), \
+                mock.patch.object(game.subprocess, "Popen", spy):
+            with self.assertRaises(game.GameFatalError) as cm:
+                with g:
+                    pass
+        self.assertLess(time.monotonic() - start, 30)
+        self.assertIn("No road found at all!", str(cm.exception))
+        self.assertEqual(len(pids), 1)
+        self.assertFalse(game.alive(pids[0]))
+        self.assertFalse(os.path.exists(self.work))
+
+
 class SquirrelCheckTest(unittest.TestCase):
     """run_squirrel に渡す文字列の検査（#59）。"""
 
@@ -614,6 +715,40 @@ class InboxTest(unittest.TestCase):
 
         def wait_month(self, month):
             self.calls.append(("month", month))
+
+        fatal_message = None
+
+        def fatal(self):
+            return self.fatal_message
+
+        def check_fatal(self):
+            if self.fatal_message is not None:
+                raise game.GameFatalError(self.fatal_message)
+
+    def test_serve_stops_when_fatal_while_idle(self):
+        g = self.Fake()
+        g.fatal_message = "FATAL ERROR: x - idle"
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(game.GameFatalError):
+                game.serve_inbox(g, os.path.join(t, "inbox"), 30, 0.01, lambda *_: None)
+
+    def test_serve_writes_out_then_stops_when_command_hits_fatal(self):
+        class Dies(self.Fake):
+            def sq(self, code, timeout=30):
+                self.fatal_message = "FATAL ERROR: x - during command"
+                self.check_fatal()
+
+        with tempfile.TemporaryDirectory() as t:
+            inbox = os.path.join(t, "inbox")
+            put(os.path.join(inbox, "1.cmd"), "return 1")
+            put(os.path.join(inbox, "2.cmd"), "return 2")
+            with mock.patch.object(game, "FATAL_SEND_WAIT", 0), self.assertRaises(game.GameFatalError):
+                game.serve_inbox(Dies(), inbox, 30, 0.01, lambda *_: None)
+            with open(os.path.join(inbox, "1.out"), encoding="utf-8") as f:
+                out = f.read()
+            self.assertTrue(out.startswith("error\n"))
+            self.assertIn("during command", out)
+            self.assertTrue(os.path.isfile(os.path.join(inbox, "2.cmd")))  # 次の命令は流さない
 
     def test_run_command(self):
         g = self.Fake()
