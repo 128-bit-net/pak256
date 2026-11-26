@@ -3,7 +3,7 @@
 obj: building
 name: pak256_truck_stop
 copyright: pak256.LongScale チーム
-# トラックの荷役所。貨物。高さ 1m の積み降ろし場に小屋と木箱
+# トラックの荷役所。貨物。道路の奥の側に高さ 1m の積み降ろし場と小屋と木箱、手前の側に低い歩道
 type: stop
 waytype: road
 enables_ware: 1

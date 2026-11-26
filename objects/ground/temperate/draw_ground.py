@@ -17,7 +17,7 @@ import math
 import os
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw  # ImageDraw は柵の絵が使う
 
 CELL = 256          # 1 マス = 1 タイルの幅
 STEP = 32           # 高さ 1 段の画素（tile_height = 8 → 256/8）
@@ -525,19 +525,25 @@ def fence(kind, artificial):
 
 # ---------------------------------------------------------------- 印・境界（Marker・Borders）
 
-def polyline(points, color, width):
+def edge_pixels(sw, se, ne, nw, front, width, dy=0):
+    """地面の縁の上に乗る帯の画素 (x, y)。front は下の辺（南西→南東→北東）、False は上の辺（南西→北西→北東）。
+
+    列ごとに、地面の画素（column_span の上 ≤ 行 < 下）の端から width 行を取る。地面の縁と画素単位で重なり、
+    両端の高さが同じ辺は横 2px・縦 1px の階段になる。線を引く道具（ImageDraw.line）は、端の点の割り算で階段が崩れる（#112）。
+    dy は絵を上下にずらす量（GeneralTools のカーソル）。
+    """
+    for x, (t, b) in enumerate(column_span(sw, se, ne, nw)):
+        top, bottom = math.ceil(t), math.ceil(b) - 1
+        rows = range(max(top, bottom - width + 1), bottom + 1) if front else range(top, min(bottom, top + width - 1) + 1)
+        for y in rows:
+            yield x, y + dy
+
+
+def edge_cell(sw, se, ne, nw, front, color, width):
     im = new_cell()
-    d = ImageDraw.Draw(im)
-    d.line(points, fill=color, width=width, joint="curve")
+    for xy in edge_pixels(sw, se, ne, nw, front, width):
+        im.putpixel(xy, color)
     return im
-
-
-def front_line(sw, se, ne):
-    return [(1, 192 - STEP * sw), (128, 256 - STEP * se - 1), (254, 192 - STEP * ne)]
-
-
-def back_line(sw, ne, nw):
-    return [(1, 192 - STEP * sw), (128, 128 - STEP * nw), (254, 192 - STEP * ne)]
 
 
 # ---------------------------------------------------------------- シートと dat
@@ -669,12 +675,12 @@ def build_all(outdir):
     orange = rgba(255, 128, 0)
     for i in range(27):
         sw, se, ne = i % 3, (i // 3) % 3, i // 9
-        sheet.put(i // 9, i % 9, polyline(front_line(sw, se, ne), orange, 3))
+        sheet.put(i // 9, i % 9, edge_cell(sw, se, ne, 0, True, orange, 3))
         lines.append(f"Image[{i}][0]={sheet.ref(i // 9, i % 9)}")
     for j in range(27):
         sw, ne, nw = j % 3, (j // 3) % 3, j // 9
         k = 27 + j
-        sheet.put(k // 9, k % 9, polyline(back_line(sw, ne, nw), orange, 3))
+        sheet.put(k // 9, k % 9, edge_cell(sw, 0, ne, nw, False, orange, 3))
         lines.append(f"Image[{k}][0]={sheet.ref(k // 9, k % 9)}")
     sheet.save(outdir)
     write_dat(outdir, "marker.dat", "Marker", lines,
@@ -685,7 +691,7 @@ def build_all(outdir):
     lines = []
     for i in range(27):
         sw, ne, nw = i % 3, (i // 3) % 3, i // 9
-        sheet.put(i // 9, i % 9, polyline(back_line(sw, ne, nw), rgba(36, 36, 40), 2))
+        sheet.put(i // 9, i % 9, edge_cell(sw, 0, ne, nw, False, rgba(36, 36, 40), 2))
         lines.append(f"Image[{i}][0]={sheet.ref(i // 9, i % 9)}")
     sheet.save(outdir)
     write_dat(outdir, "borders.dat", "Borders", lines,

@@ -2,7 +2,8 @@
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 
 - tools/vehicles.py の換算と横の位置が、docs/standards.md の数と合うこと。
-- 見本のバス（objects/vehicle/road/sample_bus/）の表の length が換算どおりで、絵の 8 方向が決まりの位置に描かれていること
+- 車両の画面の大きさが、手本の 2 倍の目標（docs/standards.md の 4 章「大きさ」）に合うこと。
+- 見本のバス（objects/vehicle/road/sample_bus/）の表の length が決まりどおりで、絵の 8 方向が決まりの位置に描かれていること
   （車体の外接枠が、決まりから計算した枠と ±2px で合う）。特別な色が混じらないこと。
 - 石炭のトラック（objects/vehicle/road/coal_truck/）の表（length・貨物・freightimage）と、空・積んだ 2 行の絵が決まりの位置に描かれていること。
 Pillow と PyYAML が要る（tools/requirements.txt）。
@@ -59,6 +60,13 @@ class TestRules(unittest.TestCase):
         self.assertEqual(V.UNITS_PER_TILE, 16)
         self.assertAlmostEqual(V.M_PER_UNIT, 1.65)
         self.assertAlmostEqual(V.PX_PER_M_Z, 5.94, places=2)
+        self.assertAlmostEqual(V.PX_PER_UNIT_SIDE, 11.31, places=2)
+        self.assertEqual((V.RAIL_WIDTH_SCALE, V.RAIL_HEIGHT_SCALE), (1.40, 1.20))
+
+    def test_length_from_px(self):
+        # 道路の車両の length は、手本の 2 倍の横向きの長さから（バス・郵便・石炭）
+        self.assertEqual([V.length_from_px(px) for px in (100, 68, 86)], [9, 6, 8])
+        self.assertEqual(V.length_from_px(1), 1)
 
     def test_lane_offset_is_half_of_driveleft(self):
         # 右側の車線は、本体の左側通行のずれ（×4）のちょうど半分を反対に置く。軸の向きで 24,12、斜めで 24,0 か 0,12
@@ -98,7 +106,7 @@ class TestSampleBus(unittest.TestCase):
         cls.img = Image.open(os.path.join(BUS_DIR, "sample_bus.png")).convert("RGBA")
 
     def test_table(self):
-        self.assertEqual(self.table["length"], V.length_units(self.bus.REAL_LENGTH_M))
+        self.assertEqual(self.table["length"], self.bus.LENGTH)
         self.assertEqual(self.table["name"], self.bus.NAME)
         self.assertEqual(list(self.table["emptyimage"]), list(V.DIRECTIONS))
 
@@ -106,10 +114,9 @@ class TestSampleBus(unittest.TestCase):
         self.assertEqual(self.img.size, (V.CELL * len(V.DIRECTIONS), V.CELL))
 
     def test_cells_at_rule_position(self):
-        length = V.length_units(self.bus.REAL_LENGTH_M)
         for i, d in enumerate(V.DIRECTIONS):
-            corners = V.footprint(d, length, self.bus.WIDTH_M, V.FRONT_UNITS)
-            pts = [V.to_screen(x, y, z) for (x, y) in corners for z in (0.0, self.bus.HEIGHT_M)]
+            corners = V.footprint(d, self.bus.LENGTH, self.bus.WIDTH_M * self.bus.SCALE[0], V.FRONT_UNITS)
+            pts = [V.to_screen(x, y, z) for (x, y) in corners for z in (0.0, self.bus.HEIGHT_M * self.bus.SCALE[1])]
             ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
             cell = self.img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL))
             box = cell.getchannel("A").getbbox()
@@ -164,7 +171,8 @@ class TestCoalTruck(unittest.TestCase):
 
     def test_table(self):
         t = self.table
-        self.assertEqual(t["length"], V.length_units(self.spec["real_length_m"]))
+        self.assertEqual(t["length"], self.spec["length"])
+        self.assertEqual(t["length"], V.length_from_px(self.spec["target_px"][0]))
         self.assertEqual(t["name"], self.spec["name"])
         self.assertEqual(t["waytype"], "road")
         self.assertEqual(t["freight"], "Kohle")  # 炭鉱が出し、発電所が受ける貨物（objects/goods）
@@ -203,7 +211,7 @@ class TestCoalTruck(unittest.TestCase):
             for i, d in enumerate(V.DIRECTIONS):
                 pts = []
                 for part in parts:
-                    z0, z1 = part[3], part[4]
+                    z0, z1 = part[3] * self.spec["scale"][1], part[4] * self.spec["scale"][1]
                     pts += [V.to_screen(x, y, z) for (x, y) in self.truck.corners(d, part) for z in (z0, z1)]
                 ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
                 cell = self.img.crop((i * V.CELL, row * V.CELL, (i + 1) * V.CELL, (row + 1) * V.CELL))
@@ -232,6 +240,23 @@ class TestCoalTruck(unittest.TestCase):
         self.assertEqual(sum(hist[1:255]), 0)
 
 
+def painted_over(cell):
+    """車輪の暗い帯より下にある車体の赤の画素の数。"""
+    px = cell.load()
+    bad = 0
+    for x in range(cell.width):
+        dark = False
+        for y in range(cell.height):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            if max(r, g, b) < 48:
+                dark = True
+            elif dark and r > 100 and g < 80:
+                bad += 1
+    return bad
+
+
 class TestRoadVehicles(unittest.TestCase):
     """バス・郵便のトラック（#41）。表の length・貨物・絵の位置（部分ごとの高さを含む）・特別な色。"""
 
@@ -253,7 +278,8 @@ class TestRoadVehicles(unittest.TestCase):
         names = set()
         for spec, table, _ in self.each():
             names.add(table["name"])
-            self.assertEqual(table["length"], V.length_units(spec["real_length_m"]), spec["name"])
+            self.assertEqual(table["length"], spec["length"], spec["name"])
+            self.assertEqual(spec["length"], V.length_from_px(spec["target_px"][0]), spec["name"])
             self.assertEqual(table["name"], spec["name"])
             self.assertEqual(table["freight"], spec["freight"])
             self.assertEqual(table["waytype"], "road")
@@ -261,9 +287,9 @@ class TestRoadVehicles(unittest.TestCase):
             for key in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(table[key], spec[key], f"{spec['name']} {key}")
         self.assertEqual(names, {"pak256_bus", "pak256_mail_truck"})  # panel の 2 種（石炭のトラックは TestCoalTruck）
-        # docs/vehicles.md の表の length（12m → 7、7m → 4）
-        self.assertEqual({s["name"]: V.length_units(s["real_length_m"]) for s in self.mod.VEHICLES if s["style"] == "panel"},
-                         {"pak256_bus": 7, "pak256_mail_truck": 4})
+        # docs/vehicles.md の表の length
+        self.assertEqual({s["name"]: s["length"] for s in self.mod.VEHICLES},
+                         {"pak256_bus": 9, "pak256_mail_truck": 6, "pak256_coal_truck": 8})
 
     def test_all_vehicles_are_in_one_table(self):
         # 道路の車両は 1 つの表・1 本の道具（#59）。表の name の行が全部あり、yaml は道具が書く物と同じ
@@ -278,18 +304,29 @@ class TestRoadVehicles(unittest.TestCase):
     def test_cells_at_rule_position(self):
         for spec, table, img in self.each():
             self.assertEqual(img.size, (V.CELL * len(V.DIRECTIONS), V.CELL))
-            length = V.length_units(spec["real_length_m"])
+            kw, kh = spec["scale"]
             for i, d in enumerate(V.DIRECTIONS):
-                whole = V.footprint(d, length, spec["width_m"], V.FRONT_UNITS)
+                whole = V.footprint(d, spec["length"], spec["width_m"] * kw, V.FRONT_UNITS)
                 pts = []
                 for t0, t1, height, *_ in spec["parts"]:
                     for (x, y) in self.mod.part_corners(whole, t0, t1):
-                        pts += [V.to_screen(x, y, 0.0), V.to_screen(x, y, height)]
+                        pts += [V.to_screen(x, y, 0.0), V.to_screen(x, y, height * kh)]
                 ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
                 box = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL)).getchannel("A").getbbox()
                 self.assertIsNotNone(box, d)
                 for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
                     self.assertLessEqual(abs(g - e), TOL, f"{spec['name']} {d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
+
+    def test_nothing_painted_over_the_skirt(self):
+        # 車輪の暗い帯はいちばん下なので、帯より下の画素に車体の赤は出ない。部分の後ろの面を手前向きと誤ると、前の面の上に塗り重なる（#116）
+        for spec, _, img in self.each():
+            if spec["name"] != "pak256_mail_truck":
+                continue
+            for i, d in enumerate(V.DIRECTIONS):
+                committed = img.crop((i * V.CELL, 0, (i + 1) * V.CELL, V.CELL))
+                # コミット済みの絵と、今の描く道具の絵の両方を見る（道具だけ戻して流し直していないときも落ちる）
+                for source, cell in (("png", committed), ("draw_cell", self.mod.draw_cell(spec, d, False))):
+                    self.assertEqual(painted_over(cell), 0, f"{spec['name']} {d} {source}")
 
     def test_no_special_colors_and_binary_alpha(self):
         for spec, _, img in self.each():
@@ -309,10 +346,39 @@ class TestRoadVehicles(unittest.TestCase):
             text = f.read()
         for spec in self.mod.VEHICLES:
             doc = docs_row(text, spec["name"])
-            self.assertEqual(int(doc["length"]), V.length_units(spec["real_length_m"]), spec["name"])
+            self.assertEqual(int(doc["length"]), spec["length"], spec["name"])
             self.assertEqual(doc["freight"].strip("`"), spec["freight"], spec["name"])
             for k in ("payload", "speed", "power", "gear", "weight", "cost", "runningcost", "intro_year"):
                 self.assertEqual(doc[k], str(spec[k]), f"{spec['name']} {k}")
+
+    def test_standards_table_matches_specs(self):
+        # docs/standards.md の 4 章「大きさ」の表の目標 px と length が、描くスクリプトの値と同じ
+        with open(os.path.join(ROOT, "docs", "standards.md"), encoding="utf-8") as f:
+            rows = {}
+            for line in f:
+                cells = [c.strip() for c in line.strip().strip("|").split("|")]
+                if len(cells) == 6 and cells[3].isdigit():
+                    rows[cells[0]] = (tuple(int(v) for v in cells[2].split("・")), int(cells[3]))
+        for spec, row in zip(self.mod.VEHICLES, ("バス", "郵便のトラック", "石炭のトラック")):
+            self.assertEqual(rows[row], (spec["target_px"], spec["length"]), row)
+        spec_ = importlib.util.spec_from_file_location("draw_trains_t", os.path.join(RAIL_DIR, "draw_trains.py"))
+        trains = importlib.util.module_from_spec(spec_)
+        spec_.loader.exec_module(trains)
+        self.assertEqual(rows["気動車・付随車"], (trains.TARGET_PX, 12))
+
+    def test_sample_bus_has_the_bus_size(self):
+        # 見本のバスは pak256_bus と同じ大きさ
+        sample = load_draw_bus()
+        bus = next(v for v in self.mod.VEHICLES if v["name"] == "pak256_bus")
+        self.assertEqual((sample.LENGTH, sample.SCALE), (bus["length"], bus["scale"]))
+        self.assertEqual((sample.WIDTH_M, sample.HEIGHT_M), (bus["width_m"], bus["parts"][0][2]))
+
+    def test_screen_size_is_twice_the_reference(self):
+        # 画面の大きさが、pak128 の手本の 2 倍の目標に合う（長さは length の丸めで ±6px、幅・高さは ±2px）
+        for spec in self.mod.VEHICLES:
+            img = Image.open(os.path.join(ROAD_DIR, spec["dir"], spec["stem"] + ".png")).convert("RGBA")
+            for got, want, tol, key in zip(screen_size(img, V.CELL), spec["target_px"], (6, TOL, TOL), ("長さ", "幅", "高さ")):
+                self.assertLessEqual(abs(got - want), tol, f"{spec['name']} {key}: {got} 目標 {want}")
 
     def test_translations(self):
         for lang in ("ja", "en"):
@@ -320,6 +386,16 @@ class TestRoadVehicles(unittest.TestCase):
                 lines = [ln.rstrip("\r\n") for ln in f]
             for spec in self.mod.VEHICLES:
                 self.assertIn(spec["name"], lines, f"{lang}: {spec['name']}")
+
+
+def screen_size(img, cell):
+    """シートの横向き（sw）の横 = 長さ、正面向き（se）の横 = 幅、横向きの縦 − 幅の半分 = 高さ。"""
+    def box(direction):
+        i = V.DIRECTIONS.index(direction)
+        return img.crop((i * cell, 0, (i + 1) * cell, cell)).getchannel("A").getbbox()
+    sw, se = box("sw"), box("se")
+    width = se[2] - se[0]
+    return sw[2] - sw[0], width, sw[3] - sw[1] - width / 2
 
 
 RAIL_DIR = os.path.join(ROOT, "objects", "vehicle", "rail")
@@ -373,14 +449,15 @@ class TestRailVehicles(unittest.TestCase):
             self.assertEqual(img.size, (512 * len(V.DIRECTIONS), 512))
             length = V.length_units(spec["real_length_m"])
             for i, d in enumerate(V.DIRECTIONS):
-                whole = V.footprint(d, length, self.mod.WIDTH_M, V.FRONT_UNITS, centered=True)
-                bogie = V.footprint(d, length - 3, self.mod.BOGIE_WIDTH_M, V.FRONT_UNITS - 1.5, centered=True)
+                kw, kh = V.RAIL_WIDTH_SCALE, V.RAIL_HEIGHT_SCALE
+                whole = V.footprint(d, length, self.mod.WIDTH_M * kw, V.FRONT_UNITS, centered=True)
+                bogie = V.footprint(d, length - 3, self.mod.BOGIE_WIDTH_M * kw, V.FRONT_UNITS - 1.5, centered=True)
                 pts = []
                 # 車体（床 〜 屋根）と、その下の台車（地面 〜 床。車体より狭い）
                 for corners, zs in ((whole, (self.mod.FLOOR_M, self.mod.HEIGHT_M)), (bogie, (0.0,))):
                     for (x, y) in corners:
                         for z in zs:
-                            sx, sy = V.to_screen(x, y, z)
+                            sx, sy = V.to_screen(x, y, z * kh)
                             pts.append((sx + self.mod.PAD, sy + self.mod.PAD + V.RAIL_WHEEL_DROP_PX))
                 ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
                 box = img.crop((i * 512, 0, (i + 1) * 512, 512)).getchannel("A").getbbox()
@@ -399,6 +476,12 @@ class TestRailVehicles(unittest.TestCase):
                         found.add(f"{r:02X}{g:02X}{b:02X}")
             self.assertFalse(found, f"{spec['name']} 特別な色: {sorted(found)}")
             self.assertEqual(sum(img.getchannel("A").histogram()[1:255]), 0, spec["name"])
+
+    def test_screen_size_is_twice_the_reference(self):
+        # pak128.Japan の手本の 2 倍（長さは実物の換算のままで ±5px、幅・高さは ±2px）
+        for spec, _, _, img in self.each():
+            for got, want, tol, key in zip(screen_size(img, 512), self.mod.TARGET_PX, (5, TOL, TOL), ("長さ", "幅", "高さ")):
+                self.assertLessEqual(abs(got - want), tol, f"{spec['name']} {key}: {got} 目標 {want}")
 
     def test_values_match_docs_table_and_translations(self):
         with open(os.path.join(ROOT, "docs", "vehicles.md"), encoding="utf-8") as f:

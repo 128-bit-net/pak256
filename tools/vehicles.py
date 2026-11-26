@@ -14,6 +14,13 @@ M_PER_UNIT = 1.65  # 長さ 1 単位の実物の m（docs/concept.md の C）
 UNITS_PER_TILE = 16  # 本体の CARUNITS_PER_TILE
 M_PER_TILE = M_PER_UNIT * UNITS_PER_TILE  # 26.4m
 PX_PER_M_Z = CELL / (M_PER_TILE * math.sqrt(2)) * math.sqrt(3) / 2  # 高さ 1m の px（約 5.94）
+PX_PER_UNIT_SIDE = CELL / 2 * math.sqrt(2) / UNITS_PER_TILE  # 横向き（画面で水平）の 1 単位の px（約 11.3）
+
+# 車両の大きさ（2026-11-26、ユーザーの決定。docs/standards.md の 4 章「大きさ」）。画面の上の長さ・幅・高さを、
+# 道路の車両は pak128 の同じ種類の手本の 2 倍、線路の車両は pak128.Japan の手本の 2 倍にする。
+# 線路の車両は長さが実物の換算と同じなので、実物の幅・高さに次の倍率を掛けて描く。
+RAIL_WIDTH_SCALE = 1.40
+RAIL_HEIGHT_SCALE = 1.20
 
 # 線路の車両（#46）の車輪の下端を、地面より何 px 下に描くか。AMI の線路は新描画位置で、レールが地面より下がる
 # （way-addon.md の「線路の新描画位置」）。ゲームで走らせて決める（docs/vehicles.md の「線路の車両」）
@@ -38,6 +45,11 @@ DIRECTIONS = ("s", "w", "sw", "se", "n", "e", "ne", "nw")  # 本体の ribi_t::g
 # 0 = 前の端を基準点に置き、車体は後ろへ length 伸ばす。止まると先頭の基準点がタイルの出口の辺の近くに来るので、
 # 車体がタイルに収まる（docs/standards.md の 4 章「描画位置」と docs/vehicles.md の「前後の位置（細目）」）
 FRONT_UNITS = 0
+
+
+def length_from_px(px):
+    """画面の横向きの長さ（px）から dat の length（道路の車両。手本の 2 倍の長さを単位にする）。"""
+    return max(1, int(math.floor(px / PX_PER_UNIT_SIDE + 0.5)))
 
 
 def length_units(metres):

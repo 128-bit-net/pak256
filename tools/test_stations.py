@@ -2,6 +2,7 @@
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
+import importlib.util
 import os
 import re
 import unittest
@@ -27,6 +28,15 @@ def names(o):
     else:
         out.append(str(o))
     return out
+
+
+def road_stop_script():
+    """道路の停留所を描くスクリプト（白線の位置 LINE_FAR・LINE_NEAR の持ち主）。"""
+    path = os.path.join(ROOT, "objects", "station", "road_stops", "draw_stops.py")
+    spec = importlib.util.spec_from_file_location("road_draw_stops", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 class StationTest(unittest.TestCase):
@@ -69,6 +79,34 @@ class StationTest(unittest.TestCase):
                         self.assertTrue(has_art(row, i), f"{sheet}: {row} 行 {i} 列が空")
                 self.assertEqual(str(d["icon"]).lstrip("> "), f"{os.path.basename(p)[:-5]}.2.0", f"{p}: icon")
                 self.assertTrue(has_art(2, 0), f"{sheet}: 道具の絵が空")
+
+    def test_road_stops_off_the_lane_lines(self):
+        """道路の停留所の絵は、後ろ・前のどちらも、画面で白線より内側（道路の中央の側）に画素を置かない（#115）。
+
+        白線の外側の端は draw_stops.py の LINE_FAR・LINE_NEAR（ami_road_local の値）。画素を地面（高さ 0）の座標に戻して調べるので、
+        高い物が画面の上へ伸びて道路に掛かる場合も落ちる。
+        """
+        from PIL import Image
+        ds = road_stop_script()
+        for p, d in stops():
+            if d["waytype"] != "road":
+                continue
+            sheet = os.path.join(os.path.dirname(p), os.path.basename(p)[:-5] + ".png")
+            with Image.open(sheet) as im:
+                px = im.convert("RGB").load()
+            for row in (0, 1):
+                for col in range(LAYOUTS):
+                    bad = []
+                    for y in range(256):
+                        for x in range(256):
+                            if px[col * 256 + x, row * 256 + y] == (231, 255, 255):
+                                continue
+                            a, b = (x + 0.5 - 128) / 128, (y + 0.5 - 128) / 64  # a = u - v, b = u + v
+                            u, v = (b + a) / 2, (b - a) / 2
+                            c = u if col % 2 == 0 else v  # 偶数の向きは NS の道路（c = u）、奇数は EW（c = v）
+                            if ds.LINE_FAR < c < ds.LINE_NEAR:
+                                bad.append((x, y, round(c, 3)))
+                    self.assertEqual(bad[:5], [], f"{sheet}: {row} 行 {col} 列が道路に掛かる（{len(bad)} 画素）")
 
     def test_listed_in_docs(self):
         """docs/stations.md の駅の表に、全部の停留所が、扱う貨物とともに載っている。"""

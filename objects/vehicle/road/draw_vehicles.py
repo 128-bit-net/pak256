@@ -1,7 +1,9 @@
 """道路の車両（バス・郵便のトラック・石炭のトラック）の絵と表を書き出す（docs/vehicles.md・#41・#42・#59）。MIT License。
 絵は仮（箱を組んだ物）で、見た目は後から描き直す。
 
-長さと描画位置は tools/vehicles.py の決まりで決める。8 方向を 256px のセルに横に並べたシート（2048x256。積み荷の絵がある車両は
+長さと描画位置は tools/vehicles.py の決まりで決める。画面の大きさは pak128 の同じ種類の手本の 2 倍（`target_px`。長さ・幅・高さ。
+docs/standards.md の 4 章「大きさ」）。`length` はその長さから決め、幅と高さは実物の値に `scale` の倍率を掛けて描く。
+8 方向を 256px のセルに横に並べたシート（2048x256。積み荷の絵がある車両は
 2 行目に積んだ絵を足した 2048x512）を車両ごとに `<種類>/<名前>.png` に、表を `<名前>.yaml` に書く。値（登場年・速さ・定員・費用）は
 docs/vehicles.md の表。車両を足すときは `VEHICLES` に 1 件足す（絵の組み方は 2 通り）:
 - `style: panel`: 車体の長さを前から割った部分（`parts`）を、全幅の箱として組む（バス・郵便のトラック）。
@@ -41,16 +43,19 @@ VIEW = (1.0, 1.0)  # 見る側（画面の手前 = x + y の大きい側）
 
 # --- 石炭のトラックの箱 ---
 # (前の端, 後ろの端, 幅, 下の高さ, 上の高さ, 色, 種類)。端は基準点から車体の前を正にした m（前の端 = 0、後ろの端 = -length × 1.65）。
-# 長さは dat の length（単位）× 1.65m に合わせる。運転席 2.1m・荷台はその後ろ全部
+# 長さは dat の length（単位）× 1.65m に合わせる。運転席は 2.1m の 1.3 倍・荷台はその後ろ全部。幅は実物の 1.22 倍
 COAL_REAL_LENGTH_M = 7.0  # 実物の長さ（仮。2 軸の貨物車の大きさ）
 COAL_WIDTH_M = 2.5
-_L = V.length_units(COAL_REAL_LENGTH_M) * V.M_PER_UNIT
-CAB_M = 2.1
-CHASSIS = (0.0, -_L, 2.1, 0.0, 0.6, (40, 40, 44), "chassis")  # 車輪のあたりの暗い帯（全長）
-CAB = (0.0, -CAB_M, COAL_WIDTH_M, 0.6, 2.7, (176, 52, 44), "cab")  # 運転席（赤）
-BED = (-CAB_M, -_L, COAL_WIDTH_M, 0.6, 2.2, (118, 124, 132), "bed")  # 荷台（灰色の鉄）
+COAL_LENGTH = 8  # dat の length。手本（pak128 の Bulk_Truck_2）の 2 倍の長さ 86px から
+COAL_SCALE = (1.22, 1.87)  # (幅, 高さ) の倍率
+COAL_DRAW_WIDTH_M = COAL_WIDTH_M * COAL_SCALE[0]
+_L = COAL_LENGTH * V.M_PER_UNIT
+CAB_M = 2.1 * 1.3
+CHASSIS = (0.0, -_L, 2.1 * COAL_SCALE[0], 0.0, 0.6, (40, 40, 44), "chassis")  # 車輪のあたりの暗い帯（全長）
+CAB = (0.0, -CAB_M, COAL_DRAW_WIDTH_M, 0.6, 2.7, (176, 52, 44), "cab")  # 運転席（赤）
+BED = (-CAB_M, -_L, COAL_DRAW_WIDTH_M, 0.6, 2.2, (118, 124, 132), "bed")  # 荷台（灰色の鉄）
 # 積んだ石炭の山（荷台の内側）。荷台の壁より少し高い
-COAL = (-CAB_M - 0.25, -_L + 0.2, COAL_WIDTH_M - 0.4, 2.2, 2.55, (30, 30, 34), "coal")
+COAL = (-CAB_M - 0.25, -_L + 0.2, COAL_DRAW_WIDTH_M - 0.4, 2.2, 2.55, (30, 30, 34), "coal")
 PARTS_EMPTY = (CHASSIS, CAB, BED)
 PARTS_LOADED = (CHASSIS, CAB, BED, COAL)
 
@@ -60,6 +65,8 @@ VEHICLES = [
     {
         "name": "pak256_bus", "dir": "bus", "stem": "bus", "title": "bus", "style": "panel",
         "real_length_m": 12.0, "width_m": 2.5,
+        # 手本は pak128 の S_Kroytor_Ikarus-260（49,11,12）と Man_Lions_City（51,11,12）の平均の 2 倍
+        "target_px": (100, 22, 24), "length": 9, "scale": (1.22, 1.30),
         "freight": "Passagiere", "payload": 70, "power": 205, "speed": 60, "gear": 80,
         "weight": 11, "cost": 661000, "runningcost": 39, "intro_year": 1930,
         "parts": [(0.0, 1.0, 3.2, (214, 196, 150), (52, 112, 84), "bus")],
@@ -67,6 +74,8 @@ VEHICLES = [
     {
         "name": "pak256_mail_truck", "dir": "mail_truck", "stem": "mail_truck", "title": "mail_truck", "style": "panel",
         "real_length_m": 7.0, "width_m": 2.2,
+        # 手本は pak128 の Mail_Truck_2（34,12,11）の 2 倍
+        "target_px": (68, 24, 22), "length": 6, "scale": (1.62, 1.18),
         "freight": "Post", "payload": 44, "power": 77, "speed": 60, "gear": 80,
         "weight": 5, "cost": 863000, "runningcost": 38, "intro_year": 1930,
         "parts": [
@@ -77,6 +86,8 @@ VEHICLES = [
     {
         "name": "pak256_coal_truck", "dir": "coal_truck", "stem": "coal_truck", "title": "石炭のトラック", "style": "boxes",
         "real_length_m": COAL_REAL_LENGTH_M, "width_m": COAL_WIDTH_M,
+        # 手本は pak128 の Bulk_Truck_2（43,11,14）の 2 倍
+        "target_px": (86, 22, 28), "length": COAL_LENGTH, "scale": COAL_SCALE,
         "freight": "Kohle", "payload": 12, "power": 95, "speed": 55, "gear": 90,
         "weight": 8, "cost": 384000, "runningcost": 24, "intro_year": 1930,
         "note": "値は pak128 の石炭のトラック（Bulk_Truck_2）に合わせた（docs/vehicles.md の表）。登場年だけ見本のバスと同じ 1930。",
@@ -102,7 +113,7 @@ def part_corners(corners, t0, t1):
 
 def body_box(spec):
     """車体の長さ（dat の length）。"""
-    return V.length_units(spec["real_length_m"])
+    return spec["length"]
 
 
 def corners(direction, part):
@@ -133,13 +144,14 @@ def visible_faces(box, cx, cy):
 class Canvas:
     """3 倍に拡大して描き、最後に 256px に縮めて半透明を切る（makeobj の特別な色を避ける）。shift は試験の絵のずれ（px）。"""
 
-    def __init__(self, shift=(0.0, 0.0)):
+    def __init__(self, shift=(0.0, 0.0), height_scale=1.0):
+        self.height_scale = height_scale
         self.img = Image.new("RGBA", (V.CELL * SS, V.CELL * SS), (0, 0, 0, 0))
         self.d = ImageDraw.Draw(self.img)
         self.shift = shift
 
     def scr(self, p, z):
-        sx, sy = V.to_screen(p[0], p[1], z)
+        sx, sy = V.to_screen(p[0], p[1], z * self.height_scale)
         return (sx + self.shift[0]) * SS, (sy + self.shift[1]) * SS
 
     def quad(self, p0, p1, z0, z1, color):
@@ -165,13 +177,14 @@ class Canvas:
 
 def draw_panel(c, spec, direction, whole):
     """panel: 車体を前から割った部分を全幅の箱として描く。"""
-    cx = (whole[0][0] + whole[2][0]) / 2
-    cy = (whole[0][1] + whole[2][1]) / 2
     # 奥の部分から描く（画面の x + y の小さい方が奥）
     parts = sorted(spec["parts"], key=lambda p: sum(
         (q[0] + q[1]) for q in part_corners(whole, p[0], p[1])))
     for t0, t1, height, body, band, kind in parts:
         box = part_corners(whole, t0, t1)
+        # 面の向きは部分の箱の中心から決める（車体全体の中心からだと、前の部分の後ろの面を手前向きと誤り、前の面に塗り重ねる。#116）
+        cx = (box[0][0] + box[2][0]) / 2
+        cy = (box[0][1] + box[2][1]) / 2
         for a, b, k, is_front in visible_faces(box, cx, cy):
             c.quad(a, b, 0.0, 0.5, shade(SKIRT, k))
             c.quad(a, b, 0.5, height, shade(body, k))
@@ -222,12 +235,12 @@ def draw_cell(spec, direction, marker, emulate_right=False, loaded=False):
     emulate_right: 左側通行の地図で右側通行の見え方を確かめる試験の絵。本体が左側通行で足すずれ
     （tools/vehicles.py の DRIVELEFT_64）をあらかじめ引いて描く。
     """
-    whole = V.footprint(direction, body_box(spec), spec["width_m"], V.FRONT_UNITS)
+    whole = V.footprint(direction, body_box(spec), spec["width_m"] * spec["scale"][0], V.FRONT_UNITS)
     shift = (0.0, 0.0)
     if emulate_right:
         lx, ly = V.DRIVELEFT_64[direction]
         shift = (-lx * V.CELL / 64, -ly * V.CELL / 64)
-    c = Canvas(shift)
+    c = Canvas(shift, spec["scale"][1])
     if spec["style"] == "panel":
         draw_panel(c, spec, direction, whole)
     else:
@@ -257,7 +270,7 @@ def yaml_lines(spec, name=None):
     stem = spec["stem"]
     lines = [
         f"# {spec['title']}（絵は仮）。この表と PNG は draw_vehicles.py が書き出す。直すときはスクリプトを直して流し直す。",
-        f"# 実物 {spec['real_length_m']:g}m ÷ 1.65 = {spec['real_length_m'] / V.M_PER_UNIT:.2f} → length {length}（docs/vehicles.md）。",
+        f"# 実物 {spec['real_length_m']:g}m。画面の大きさは pak128 の手本の 2 倍で、length {length}（docs/standards.md の 4 章）。",
     ]
     if spec.get("note"):
         lines.append(f"# {spec['note']}")

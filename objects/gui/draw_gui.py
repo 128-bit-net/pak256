@@ -160,13 +160,20 @@ def build_menu(outdir, used):
 # ---------------------------------------------------------------- タイルの上の絵
 
 def outline_diamond(color, width=6, fill=None, dy=0):
-    """平らなタイルの菱形の輪郭（カーソル）。タイルの菱形は行 128〜255。"""
+    """平らなタイルの菱形の輪郭（カーソル）。輪郭は地面の縁の画素の内側 width 行（dg.edge_pixels。横 2px・縦 1px の階段）。
+
+    fill があれば菱形の中をその色で塗る。タイルの菱形は行 129〜255（dy の分だけずらす）。
+    """
     pix = Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0))
-    d = ImageDraw.Draw(pix)
-    pts = [(128, 128 + dy), (255, 192 + dy), (128, 255 + dy), (0, 192 + dy)]
     if fill:
-        d.polygon(pts, fill=special_safe(fill))
-    d.line(pts + [pts[0]], fill=special_safe(color), width=width, joint="curve")
+        f = special_safe(fill)
+        for x, (t, b) in enumerate(dg.column_span(0, 0, 0, 0)):
+            for y in range(math.ceil(t), math.ceil(b)):
+                pix.putpixel((x, y + dy), f)
+    line = special_safe(color)
+    for front in (False, True):
+        for xy in dg.edge_pixels(0, 0, 0, 0, front, width, dy):
+            pix.putpixel(xy, line)
     return pix
 
 
