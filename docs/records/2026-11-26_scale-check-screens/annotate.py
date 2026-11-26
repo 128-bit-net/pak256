@@ -99,7 +99,7 @@ d = ImageDraw.Draw(out)
 d.text((10, 14), "E 道路・線路の帯の縦の厚み（画面の 1 列で測る。128px = 1 タイル = 26.4m）", font=FB, fill=(255, 255, 255))
 y = 60
 for im, cap in ((road, "AMI の生活道路 ami_road_local（2 倍）"), (rail, "AMI の線路 ami_rail_ballast（2 倍）"),
-                (stop, "pak256 のバス停とバス（4 倍）: 待合と歩道が、路面（白線の上）に重なる")):
+                (stop, "pak256 のバス停とバス（4 倍）: 待合と歩道が白線の上に重なる。バスの屋根の幅 約 13px（2.7m）、1 車線 約 44px（9m）")):
     d.text((10, y + 4), cap, font=F, fill=(255, 255, 255))
     out.paste(im, (0, y + 32))
     y += 32 + im.height

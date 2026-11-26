@@ -1,4 +1,3 @@
-[game] pid=34980 port=47880 work=E:\addon_dev\pak256\.claude\worktrees\issue-104\work\game\47880
 [way] ami_road_local 52,60-74,60: None
 [way] ami_rail_ballast 52,66-74,66: None
 [way] ami_road_local 52,76-74,76: None
@@ -51,4 +50,3 @@
 [shot] B_rail_z3.png
 [shot] C_industry_z3.png
 [shot] D_overview_z6.png
-[game] stopped pid=34980
