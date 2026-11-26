@@ -65,5 +65,8 @@ zoom("4_white_line_gap.png", "temperate_slope2_road:859,450,28,16,14", "temperat
 zoom("5_stop_back_edge.png", "temperate_stop:855,490,60,40,8", "temperate_stop:1000,555,60,40,8")
 overview("6_others_temperate.png", [(f"temperate_{n}", []) for n in
                                     ("tram_road", "pier", "canal", "sidewalk", "crossing", "elevated", "t_junction")])
+zoom("8_tram.png", "temperate_tram_road:300,258,60,40,8", "temperate_tram_road:1320,780,100,60,6",
+     "snow_tram_road:300,258,60,40,8")
 overview("7_others_snow.png", [(f"snow_{n}", []) for n in
-                               ("slope_road", "slope2_road", "bridge_slope2", "tram_road", "pier", "canal", "crossing")])
+                               ("slope_road", "slope2_road", "bridge_slope2", "tram_road", "pier", "canal", "sidewalk",
+                                "crossing", "elevated", "bridge", "bridge_end", "t_junction")])
