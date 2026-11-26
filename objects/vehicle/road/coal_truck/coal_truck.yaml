@@ -1,5 +1,5 @@
 # 石炭のトラック（絵は仮）。この表と PNG は draw_vehicles.py が書き出す。直すときはスクリプトを直して流し直す。
-# 実物 7m ÷ 1.65 = 4.24 → length 4（docs/vehicles.md）。
+# 実物 7m。画面の大きさは pak128 の手本の 2 倍で、length 8（docs/standards.md の 4 章）。
 # 値は pak128 の石炭のトラック（Bulk_Truck_2）に合わせた（docs/vehicles.md の表）。登場年だけ見本のバスと同じ 1930。
 obj: vehicle
 name: pak256_coal_truck
@@ -15,7 +15,7 @@ intro_year: 1930
 cost: 384000
 runningcost: 24
 weight: 8
-length: 4
+length: 8
 emptyimage:       # 向きごとの絵（0 行 = 空）
   s: coal_truck.0.0
   w: coal_truck.0.1
