@@ -18,7 +18,8 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 |---|---|
 | `--env` | 本体の検証環境（環境変数 `PAK256_GAME_ENV` でも渡せる）。個人の絶対パスはリポジトリに書かない |
 | `--save` | 保存データの名前（拡張子なし）。指定した 1 つだけ写す |
-| `--port` | MCP のポート。47800〜47999（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）の中で必ず明示する。作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
+| `--port` | MCP のポート。必ず明示する。既定の範囲は 47800〜47999（pak256 の作業者全体の範囲。`game.py` の `PORT_MIN`・`PORT_MAX`）で、作業者ごとに割り当てられた範囲（進捗管理が渡す）を使う。範囲の外は止まる |
+| `--port-range` | ポートの範囲を変える。`下限-上限`（例 `47200-47299`）。pak256 の外の作業者が、自分に割り当てられた範囲で使うとき（[#128](https://github.com/128-bit-net/pak256/issues/128)）。環境変数 `PAK256_PORT_RANGE` でも渡せる（`game.py` を読み込む別の道具にも効く）。`Game(..., port_range="47200-47299")` も同じ。引数が環境変数より先 |
 | `--extra-pak` | 足りない物を別の pak から借りる（試験のときだけ。コミットしない） |
 | `--night` | 昼夜の切り替えを止めない（夜の灯りを確かめるとき） |
 | `--keep` | 閉じた後も作業フォルダ（既定は `work/game/<ポート>/`）を残す |
@@ -45,6 +46,25 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 昼夜は `config/simuconf.tab` の末尾の `day_night_shift = 0` で止める（pak の側の `<pak>/config/simuconf.tab` に足しても効く）。夜の灯りを確かめるときだけ外す（`--night`）。昼まで早送りして撮り直すのは、昼夜が飛んで当てにならない（2026-11-25、#44）。
 - `-load` の保存データの名前は、拡張子なしで渡すと確実。
 - 本体は起動画面（地図を作る前）の間は MCP に答えないので、スクリプトで新しい地図は作れない。平らな保存データを `-load` で読み、地形はスクリプトで作る（2026-11-25、#5）。新しい地図の作成画面で生える物（木など）はスクリプトで確かめられないので、PR の「確かめていないこと」に書く。
+
+## 道路と線路の道が無い pak では起動できない
+
+`flat_512_left_v64` を指定して起動するとき、pak に次の 2 つが無いと本体が止まる（理由は `game.py` が出すログの末尾の `FATAL ERROR`。2026-11-26、OTRP v64、[#128](https://github.com/128-bit-net/pak256/issues/128)）。
+
+| 足りない物 | ログ |
+|---|---|
+| 道路の way | `No road found at all!` |
+| 線路の種類の way | `schiene_t::schiene_t() - No rail way available!` |
+
+`tools/build.py --no-ami` で組む pak には、どちらの way も無い。AMI の 256 版の `ami_road.pak` と `ami_rail.pak` を `--extra-pak` で足すと読める。道路の way が 1 つだけのときは、`ami_rail.pak` を足すと読めた（AMI の `ami_road_local` を抜き出して確かめた。手元で組んだ道路では試していない）。2 つは次のように取り出す。
+
+```
+python -X utf8 tools/fetch_ami.py work/ami
+python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47880 \
+    --extra-pak work/ami/ami_road.pak --extra-pak work/ami/ami_rail.pak --capture work/shot.png
+```
+
+`ami_road.pak` だけを足しても読めた。AMI の路面表示の way は路面軌道（`tram_track`）なので、それが線路の種類の way になっていると見ている（本体の処理は追っていない）。道路の way を 1 つだけ抜き出して足した場合は、`No rail way available!` で止まった。`ami_rail.pak` だけでは、道路が無いので止まった。
 
 ## スクリプトで物を置くときの癖
 
@@ -225,4 +245,4 @@ pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で�
 
 `tools/test_package.py`: `package.py` の入れる物と、`build.py` が makeobj の `Warning`・`ERROR` の行で（終了コードが 0 でも）止まること。
 
-`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
+`tools/test_game.py`（ゲームは起動しない）: `work/` が無いときに作ること・作れないときに起動せず失敗すること、気候を塗る Squirrel と番号の検査、月の早送り（速さの戻し・時間切れ・中断・既にその月）、開いたまま使う入口（`run_command`・`serve_inbox`・`send_command`。偽のゲームで往復・失敗の後の継続・`@quit`・無音の終了）、窓の番号（`Game.dialog`・表との一致）、`settle` の速さの戻し、Squirrel の文字列の改行の検査、Job Object（親を強制終了すると子が終わる。Windows だけ）、写す物と写さない物（`settings.xml`・保存データの他の物）、`simuconf.tab` への追記（両方・重ねて足さない・CRLF を保つ・`--night`）、`simuconf_extra`（両方の先頭・`--night`・行の形の検査・起動に渡ること）、借りる pak、起動の引数、ポートの範囲（既定・引数・環境変数・形の誤り）。起動から閉じるまでは、ゲームで確かめる（PR の画面）。`tools/test_install_local.py`: `install_local.py` と `install_pak`（入れる物・`save/`・`settings.xml` に触らない・`play.bat`・入れ替え・zip・危ない名前・失敗のとき消さない）。
