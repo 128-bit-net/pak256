@@ -9,6 +9,8 @@ level: 2
 chance: 100
 dims: 1,1,1
 intro_year: 1900
+# 絵は地面を持たないので、下の地面（気候・雪）は本体に描かせる。無いと本体が地面を描かず、前の画面が残る（docs/buildings.md）
+needs_ground: 1
 # 季節は backimage の末尾の添字。本体は絵が 4 枚のとき、0 = 夏・1 = 秋・2 = 冬・3 = 春で選び、雪線の上・雪の気候では 2（冬）を使う
 # （gebaeude_t::calc_image の effective_season。2 枚だと月の冬には使われず、雪線の上だけになる）。春と秋は夏の絵と同じ。
 backimage:        # backimage[配置][y][x][高さ][コマ][季節]。絵は draw_buildings.py が描く

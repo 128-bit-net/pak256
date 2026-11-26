@@ -39,6 +39,12 @@
 
 `cityrules.tab` は置く場所の形だけを決め、住宅・商業・工業のどれを建てるかは本体が `level` と周りの建物（`res_near_*` など）で選ぶ。`cityrules.tab` は変えずに、`com`・`ind` の建物を足しただけで街に建つ。種類ごとの数は [記録 #103](records/2026-11-26_town-commerce.md)。
 
+## 下の地面（`needs_ground`）
+
+**街の建物の表には `needs_ground: 1` を書く**（[#126](https://github.com/128-bit-net/pak256/issues/126)）。本体は、`needs_ground` の無い建物の下の地面を描かない（`gebaeude_t::calc_image` が、建物の基礎の升の地面の絵を空にする）。絵に地面を含める作りの pak のための決まりで、pak256 の建物の絵は地面を持たないので、忘れると升に何も描かれず、スクロールすると前の画面が残る。本体に描かせる地面は、気候と雪に合わせて変わる。
+
+要るのは、本体が基礎の升（`fundament_t`）に作り替えて建てる物。本体の `hausbauer_t::build` を通る物で、街の建物・役場・産業・記念物などと、道から離して置く停留所の拡張の建物（`type: extension`。`tool_station_building_aux`）が当たる。港（`dock`・`flat_dock`）と水の升に置く物は、`hausbauer_t::build` でも今ある升に載せるだけなので当たらない（検査は、港の表を足すと今のところ `needs_ground` を求めるので、そのときに直す）。道の上に建てる停留所・駅・車庫は、今ある道の升に載せるだけ（`build_station_extension_depot_with_complete_layout_bits`）で基礎の升にならないので、地面は道の升の物がそのまま描かれ、要らない（コードを読んだ判断。AMI の車庫と操車場は `needs_ground=1` を持つ）。`tools/test_needs_ground.py` が表を検査する（[記録](records/2026-11-26_building-ground.md)）。
+
 ## 季節の絵（冬）
 
 本体は、建物の絵が 4 枚のとき、月で夏・秋・冬・春（`backimage[…][季節]` の添字 0〜3）を選び、雪線の上と雪の気候では 2（冬）を使う（`gebaeude_t::calc_image` の `effective_season`）。絵が **2 枚だと月の冬には使われず**、雪線の上・雪の気候だけで使われる。冬の月に雪の絵を出すため 4 枚にし、秋と春は夏と同じ絵を指す（PNG は夏と冬の 2 枚並びで、dat の添字 0・1・3 が左、2 が右）。冬の絵は屋根を雪の色にした物で、`draw_buildings.py` が `SNOW` を立てて同じ絵を描き直す。壁と窓はそのまま。添字の並びは `tools/test_town_buildings.py` が検査する。
