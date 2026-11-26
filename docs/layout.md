@@ -37,6 +37,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
 | `objects/station/monorail_stops/`・`objects/vehicle/monorail/` | モノレールの駅と車両（跨座式。[stations.md](stations.md)・[vehicles.md](vehicles.md)） | #156 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
+| `objects/pedestrian/` | 歩行者（`walkers/`。男性・女性・子ども）。[pedestrians.md](pedestrians.md) | #172 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
@@ -120,6 +121,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
 | `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
 | `test_air.py` | 飛行機と空港の表・絵（スクリプトの出力と同じか・道の絵がタイルからはみ出さないか・旅客機の大きさ）と飛行機のツールバーの検査（Pillow・PyYAML が要る） |
+| `test_pedestrians.py` | 歩行者の絵と表の検査: スクリプトの出力と同じ・8 方向の絵と背丈・足元の位置と `offset` の組・特別な色・`pedestrians.md` の表（Pillow が要る） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `check_way_edges.py` | AMI の 256 版の道（`obj=way`）の絵の縁が、横 4px・縦 2px の階段になっていないかの検査（256 の段は横 2px・縦 1px。#111）。`build_ami256.py` の `check` の段が流す。単独なら `python -X utf8 tools/check_way_edges.py <AMI の src256>` |
