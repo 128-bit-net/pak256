@@ -1,8 +1,12 @@
 """package.py と build.py の Warning 検出の検査。python -X utf8 -m unittest discover -s tools -p "test_*.py" """
+import contextlib
+import io
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build  # noqa: E402
@@ -61,6 +65,22 @@ class WarningTest(unittest.TestCase):
         out = "Makeobj version\nWarning: unknown key foo\n   Reading\nERROR: x\n"
         self.assertEqual(build.bad_lines(out), ["Warning: unknown key foo", "ERROR: x"])
         self.assertEqual(build.bad_lines("Makeobj\n  packing tree\n"), [])
+
+    def run_makeobj(self, stdout, stderr):
+        done = subprocess.CompletedProcess([], 0, stdout, stderr)  # makeobj は警告だけなら終了コード 0
+        with mock.patch.object(build.subprocess, "run", return_value=done), \
+                contextlib.redirect_stdout(io.StringIO()):
+            build.makeobj("a", os.path.join(build.DAT_OUT, "a"))
+
+    def test_warning_stops_build_with_exit_code_0(self):
+        warning = 'Warning: pak256_bus:\tEntry "sped=60" ignored (check spelling)\n'
+        for stdout in ("   packing vehicle.pak256_bus\n", "   packing vehicle.pak256_bus", ""):
+            with self.assertRaises(SystemExit) as cm:
+                self.run_makeobj(stdout, warning)
+            self.assertTrue(cm.exception.code)  # 文言を渡した sys.exit は終了コード 1
+
+    def test_clean_output_passes(self):
+        self.run_makeobj("   packing vehicle.pak256_bus\n", "")
 
 
 if __name__ == "__main__":
