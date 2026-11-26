@@ -12,7 +12,7 @@ build: vendor/ami/build.env の AMI_COMMIT（--ref で一度だけ別のコミ�
               跨座式のトンネル）は、2 回目にまとめて描く（AMI README の「pak の大きさ」の描く順序）
     4. icons  blender/icons.py を全部のシートに（render.py は描いたシートの分しか書かない。試しでは飛ばす）
     5. check  AMI の check.sh の 256 の検査（check_scaled・check_icons・check_cells・check_crossing・check_depot・check_embankment・
-              dat_lint_extra・dat_linter の src256）
+              dat_lint_extra・dat_linter の src256）と、pak256 の check_way_edges.py（道の縁の段。#111）
     6. build  build.py（dist256/ に pak。makeobj の警告で止まる）
     7. release release.py --version <版> --paks <PAKS>（work/release/ami-256-<版>.zip）
     8. dist/ami-256-<版>.zip と、組んだ元を書いた dist/ami-256-<版>.json に写す
@@ -43,6 +43,7 @@ import threading
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import check_way_edges  # noqa: E402
 import fetch_ami  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -284,6 +285,9 @@ def step_check(ami, env, partial):
     for c in CHECKS_PARTIAL if partial else CHECKS_FULL:
         log(f"検査: {' '.join(c)}")
         run([sys.executable, "-X", "utf8", *c], cwd=ami, env=env)
+    log("検査: 道の縁の段（tools/check_way_edges.py）")
+    if not check_way_edges.report(*check_way_edges.check(os.path.join(ami, "src256"), partial)):
+        die("道の縁の段の検査に落ちた（#111。AMI の持ち分マスクが 256 の大きさで作られているかを見る）")
     if not partial:
         log("検査: dat_linter lint --tile-size 512 src256")
         run([find_dat_linter(), "lint", "--tile-size", "512", "."], cwd=os.path.join(ami, "src256"), env=env)

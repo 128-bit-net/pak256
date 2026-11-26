@@ -110,6 +110,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
+| `check_way_edges.py` | AMI の 256 版の道（`obj=way`）の絵の縁が、横 4px・縦 2px の階段になっていないかの検査（256 の段は横 2px・縦 1px。#111）。`build_ami256.py` の `check` の段が流す。単独なら `python -X utf8 tools/check_way_edges.py <AMI の src256>` |
+| `test_check_way_edges.py` | `check_way_edges.py` の検査（描いた菱形で確かめる。Pillow が要る） |
 | `build_ami256.py` | AMI の 256 版の zip を、AMI の clone の一時の worktree で組み、置き場に上げる（下の「AMI の 256 版を組む」）。組む道具ではなく、AMI の版を上げるときに手で流す |
 | `test_build_ami256.py` | `build_ami256.py` の検査: 描く順の分け方・子の環境から外す変数・アイコンの段の失敗（終了コード 0 の `Traceback`）・途中から続けるときの止め・描き直し（段の順）・AMI のコミットからの変更の拾い方・`ami.env` の書き換え・比べ方・上げる前の止め（試し・別のコミット・飛ばした段・道具の版の抜け・AMI の道具や dat の変更・変わった zip・既にあるタグ）。AMI・Blender・gh は使わない |
 | `test_fetch_ami.py` | `ami.env` の値の形と、`fetch_ami.py` の SHA-256 の照合・展開の検査（取得は差し替える。外のネットには出ない） |
@@ -186,7 +188,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
   1. `dat`: `blender/ami_dat.py` で `src256/` の dat を書く。コミット済みの dat と（行末を除いて）違えば知らせる（AMI の書き忘れ。組む pak はこの dat で作る）。
   2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（8801a1e で 215 対象。`SCALED_SHEETS` の 252 名から、基盤の版と一緒に描かれる壁と絵を持たない dat を除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描いた対象が自分のアイコンを書くときに、まだ描いていないほかのシート（twin の壁の front など）を読んで落ちることがある（シートは描けている）ので、失敗した対象は全部を描いた後に、同じ段の順で 1 回だけ描き直し、それでも落ちたら止まる（#83 の試しで 2 対象が落ちた）。描き直した対象はマニフェストの `retried` に書く（1 回目のログは上書きされる）。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
   3. `icons`: `blender/icons.py` を全部のシートに流す（`render.py` は描いたシートの分しか書かない）。Blender は例外でも終了コード 0 なので、ログ（`work/icons.log`）の `Traceback` でも止める。
-  4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。`check_cells.py --self-test`、`dat_lint_extra.py`（`--self-test` と `src256`）、`dat_linter lint --tile-size 512`（`src256`）。AMI の `check.sh` の `CHECK_256_FULL=1` の 256 の分。`dat_linter` は環境変数 `DAT_LINTER_BIN`・`PATH`・`check.sh` の既定の置き場（`~/.cache/simutrans-addon-dev/ci-tools/dat_linter/`。AMI の clone で `check.sh` を一度流すと入る）の順に探し、無ければ描く前に止まる）。
+  4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`。`check_cells.py --self-test`、`dat_lint_extra.py`（`--self-test` と `src256`）、`dat_linter lint --tile-size 512`（`src256`）。AMI の `check.sh` の `CHECK_256_FULL=1` の 256 の分。ほかに pak256 の `check_way_edges.py` で道の縁の段を見る。`dat_linter` は環境変数 `DAT_LINTER_BIN`・`PATH`・`check.sh` の既定の置き場（`~/.cache/simutrans-addon-dev/ci-tools/dat_linter/`。AMI の clone で `check.sh` を一度流すと入る）の順に探し、無ければ描く前に止まる）。
   5. `build`: `build.py`（`dist256/` に pak。makeobj の警告で止まる。makeobj は `PATH` のもの）。
   6. `release`: `release.py --version <版> --paks <7 つ>`。7 つ（`ami_rail`・`ami_road`・`ami_tram`・`ami_extra`・`ami_monorail`・`ami_canal`・`ami_scenery`）がそろわなければ止まる。
   
