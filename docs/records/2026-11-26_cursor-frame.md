@@ -14,7 +14,7 @@ issue の「平地と坂の辺がすべて横 2px・縦 1px」は、坂の両端
 
 ## 確かめ
 
-- `tools/test_frames.py`: 全部の絵（`Marker` 54・`Borders` 27・`GeneralTools` 16・`Builder`・`Marked`）の端が、地面の絵（`texture-lightmap.png`）の縁と一致する。直す前の描き方（点を結ぶ線）では落ちることも確かめた。
+- `tools/test_frames.py`: 全部の絵（`Marker` 54・`Borders` 27・`GeneralTools` 16・`Builder`・`Marked`）の端が、地面の絵（`texture-lightmap.png`）の縁と一致する。直す前（`origin/main`）の PNG に差し替えて流すと、4 つの検査すべてが落ちる（失敗した絵の数は 99）。
 - 画面の測定（平地の黄色のカーソル、256 列）: 地面の縁（2:1 の階段）からのずれは、直す前は列によって 317〜323 とばらつき、直した後は上下の辺とも全列で同じ値になった。
 - 見た画面: 平地、1 段の坂、2 段の坂。地形は `command_x.grid_raise` で (104,100) を 1 段、(112,100) を 2 段など上げた。道具は問い合わせ（`gui.click`）で、地図は変わらない。
 

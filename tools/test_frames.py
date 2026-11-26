@@ -17,6 +17,7 @@ CELL = 256
 HALF = CELL // 2
 ORANGE = (255, 128, 0, 255)
 GRID = (36, 36, 40, 255)
+NUMBER_COLUMNS = (96, 160)  # GeneralTools の番号の文字が入る列
 
 
 def cell(path, index, cols):
@@ -49,30 +50,25 @@ def stair_problems(edge, start):
     return []
 
 
-def line_problems(img, color, edge, front, width):
-    """枠の色の画素が、地面の端 edge から内側へ width 行まで（角の細い所はそれより少なくてよい）で、端に必ず乗るか。"""
+def line_problems(img, color, top, bottom, front, width):
+    """列ごとの枠の色の行が、地面の端（front は下の端）から内側へちょうど width 行（地面がそれより薄い列は地面の全部）か。"""
     problems = []
     for x, rows in enumerate(column_rows(img, color)):
-        if edge[x] is None:
-            if rows:
-                problems.append(f"列 {x}: 地面の無い列に線がある")
-            continue
-        if not rows:
-            problems.append(f"列 {x}: 線が無い")
-            continue
-        end = rows[-1] if front else rows[0]
-        if end != edge[x]:
-            problems.append(f"列 {x}: 端の行が {end}（地面の端は {edge[x]}）")
-        if len(rows) > width or rows[-1] - rows[0] != len(rows) - 1:
-            problems.append(f"列 {x}: 行 {rows} が {width} 行までの続きでない")
+        if top[x] is None:
+            want = []
+        elif front:
+            want = list(range(max(top[x], bottom[x] - width + 1), bottom[x] + 1))
+        else:
+            want = list(range(top[x], min(bottom[x], top[x] + width - 1) + 1))
+        if rows != want:
+            problems.append(f"列 {x}: 線の行が {rows}（{want} のはず）")
     return problems
 
 
 class GroundFrameTest(unittest.TestCase):
     def check(self, img, color, corners, front, width):
         top, bottom = ground_edges(*corners)
-        edge = bottom if front else top
-        self.assertEqual(line_problems(img, color, edge, front, width), [])
+        self.assertEqual(line_problems(img, color, top, bottom, front, width), [])
         self.assertEqual({c for _, c in img.getcolors() if c[3]}, {color})
         sw, se, ne, nw = corners
         mid = se if front else nw
@@ -107,15 +103,20 @@ class CursorFrameTest(unittest.TestCase):
             self.assertEqual(got, [y + dy for y in edge])
             for start in (0, HALF):
                 self.assertEqual(stair_problems(got, start), [])
-        # 端から width 行は枠の色で埋まっている（角の細い列は菱形の高さまで）
+        # 枠の色は上下の端から width 行ずつだけ（角の細い列は菱形の高さまで）。中央の列は番号の文字があるので、埋まっていることだけ見る
         for x in range(CELL):
             n = min(width, bottom[x] - top[x] + 1)
-            for k in range(n):
-                self.assertEqual(img.getpixel((x, top[x] + dy + k)), color, (x, k))
-                self.assertEqual(img.getpixel((x, bottom[x] + dy - k)), color, (x, k))
+            want = set(range(top[x] + dy, top[x] + dy + n)) | set(range(bottom[x] + dy - n + 1, bottom[x] + dy + 1))
+            if NUMBER_COLUMNS[0] <= x < NUMBER_COLUMNS[1]:
+                self.assertLessEqual(want, set(rows[x]), x)
+            else:
+                self.assertEqual(set(rows[x]), want, x)
 
     def test_general_tools(self):
-        for i in range(16):
+        with open(os.path.join(GUI, "cursor_general.dat"), encoding="utf-8") as f:
+            count = sum(1 for line in f if line.startswith("Image["))
+        self.assertGreater(count, 0)
+        for i in range(count):
             with self.subTest(index=i):
                 self.check(cell(os.path.join(GUI, "cursor_general.png"), i, 8), (255, 230, 0, 255), 6, -16)
 
@@ -131,8 +132,8 @@ class CheckerSelfTest(unittest.TestCase):
     def test_polyline_fails(self):
         img = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
         ImageDraw.Draw(img).line([(1, 192), (128, 255), (254, 192)], fill=ORANGE, width=3, joint="curve")
-        _, bottom = ground_edges(0, 0, 0, 0)
-        self.assertTrue(line_problems(img, ORANGE, bottom, True, 3))
+        top, bottom = ground_edges(0, 0, 0, 0)
+        self.assertTrue(line_problems(img, ORANGE, top, bottom, True, 3))
         self.assertTrue(stair_problems([r[-1] if r else 0 for r in column_rows(img, ORANGE)], 0))
 
     def test_ground_edge_is_a_stair(self):
