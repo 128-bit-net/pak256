@@ -22,7 +22,7 @@
 | `pak256_airliner` | 旅客機 / Airliner | 18 | 211 | 1599 | 50 | 7 | 2110146 | 65 | 1930 | 11 |
 
 - 値は pak128 の同じ時代の旅客機（Junkers Ju 52）の機能上の数値（dat の文・絵・作者名は写していない。[goods.md](goods.md) と同じ扱い）。登場年だけ pak256 の開始年にした。引退年は書かない。1 機で飛ぶ（前後につながない）。郵便の飛行機は無い。
-- 大きさは**実物比例**（[standards.md](standards.md) の 4 章「船・飛行機」。車両の「手本の 2 倍」は当てはめない）。実物の Junkers Ju 52 の長さ 18.9m・翼の幅 29.25m・高さ約 6.1m から、`length` = 18.9 ÷ 1.65 = 11（胴は 11 × 1.65 = 18.15m に描く）。翼の幅と高さは実物の値のまま。
+- 大きさは**実物比例**（[standards.md](standards.md) の 4 章「船・飛行機」。車両の「手本の 2 倍」は当てはめない）。実物の Junkers Ju 52/3m の長さ 18.9m・翼の幅 29.25m・高さ 4.5m（[SKYbrary](https://skybrary.aero/index.php/JU52)・[Warbirds Resource Group](https://warbirdsresourcegroup.org/LRG/luftwaffe_junkers_ju52_specifications.html)。2026-11-26 に検索で確かめた）から、`length` = 18.9 ÷ 1.65 = 11（胴は 11 × 1.65 = 18.15m に描く）。翼の幅と高さは実物の値のまま（高さは別の型や測り方で 5.55m・6.1m とする資料もある）。
 - 描画位置は機首が基準点で、胴は後ろへ伸びる。飛行機に車線のずれは無いので、道の中心に描く。翼がタイルを超えるので 512 のセル。
 - 置き場は `objects/vehicle/air/`。`draw_aircraft.py`（MIT）が書き出す。
 

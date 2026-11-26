@@ -139,6 +139,7 @@ class AirlinerTest(unittest.TestCase):
         self.assertEqual(list(self.table["emptyimage"]), list(V.DIRECTIONS))
         # 飛行機は実物比例（standards.md「船・飛行機」）: length = 実物の長さ ÷ 1.65
         self.assertEqual(self.table["length"], V.length_units(self.spec["real_length_m"]))
+        self.assertEqual((self.spec["real_length_m"], self.spec["real_span_m"], self.table["length"]), (18.9, 29.25, 11))
 
     def test_listed_in_docs(self):
         cells = doc_rows()[self.spec["name"]]
