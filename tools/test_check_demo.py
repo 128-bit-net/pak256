@@ -1,11 +1,15 @@
 """check_demo.py の検査（ゲームも makeobj も使わない）。python -X utf8 -m unittest discover -s tools -p "test_*.py" """
 import bz2
+import contextlib
 import gzip
+import io
 import os
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import check_demo  # noqa: E402
@@ -54,6 +58,34 @@ class CheckDemoTest(unittest.TestCase):
     def test_committed_demo_is_readable(self):
         names = check_demo.save_names(check_demo.read_save(check_demo.DEMO))
         self.assertIn("pak256_bus_stop", names)
+        self.assertIn("ami_road_local", names)
+
+    def run_main(self, in_pak):
+        used = {"pak256_bus", "ami_road_local"}
+        with mock.patch.object(check_demo, "read_save"), \
+                mock.patch.object(check_demo, "save_names", return_value=used), \
+                mock.patch.object(check_demo, "pak_names", return_value=in_pak), \
+                contextlib.redirect_stdout(io.StringIO()):
+            check_demo.main()
+
+    def test_main_fails_on_missing_name_only(self):
+        self.run_main({"pak256_bus", "ami_road_local", "pak256_other"})
+        with self.assertRaises(SystemExit) as cm:
+            self.run_main({"ami_road_local"})
+        self.assertIn("pak256_bus", cm.exception.code)
+
+    def test_pak_names_stops_when_makeobj_cannot_list(self):
+        head = "type  name  nodes  size\n----  ----  -----  ----\n"
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(ValueError):  # pak が無い
+                check_demo.pak_names(t)
+            open(os.path.join(t, "a.pak"), "wb").close()
+            for done in (subprocess.CompletedProcess([], 1, head, ""), subprocess.CompletedProcess([], 0, "", "ERROR")):
+                with mock.patch.object(check_demo.subprocess, "run", return_value=done), self.assertRaises(ValueError):
+                    check_demo.pak_names(t)
+            done = subprocess.CompletedProcess([], 0, "x\n" + head + "vehicle  pak256_bus  6  50302\n", "")
+            with mock.patch.object(check_demo.subprocess, "run", return_value=done):
+                self.assertEqual(check_demo.pak_names(t), {"pak256_bus"})
 
 
 if __name__ == "__main__":
