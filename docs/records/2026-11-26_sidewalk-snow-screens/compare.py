@@ -1,5 +1,6 @@
 """直す前と後の画像を並べ、画素の違いを数える（#136）。MIT License。
-使い方: python -X utf8 docs/records/2026-11-26_sidewalk-snow-screens/compare.py <前のフォルダ> <後のフォルダ> <出力フォルダ>"""
+使い方: python -X utf8 docs/records/2026-11-26_sidewalk-snow-screens/compare.py <前のフォルダ> <後のフォルダ> <出力フォルダ>
+雪線の境（snowline.py の撮影）: 同じ引数の後ろに --snowline を付ける。"""
 import os
 import sys
 
@@ -31,7 +32,26 @@ def pair(area, key):
     return im
 
 
+def snowline():
+    """冬の雪線の境の坂の道路（中心 (74, 180)、高さ 7）を上下に並べ、各画面の違う画素を数える。"""
+    for z in range(2, 10):
+        r, g, b = ImageChops.difference(load(before, f"line_z{z}"), load(after, f"line_z{z}")).split()
+        largest = ImageChops.lighter(ImageChops.lighter(r, g), b)
+        print(f"line_z{z}: 違う画素 {largest.width * largest.height - largest.histogram()[0]}")
+    a, b = load(before, "line_z7"), load(after, "line_z7")
+    w, h = a.size
+    im = Image.new("RGB", (w, (h + 48) * 2), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for i, (pic, head) in enumerate(((a, "直す前"), (b, "直した後"))):
+        d.text((8, i * (h + 48) + 4), f"{head}: 温帯の雪線の境の坂  中心 (74, 180)・冬（1 月）・等倍", font=FONT, fill=(0, 0, 0))
+        im.paste(pic, (0, i * (h + 48) + 48))
+    im.save(os.path.join(out, "snowline.png"), optimize=True)
+
+
 os.makedirs(out, exist_ok=True)
+if "--snowline" in sys.argv:
+    snowline()
+    sys.exit(0)
 for area in AREAS:
     for key in NAMES:
         diff = ImageChops.difference(load(before, f"{area}_{key}"), load(after, f"{area}_{key}"))
