@@ -1,0 +1,8 @@
+先頭: Simutrans 0.122.0.64-pak128
+city_road[0] CityRoad_030 登場 0 退役 1910
+city_road[1] Road_040 登場 1910 退役 1950
+city_road[2] Road_050 登場 1940 退役 2999
+intercity_road[0] Road_070 登場 1910 退役 1965
+intercity_road[1] Road_090 登場 1965 退役 2999
+intercity_road[2] Road_055 登場 1700 退役 1910
+intercity_road[3] Road_030 登場 0 退役 1700

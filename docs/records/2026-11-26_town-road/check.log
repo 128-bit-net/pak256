@@ -1,0 +1,12 @@
+入れ物の番号 ami_road_local 32
+入れ物の番号 ami_road_local_base_single 23
+old 地図 512x512 年 1930
+old 道路の way ami_road_local_base_single=40; ami_road_local=40; ami_road_general=120; ami_road_general_base_single=120; ami_road_trunk_base_back=240; ami_road_trunk_base_center=240; ami_road_trunk_base_front=240; ami_road_trunk_base_single=240; ami_road_trunk=240; ami_rail_turntable=65535; ami_road_expressway=360; ami_road_expressway_base_back=360; ami_road_expressway_base_center=360; ami_road_expressway_base_front=360; ami_road_expressway_base_single=360;
+old 地図の道（敷く前） なし
+old 街の道路の道具 戻り値=None z=0 way=ami_road_local_base_single/sidewalk=true
+old 街を置いた後の地図の道（上の 5 タイルを含む） ami_road_local_base_single/sidewalk=true:10;
+new_names 地図 512x512 年 1930
+new_names 道路の way ami_road_local_base_single=40; ami_road_local=40; ami_road_general=120; ami_road_general_base_single=120; ami_road_trunk_base_back=240; ami_road_trunk_base_center=240; ami_road_trunk_base_front=240; ami_road_trunk_base_single=240; ami_road_trunk=240; ami_rail_turntable=65535; ami_road_expressway=360; ami_road_expressway_base_back=360; ami_road_expressway_base_center=360; ami_road_expressway_base_front=360; ami_road_expressway_base_single=360;
+new_names 地図の道（敷く前） なし
+new_names 街の道路の道具 戻り値=None z=0 way=ami_road_local/sidewalk=true
+new_names 街を置いた後の地図の道（上の 5 タイルを含む） ami_road_local/sidewalk=true:10;

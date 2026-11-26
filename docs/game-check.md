@@ -71,6 +71,7 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 ## スクリプトで物を置くときの癖
 
 - 保存データ `flat_512_left_v64` は x が 256 以上が雪の気候。温帯の物は x<256 に置く（2026-11-25、#11）。
+- `flat_512_left_v64` の街の道路（街の道路の道具・街が建てる道）は `ami_road_local_base_single` になる。保存データが pak128 の道路の名前を持つため。pak256 の新しい地図の指定は `ami_road_local`（2026-11-26、#147。[記録](records/2026-11-26_town-road.md)）。
 - **公共のプレーヤーで流す**: Squirrel の道具は、呼び出しの `player_nr`（MCP の `run_squirrel` の引数）のプレーヤーで使われる。スクリプトの中で `player_x(1)` と書くだけでは変わらない。`Game.sq`・`sq_file`・`road`・`station`・`climate` は `player_nr=1` を、コマンドは `--player-nr 1` を渡す（開いたまま使うときは `--send` の側に付ける。`--interactive` には付けない。2026-11-26、[#142](https://github.com/128-bit-net/pak256/issues/142)）。
 - **歩道つきの街の道路**は `Game.city_road(x1, y1, x2, y2)`（公共のプレーヤーで `tool_build_cityroad`）。公共でないと歩道は付かず、`road(..., player_nr=1)`（`tool_build_way`）でも付かない（2026-11-26、`flat_512_left_v64` に AMI の道路を足した組で `has_sidewalk()` を比べた。#142）。
 - 道路は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>")`、停留所は `command_x(tool_build_station).work(pl, coord3d, "<停留所の name>")`。停留所の引数に番号を付けた `"1,<name>"` は失敗する（2026-11-25、#44。`Game.road`・`Game.station`）。
