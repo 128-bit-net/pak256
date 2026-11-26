@@ -13,7 +13,7 @@
 開いたままのゲームへ命令を 1 つずつ流す（#85。docs/game-check.md の「開いたまま使う」）:
     python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --port 47900 --interactive   # 起動して待つ（背景で動かす）
     python -X utf8 tools/game.py --port 47900 --send "return 1"            # Squirrel を流して結果を見る
-    python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"  # 撮る（@dialog 名前・@settle 秒・@quit も）
+    python -X utf8 tools/game.py --port 47900 --send "@capture out/a.png"  # 撮る（@dialog 名前・@settle 秒・@month 月・@quit も）
 
 別の道具（tools/vehicle_check/run.py など）から使う:
     from game import Game, prepare_workdir
@@ -21,6 +21,8 @@
         g.sq("return 1")
         g.dialog("finances")   # 財務の窓（番号の表は DIALOGS・docs/game-check.md）
         g.settle(10)           # 建設中の絵が終わるまで進める
+        g.climate(40, 40, 48, 48, "desert")  # 気候を塗る（地形を変えた後に）
+        g.wait_month(0)        # 月を 1 月まで進める（0 始まり）
         g.capture("a.png")
 
 決まり:
@@ -70,6 +72,13 @@ DIALOGS = {
     "list_halt": 14, "list_convoi": 15, "list_town": 16, "list_goods": 17, "list_factory": 18, "list_curiosity": 19,
 }
 SETTLE_SPEED = 64  # 建設中の絵が終わるまで進めるときの速さ（本体の set_game_speed）
+# 塗れる気候の番号（本体の climate）。0 は水で、塗ると地面が水になる・水の上を陸の気候で塗ると水位が下がるので、塗る手では扱わない
+CLIMATES = {"desert": 1, "tropic": 2, "mediterran": 3, "temperate": 4, "tundra": 5, "rocky": 6, "arctic": 7}
+# 本体の季節（0 夏・1 秋・2 冬・3 春。街の建物の絵 4 枚の添字と同じ）。添字は world.get_time().month（0 始まり）。
+# OTRP の simworld.cc の recalc_season_snowline の month_to_season の写し
+MONTH_TO_SEASON = (2, 2, 2, 3, 3, 0, 0, 0, 0, 1, 1, 2)
+SEASON_MONTHS = {"summer": 6, "autumn": 9, "winter": 0, "spring": 3}  # 季節ごとの絵を撮るのに使う月（0 始まり）
+MONTH_SPEED = 64  # 月を進めるときの速さ
 
 
 def default_client():
@@ -489,6 +498,43 @@ class Game:
             raise ValueError(f"窓の番号か名前を渡す: {which!r}（名前: {', '.join(DIALOGS)}）")
         return self.sq(f"return gui.open_dialog_tool({nr})")
 
+    def climate(self, x1, y1, x2, y2, climate, z=0, timeout=60):
+        """(x1, y1)〜(x2, y2) の矩形の気候を塗る（tool_set_climate）。climate は 1〜7 の番号か CLIMATES の名前。
+
+        地形（grid_raise・grid_lower・水位）を変えると気候が高さで決まり直すので、塗るのは地形の後。
+        戻り値は Squirrel の戻り値の文字列。本体は 1 タイルも変わらなくても成功を返すので、塗れたかは画面で見る。
+        """
+        nr = CLIMATES.get(climate) if isinstance(climate, str) else climate
+        if not isinstance(nr, int) or isinstance(nr, bool) or nr not in CLIMATES.values():
+            raise ValueError(f"気候は 1〜7 か名前を渡す: {climate!r}（名前: {', '.join(CLIMATES)}）")
+        return self.sq(f'return command_x(tool_set_climate).work(player_x(0), coord3d({x1},{y1},{z}), '
+                       f'coord3d({x2},{y2},{z}), "{nr}")', timeout=timeout)
+
+    def month(self):
+        """今の月（0 始まり。0 = 1 月）。"""
+        return int(self.sq("return world.get_time().month"))
+
+    def wait_month(self, target, timeout=420, speed=MONTH_SPEED, poll=0.4):
+        """ゲームを進めて、月が target（0〜11。0 = 1 月）になったら速さを 1 に戻す。既にその月なら何もしない。
+
+        季節の絵の確認に使う（季節と月は MONTH_TO_SEASON・SEASON_MONTHS）。同じ月の中の日付はそろえられない。
+        木などの絵は月が変わってから少し遅れて入れ替わるので、撮る前に数秒待つ。timeout は実時間の秒。
+        """
+        if not isinstance(target, int) or isinstance(target, bool) or not 0 <= target <= 11:
+            raise ValueError(f"月は 0〜11（0 = 1 月）を渡す: {target!r}")
+        if self.month() == target:
+            return
+        end = time.monotonic() + timeout
+        self.sq(f"debug.set_game_speed({int(speed)}); return 1")
+        try:
+            while time.monotonic() < end:
+                if self.month() == target:
+                    return
+                time.sleep(poll)
+            raise RuntimeError(f"{timeout} 秒たっても月 {target} にならなかった")
+        finally:
+            self.sq("debug.set_game_speed(1); return 1")
+
     def settle(self, seconds=15, speed=SETTLE_SPEED):
         """建設中の絵（黄と黒の縞）が終わるまでゲームを進めて、速さを 1 に戻す（速さ 1 のままだと終わらない。#58）。
 
@@ -524,7 +570,7 @@ class Game:
 
 # --- 開いたままのゲームへ命令を流す（#85） ---
 # 作業フォルダの inbox/ に <番号>.cmd を置くと、見張っている側（--interactive）が流して <番号>.out に結果を書く。
-# .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@quit）。
+# .out の 1 行目は ok か error、2 行目以降が結果。命令は Squirrel か、行頭が @ の指示（@capture <PNG>・@dialog <名前か番号>・@settle [秒]・@month <月>・@quit）。
 INBOX = "inbox"
 CMD_TIMEOUT = 300  # 1 つの Squirrel の待ち秒（AMI の game.sh の RUN と同じ。長い見本のため）
 IDLE_LIMIT = 3600  # 命令が来ないまま続いたら閉じる秒（閉じ忘れの保険）
@@ -551,7 +597,12 @@ def run_command(g, text):
     if name == "settle":
         g.settle(float(arg) if arg else 15)
         return "settled"
-    raise ValueError(f"知らない指示: @{name}（@capture・@dialog・@settle・@quit）")
+    if name == "month":
+        if not arg.isdigit():
+            raise ValueError("@month には月（0〜11。0 = 1 月）を渡す")
+        g.wait_month(int(arg))
+        return str(int(arg))
+    raise ValueError(f"知らない指示: @{name}（@capture・@dialog・@settle・@month・@quit）")
 
 
 def serve_inbox(g, inbox, idle_limit=IDLE_LIMIT, poll=0.3, log=print):
@@ -631,7 +682,7 @@ def main():
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
     ap.add_argument("--interactive", action="store_true", help="起動して、命令を待つ（--send で流す）。@quit・無音・Ctrl+C で閉じる")
     ap.add_argument("--idle-limit", type=int, default=IDLE_LIMIT, help="--interactive で命令が来ない秒（超えたら閉じる）")
-    ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@quit")
+    ap.add_argument("--send", help="見張っているゲーム（--port）へ流す命令。Squirrel か @capture <PNG>・@dialog <名前>・@settle [秒]・@month <月>・@quit")
     ap.add_argument("--send-file", help="--send の代わりに、Squirrel のファイルを流す")
     ap.add_argument("--timeout", type=int, default=120, help="--send の答えを待つ秒")
     args = ap.parse_args()

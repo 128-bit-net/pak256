@@ -408,6 +408,82 @@ class JobObjectTest(unittest.TestCase):
                 subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
 
 
+class ClimateMonthTest(unittest.TestCase):
+    """気候を塗る手と、月を進める手（#109）。ゲームは偽物。"""
+
+    def game(self, months=()):
+        g = game.Game("e", "m", 47880, work="w", client=__file__)
+        g.sent = []
+        rest = list(months)
+
+        def sq(self_, code, timeout=30):
+            g.sent.append(code)
+            if code == "return world.get_time().month":
+                return str(rest.pop(0) if len(rest) > 1 else rest[0])
+            return "1"
+        patch = mock.patch.object(game.Game, "sq", sq)
+        patch.start()
+        self.addCleanup(patch.stop)
+        return g
+
+    def speeds(self, g):
+        return [c for c in g.sent if c.startswith("debug.set_game_speed")]
+
+    def test_climate_paints_rectangle(self):
+        g = self.game()
+        g.climate(1, 2, 3, 4, "desert")
+        g.climate(1, 2, 3, 4, 7, z=14)
+        self.assertEqual(g.sent, [
+            'return command_x(tool_set_climate).work(player_x(0), coord3d(1,2,0), coord3d(3,4,0), "1")',
+            'return command_x(tool_set_climate).work(player_x(0), coord3d(1,2,14), coord3d(3,4,14), "7")'])
+        for c in g.sent:
+            game.check_squirrel(c)
+
+    def test_climate_rejects_water_and_unknown(self):
+        g = self.game()
+        for bad in (0, 8, -1, "water", "snow", None, True, 1.0):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                g.climate(1, 1, 2, 2, bad)
+        self.assertEqual(g.sent, [])
+
+    def test_season_table(self):
+        self.assertEqual(len(game.MONTH_TO_SEASON), 12)
+        # 撮る月が、その季節（0 夏・1 秋・2 冬・3 春）に当たる
+        for name, nr in (("summer", 0), ("autumn", 1), ("winter", 2), ("spring", 3)):
+            self.assertEqual(game.MONTH_TO_SEASON[game.SEASON_MONTHS[name]], nr, name)
+
+    def test_wait_month_advances_then_restores_speed(self):
+        g = self.game([3, 4, 5, 6])
+        with mock.patch.object(game.time, "sleep"):
+            g.wait_month(6)
+        self.assertEqual(self.speeds(g), ["debug.set_game_speed(64); return 1", "debug.set_game_speed(1); return 1"])
+        self.assertEqual(g.sent[-1], "debug.set_game_speed(1); return 1")
+
+    def test_wait_month_does_nothing_when_already_there(self):
+        g = self.game([6])
+        g.wait_month(6)
+        self.assertEqual(self.speeds(g), [])
+
+    def test_wait_month_restores_speed_on_timeout_and_interrupt(self):
+        g = self.game([1])
+        with mock.patch.object(game.time, "sleep"), mock.patch.object(game.time, "monotonic", side_effect=[0, 0, 999]):
+            with self.assertRaises(RuntimeError):
+                g.wait_month(6, timeout=10)
+        self.assertEqual(g.sent[-1], "debug.set_game_speed(1); return 1")
+        g.sent.clear()
+        with mock.patch.object(game.time, "sleep", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                g.wait_month(6)
+        self.assertEqual(g.sent[-1], "debug.set_game_speed(1); return 1")
+
+    def test_wait_month_rejects_bad_month(self):
+        g = self.game([1])
+        for bad in (-1, 12, "6", None, True):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                g.wait_month(bad)
+        self.assertEqual(g.sent, [])
+
+
 class InboxTest(unittest.TestCase):
     """開いたままのゲームへ命令を流す入口（#85）。ゲームは偽物。"""
 
@@ -433,6 +509,9 @@ class InboxTest(unittest.TestCase):
         def settle(self, sec):
             self.calls.append(("settle", sec))
 
+        def wait_month(self, month):
+            self.calls.append(("month", month))
+
     def test_run_command(self):
         g = self.Fake()
         self.assertEqual(game.run_command(g, "return 1"), "r:return 1")
@@ -447,6 +526,10 @@ class InboxTest(unittest.TestCase):
             game.run_command(g, "@nothing")
         with self.assertRaises(ValueError):
             game.run_command(g, "@capture")
+        game.run_command(g, "@month 0")
+        self.assertEqual(g.calls[-1], ("month", 0))
+        with self.assertRaises(ValueError):
+            game.run_command(g, "@month winter")
 
     def test_serve_and_send_round_trip(self):
         import threading

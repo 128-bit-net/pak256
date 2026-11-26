@@ -1,0 +1,30 @@
+name: docs-lint
+
+# md の置き場・リンクの検査（設定は tools/docs-policy.json。CONTRIBUTING.md の「文書の検査」）。
+# リンク先は md 以外のファイルでもあるので、paths で絞らずに全部の PR で回す。版は ci.env。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 道具の版を読む
+        run: |
+          grep -E '^[A-Z0-9_]+=' ci.env >> "$GITHUB_ENV"
+          grep -qE '^DOCS_LINT_REF=.+' ci.env && grep -qE '^NODE_VERSION=.+' ci.env
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - run: npx --yes -p "github:128na/docs-lint#$DOCS_LINT_REF" docs-lint
