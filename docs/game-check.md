@@ -91,7 +91,8 @@ with Game(env, "flat_512_left_v64", 47880, simuconf_extra=["show_names = 0"]) as
 ```
 
 - 起動の前に、作業フォルダの本体と pak の両方の `config/simuconf.tab` の**先頭**へ、渡した行を足す。1 要素が「キー = 値」の 1 行（違う形は `ValueError`）。`--night` でも足す。`prepare_workdir` にも同じ引数がある。コマンドの引数は無い。
-- 先頭に足すのは、本体が 1 つのファイルの中の同じキーを先に書いた行から取るため（`tabfile.cc` の `tabfileobj_t::put`）。末尾に足すと、元からその行があるファイル（検証環境の本体の `simuconf.tab` の `show_names = 3` など）では効かない。
+- 先頭に足すのは、本体が 1 つのファイルの中の同じキーを先に書いた行から取るため（`tabfile.cc` の `tabfileobj_t::put`）。末尾に足すと、元からその行があるファイルの中では効かない（検証環境の本体の `simuconf.tab` の `show_names = 3`、pak の `simuconf.tab` の `tile_height = 8` など）。本体の物の後に pak の物が読まれるので、両方にあるキーは pak の側が決める。
+- ゲームの画面で確かめたのは `show_names = 0` だけ（`--night` との組み合わせは `tools/test_game.py` のファイルの中身まで）。
 - 保存データが持つ設定は、保存データの値が使われることがある（足した行が効いたかは画面で確かめる）。
 - `docs/records/` の古いスクリプトは `game.append_day_night_off` を包んで足している。記録はそのままで、新しいスクリプトはこの引数を使う。
 

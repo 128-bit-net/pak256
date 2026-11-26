@@ -207,8 +207,8 @@ def check_simuconf_lines(lines):
         raise ValueError(f"simuconf_extra は行の一覧で渡す（文字列 1 つではなく）: {lines!r}")
     lines = list(lines)
     for line in lines:
-        s = line.strip()
-        if "\n" in line or "\r" in line or s.startswith(("#", "-", "=")) or "=" not in s:
+        s = line.strip() if isinstance(line, str) else ""
+        if not s or "\n" in line or "\r" in line or s.startswith(("#", "-", "=")) or "=" not in s:
             raise ValueError(f"simuconf_extra の行は「キー = 値」の 1 行にする: {line!r}")
     return lines
 

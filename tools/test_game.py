@@ -85,7 +85,7 @@ class GameToolTest(Base):
         self.assertEqual(self.read("config", "simuconf.tab"), "show_names = 0\nbase = 1")
         self.assertEqual(self.read("pak", "config", "simuconf.tab"), "show_names = 0\na = 1\n")
 
-    def test_simuconf_extra_is_not_doubled_by_rebuild(self):
+    def test_rebuilt_workdir_starts_from_fresh_simuconf(self):
         self.prepare(night=True, simuconf_extra=["show_names = 0"])
         self.prepare(night=True, simuconf_extra=["show_names = 0"])
         self.assertEqual(self.read("pak", "config", "simuconf.tab"), "show_names = 0\na = 1\n")
@@ -98,7 +98,7 @@ class GameToolTest(Base):
 
     def test_simuconf_extra_rejects_bad_lines_before_touching_workdir(self):
         put(os.path.join(self.work, "old.txt"))
-        for bad in ("show_names = 0", ["show_names"], ["a = 1\nb = 2"], ["# a = 1"], ["= 1"], ["-"]):
+        for bad in ("show_names = 0", ["show_names"], ["a = 1\nb = 2"], ["# a = 1"], ["= 1"], ["-"], [1]):
             with self.assertRaises(ValueError, msg=repr(bad)):
                 self.prepare(simuconf_extra=bad)
             with self.assertRaises(ValueError, msg=repr(bad)):
