@@ -36,7 +36,9 @@ export default defineConfig({
         items: [
           { text: '車両の大きさ', link: '/spec/vehicle-size' },
           { text: '線路の車両', link: '/spec/vehicle-rail' },
-          { text: '道路の車両・街の車・歩行者' },
+          { text: '道路の車両', link: '/spec/vehicle-road' },
+          { text: '街の車', link: '/spec/citycar' },
+          { text: '歩行者', link: '/spec/pedestrian' },
           { text: '駅・停留所・信号' },
           { text: '船・港・飛行機・空港・川' },
           { text: '建物・産業・貨物' },
