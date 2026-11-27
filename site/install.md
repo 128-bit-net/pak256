@@ -2,9 +2,9 @@
 
 ## 要る本体
 
-要る本体は **OTRP の最新版の Windows 版**です。本家の Simutrans と、Windows 以外の環境では確かめていません。
+要る本体は **OTRP の最新版の Windows 版**です。最新版は、配布元の Releases の一覧の一番上の版（プレリリースを含む）を指します。本家の Simutrans と、Windows 以外の環境では確かめていません。
 
-OTRP は [配布元の Releases](https://github.com/teamhimeh/simutrans/releases) から最新版を入手します。本体の入れ方は [OTRP の wiki](https://github.com/teamhimeh/simutrans/wiki/OTRP-Home) など、配布元の案内を見てください。
+OTRP は [配布元の Releases](https://github.com/teamhimeh/simutrans/releases) の一覧の一番上の版を入手します。「Latest」の印が付いた版が、一番上より古いことがあります。本体の入れ方は [OTRP の wiki](https://github.com/teamhimeh/simutrans/wiki/OTRP-Home) など、配布元の案内を見てください。
 
 ## pak を置く
 

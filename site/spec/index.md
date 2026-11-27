@@ -8,7 +8,7 @@ pak256.LongScale は α 版で、仕様は変わることがあります。
 
 | 項目 | 内容 |
 |---|---|
-| 本体 | OTRP v64（Windows 版）で確かめています。本家の Simutrans では確かめていません |
+| 本体 | OTRP の最新版（[配布元の Releases](https://github.com/teamhimeh/simutrans/releases) の一覧の一番上の版。プレリリースを含む）の Windows 版で確かめています。本家の Simutrans では確かめていません |
 | makeobj | 60.12（本家 125.0 に付く版） |
 
 ## 読む順
