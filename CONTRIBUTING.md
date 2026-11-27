@@ -45,4 +45,4 @@ npx --yes -p "github:128na/docs-lint#v1.1.0" docs-lint
 
 ## 規格
 
-車両・建物・木・産業・駅の大きさ（縮尺・長さ・描画位置・セル・高さ）の規格は [docs/standards.md](docs/standards.md) にまとめています。決めた背景は [docs/concept.md](docs/concept.md)、貨物は [docs/goods.md](docs/goods.md) です。
+アドオンを作る人向けの仕様は [公開のサイト](https://128-bit-net.github.io/pak256/spec/)（元は `site/spec/`）にあります。車両・建物・木・産業・駅の大きさのうち、サイトへ移していない決まりは [docs/standards.md](docs/standards.md) にまとめています。決めた背景は [docs/concept.md](docs/concept.md)、貨物は [docs/goods.md](docs/goods.md) です。

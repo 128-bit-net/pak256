@@ -38,7 +38,6 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/smoke/` | 煙（`obj=smoke`。煙突・車両・船）。[smoke.md](smoke.md) | #174 |
 | `objects/river/` | 川（`system_type=255` の水の道。3 段）。[config.md](config.md) の「川」 | #158 |
 | `objects/station/` | 道路の停留所（`road_stops/`）・線路の駅（`rail_stops/`）・路面電車の停留所（`tram_stops/`。#153）・港（`ports/`。#154）。どれも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94・#154 |
-| `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
 | `objects/station/monorail_stops/`・`objects/vehicle/monorail/` | モノレールの駅と車両（跨座式。[stations.md](stations.md)・[vehicles.md](vehicles.md)） | #156 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
 | `objects/pedestrian/` | 歩行者（`walkers/`。男性・女性・子ども）。[pedestrians.md](pedestrians.md) | #172 |
@@ -144,6 +143,12 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `make_sounds.py` | 効果音を合成して `sound/` に書く（[sound.md](sound.md)） |
 | `test_sounds.py` | 音の検査: WAV の形式、車両・産業の表の `sound` が指すファイルがあること |
 | `title_shot.py` | 起動の窓と後ろの地図を撮る道具（`-load` 無し・MCP 無し。[game-check.md](game-check.md) の「起動の画面を撮る」。Windows だけ） |
+| `lint_config.py` | `config/` の設定ファイルの書き方の検査（本体が黙って捨てる誤りを見つける。検査は `test_lint_config.py`） |
+| `test_goods.py` | 本体が必ず求める貨物が表にあることの検査（[goods.md](goods.md)） |
+| `test_gui.py` | GUI の絵の検査: 本体が求める物と、`menuconf.tab` が使う番号（[gui.md](gui.md)） |
+| `test_river.py` | 川の表・絵・`simuconf.tab` の検査（[config.md](config.md) の「川」） |
+| `test_package.py` | `package.py` と、`build.py` の Warning の検出の検査 |
+| `test_install_local.py`・`test_run_pak.py` | `install_local.py` と、`--pak` の検査（ゲームは起動しない） |
 | `test_title_shot.py` | `title_shot.py` の検査（ゲームは起動しない） |
 | `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。音を耳で確かめる場面（`sound_run.py`。[sound.md](sound.md)）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
@@ -195,6 +200,8 @@ CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.gi
 - `.github/workflows/site.yml` が、PR で組めることを確かめ、main への push で公開する。公開には、リポジトリの設定の Pages の Source が「GitHub Actions」である必要がある。
 - 手元で見るときは `site/` で `npm ci` の後に `npm run dev`。切れた内部リンクは `npm run build` が失敗にする（docs-lint は `site/` を検査しない）。
 - 版を公開したら、`site/index.md` の「今の版と状態」の版の名前と日付を直す。
+- **アドオンを作る人向けの仕様は `site/spec/` に置く**（#177）。同じ決まりを `docs/` に重ねて書かず、`docs/` はサイトへリンクする。`docs/` に残すのは、この pak の物の値の表（検査が読む）と、開発の手順。
+- 寸法の図は `site/figures/draw_spec_figures.py` で描き直す（Pillow と日本語の書体が要る。出力 `site/public/spec/` はコミットする）。画面の写真（`scale-road.png`・`scale-rail.png`）は [記録](records/2026-11-27_spec-common.md)。
 
 ## 初期マップ
 
