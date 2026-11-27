@@ -10,7 +10,7 @@ pak128 の値を参考にしたが、文は写さず、本体のコード（OTRP
 
 - 差し替えたのは初版のとき。ツールバーの番号と空白は、レビューの指摘で直した後は再び起動していない（起動のログでは、ツールバーの誤りは警告にならないため、ログでは確かめられない）。
 - 4 つとも読み込めた（初版）: `Read 5 house building rules`・`Read 3 road building rules`・`Reading speedbonus configuration` が出て、`fatal`・`bad format`・`ignored`（規則の無視）の行は無い。起動のログに設定ファイルが原因の警告は無い。
-- 確かめていない: ツールバーの見た目。街の成長は #8 で、人口をスクリプトで足した形だけ見た（輸送での成長は未確認。`cityrules.tab` の節と記録）。[記録](records/2026-11-25_ami-road-screens.md) で街の道路が `ami_road_local` だったのは、`city_road[0]` の指定でなく本体の代わりの選び方の結果だった（[#147](records/2026-11-26_town-road.md)）。
+- ツールバーの見た目は後で画面で確かめた（[gui.md](gui.md)）。街の成長は #8 で、人口をスクリプトで足した形だけ見た（輸送での成長は未確認。`cityrules.tab` の節と記録）。[記録](records/2026-11-25_ami-road-screens.md) で街の道路が `ami_road_local` だったのは、`city_road[0]` の指定でなく本体の代わりの選び方の結果だった（[#147](records/2026-11-26_town-road.md)）。
 - 起動中にゲームの MCP は応答しなかった（起動の最初の画面が出たまま）。そのため、街の増え方の数値は取っていない。
 
 ## `simuconf.tab`
@@ -47,7 +47,7 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 
 ### 1 タイルの広さに依存する値（決めごと）
 
-次の値は、1 タイルが実寸で何 m かに関わるが、pak128 の 1 タイルの実寸が分からない（concept 2.3 で未確認）ため、導かずに「1 タイルが指す広さは pak128 と同じ」と決めて同じ値にした: `station_coverage`、`minimum_city_distance`、`factory_worker_radius`、`intercity_road_length`、`factory_spacing`。車両は実物比例（1 タイル = 16 × 1.65 = 約 26m）に変わるが、街・産業の広さの感覚は変えない、という判断。ゲームで街が狭い・停留所の範囲が広すぎると感じたら、ここから直す。
+次の値は、1 タイルが実寸で何 m かに関わるが、pak128 の 1 タイルの実寸が分からない（concept 2.3 で未確認）ため、導かずに「1 タイルが指す広さは pak128 と同じ」と決めて同じ値にした: `station_coverage`、`minimum_city_distance`、`factory_worker_radius`、`intercity_road_length`、`factory_spacing`。線路の車両の長さは実物に比例する（1 タイル = 16 × 1.65 = 約 26m）が、街・産業の広さの感覚は変えない、という判断。ゲームで街が狭い・停留所の範囲が広すぎると感じたら、ここから直す。
 
 ### 変えた・外したもの
 
@@ -123,7 +123,7 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 
 - アイコンの番号は pak128 の並びのまま。GUI のアイコンは `objects/gui/` にあり（[gui.md](gui.md)）、この並びで描いてある。番号を足す・変えたら、`draw_gui.py` を流し直す（使う番号を `menuconf.tab` から読む）。ツールバーの行で書いた番号は BarTools の番号、道具の行の番号は種類ごとの表の番号。
 - 番号と道具の対応は、番号が同じ範囲だけを使う（下の「ツールの番号」）。
-- 線路の道具（`toolbar[3]`。#46）と道路の道具（`toolbar[4]`）は、種類ごとの絞り込み（`ways(2,0)`・`ways(1,0)`、`buildings(33,2)` など）なので、AMI の線路・道路・橋・トンネル・停留所・駅・車庫と、pak256 の停留所・駅がそのまま並ぶ（AMI の停留所は AMI の側で外す。[stations.md](stations.md)）。信号（`signs(2)`。pak256 の `pak256_rail_signal`。[signals.md](signals.md)）と、信号の撤去（`general_tool[46]`。アイコンはバーの 47 番。#73）も入れた。信号の撤去の番号 46 は、本家 125.0.1 と OTRP で同じ範囲（0〜47）にある（`TOOL_REMOVE_SIGNAL`。本家のタグ `125.0.1` の `simmenu.h` の列挙の順）。
+- 線路の道具（`toolbar[3]`。#46）と道路の道具（`toolbar[4]`）は、種類ごとの絞り込み（`ways(2,0)`・`ways(1,0)`、`buildings(33,2)` など）なので、AMI の線路・道路・橋・トンネル・車庫と、pak256 の停留所・駅がそのまま並ぶ（AMI の停留所は AMI の側で外した。[stations.md](stations.md)）。信号（`signs(2)`。pak256 の `pak256_rail_signal`。[signals.md](signals.md)）と、信号の撤去（`general_tool[46]`。アイコンはバーの 47 番。#73）も入れた。信号の撤去の番号 46 は、本家 125.0.1 と OTRP で同じ範囲（0〜47）にある（`TOOL_REMOVE_SIGNAL`。本家のタグ `125.0.1` の `simmenu.h` の列挙の順）。
 - モノレールの道具（`toolbar[8]`。#156。飛行機の次。アイコンはバーの 57 番）は `ways(5,0)`・`ways(5,1)`・`tunnels(5)`・`wayobjs(5)`・軌道の撤去（`general_tool[17]`。アイコンはバーの 56 番）・架線の撤去（`general_tool[33]`）・`buildings(33,5)`（車庫）・`buildings(34,5)`（駅）・`buildings(35,5)`（拡張。今は無い）。高架の切り替え（`general_tool[14]`）は、高架の軌道のボタンが重複して出たので入れていない。
 - リニアの道具（`toolbar[9]`。#189。モノレールの次。アイコンはバーの 59 番）は `ways(6,0)`・`ways(6,1)`（超電導・常電導・チューブ式の地上と高架）・`tunnels(6)`・`wayobjs(6)`（超電導のガイドとチューブ式のチューブ。電化を兼ねる）・軌道の撤去（`general_tool[17]`。アイコンはバーの 58 番）・架線の撤去（`general_tool[33]`）・`buildings(33,6)`（車庫）。リニアの駅と車両は pak256 にも AMI にも無い。
 - 狭軌（AMI の `ami_narrow.pak`。`narrowgauge_track`）は pak には入るが、駅と車両が無いのでツールバーを置かない（#189）。

@@ -1,13 +1,13 @@
 # ロードマップ（大まか）
 
-2026-11-24 に立てた。決めたことは [concept.md](concept.md)。この文書は道筋で、作業の単位は issue に起こす。段階 0 と 1 は、同じ名前のマイルストーン（「段階 0 土台」#1〜#4・#12・#17、「α0.1 起動できる」#5〜#11）に起こした。段階 0・1 は済んだ（v0.1.0 を 2026-11-25 に公開し、2 つのマイルストーンを閉じた）。段階 2 はマイルストーン「α0.2 遊べる」に起こし、v0.2.0 を 2026-11-25 に公開して閉じた。段階 3 はマイルストーン「α0.3 広げる」に起こしている。
+2026-11-24 に立てた。決めたことは [concept.md](concept.md)。この文書は道筋で、作業の単位は issue に起こす。段階 0 と 1 は、同じ名前のマイルストーン（「段階 0 土台」#1〜#4・#12・#17、「α0.1 起動できる」#5〜#11）に起こした。段階 0・1 は済んだ（v0.1.0 を 2026-11-25 に公開し、2 つのマイルストーンを閉じた）。段階 2 はマイルストーン「α0.2 遊べる」に起こし、v0.2.0 を 2026-11-25 に公開して閉じた。段階 3 はマイルストーン「α0.3 広げる」から起こしている（その後の版はマイルストーンと [Releases](https://github.com/128-bit-net/pak256/releases) を見る）。
 
 ## 進め方（2026-11-24、ユーザー）
 
 - 完璧を目指さず、まず動く状態にしてアルファ版を出す。その後は週に 1 回くらい、小さく出して活動を見せながら進める。
 - まずは 1 人で進める。複数人で進捗を合わせる仕組みは、メンバーが増えたときに考える。
 - pak256 は、ゲームとして成り立つよう基本的なアドオンを一通り自分で作る。十分な絵を作り込む知見がまだ無いので、当面は動くことを優先する。AMI は景観に寄せたアドオンで方向が違い、今は車両の見た目などを確かめるために間借りしているだけ。pak256 の規格（[standards.md](standards.md)）ができたら、道路・線路なども pak256 専用のアドオンとして作る（2026-11-26、ユーザー。AMI のセッションで）。
-- 当面は、今入っている AMI の道路・線路・車庫・停留所を使い、AMI に無い物（駅・信号など）は pak256 で簡単な絵で作る。AMI の 256 の見た目の直しは #76・#81 までにする（2026-11-26、ユーザー）。
+- 当面は、今入っている AMI の道路・線路・車庫を使い、AMI に無い物（駅・信号など）は pak256 で簡単な絵で作る（停留所は後で pak256 の物に戻した。#94）。AMI の 256 の見た目の直しは #76・#81 までにする（2026-11-26、ユーザー）。
 - AMI はインフラと景観のアドオンで、細かい装飾は基本的なゲームの範囲を超えるので、pak セットの土台にそのまま使うのには向かない。pak256 の開発が熟したら、AMI を 256 にも対応した景観アドオンにすることは考える余地がある。今はそれぞれのマイルストーンを進め、大きさの決まり・道具・作業の知見は AMI と共有しながら進める（2026-11-26、ユーザー。取り決めは親フォルダの手順書 pm.md の「進捗管理が 2 つ並ぶとき」）。
 - （2026-11-26 の決定より前の記録）インフラ（線路・道路・橋・トンネル・車庫・架線・駅・停留所・信号・空港と港の道・電線）は AMI に任せる（#46 の駅だけは仮に pak256 で作る。道路の車庫は #64、バス停と荷役所は #72 で AMI の物にした。#94 で pak256 の物に戻した）。AMI の 256 対応は [128na/simutrans-addon-dev#261](https://github.com/128na/simutrans-addon-dev/issues/261)、駅・信号などを AMI の範囲に入れるのは [#264](https://github.com/128na/simutrans-addon-dev/issues/264)。
 - AMI の 256 版は pak256 の配布に同梱する（2026-11-24、ユーザー）。道路が 1 つも無いと本体が起動しないので、pak256 だけで遊べるようにする。AMI は CC BY 4.0 なので入れられる。帰属は配布の文書に書く。
@@ -32,7 +32,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 | 産業 | 工場・発電所と貨物のつながり | pak256 | 要る（1 本の連鎖） |
 | 車両 | 列車（旅客・郵便・貨物）・バス・トラック・路面電車・船・飛行機・モノレール | pak256 | 要る（バス・トラックを少し。列車は [#46](https://github.com/128-bit-net/pak256/issues/46) で気動車と付随車の仮の 2 種。船は [#154](https://github.com/128-bit-net/pak256/issues/154) で旅客船と貨物船の仮の 2 種と、港 3 つ） |
 | 景観 | 木・岩などの物・川 | pak256 | 要る（木を数種。川は [#158](https://github.com/128-bit-net/pak256/issues/158) で仮の 3 段） |
-| 街の動き | 歩行者・街の車・煙 | pak256 | 要らない。街の車は #173 で仮の 3 種を入れた |
+| 街の動き | 歩行者・街の車・煙 | pak256 | 要らない。歩行者（#172）・街の車（#173）・煙（#174）の仮の物を入れた |
 | 音 | 車両・環境の音 | pak256 | 最初の版には要らない（本体の既定で鳴る分でよい）。車両と産業の音は後で入れた（[sound.md](sound.md)）。環境の音は無い |
 | 文言 | 物の名前の訳（日本語・英語）・街の名前 | pak256 | 要る（日本語・英語） |
 | 道具 | dat を表から作る道具・Blender の描画・CI での pak 作り・配布の zip | pak256 | 要る |
@@ -42,8 +42,8 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 無いと起動しない、または遊べない物。名前は dat の `name=`。
 
 - 貨物: `Passagiere`・`Post`・`None`（`bauer/goods_manager.cc` の 32 行）。
-- 地面: `Shore`・`ClimateTexture`・`LightTexture`・`ShoreTrans`・`SlopeTrans`・`Basement`・`Slopes`・`Fence`・`Marker`・`Borders`・`Water`・`Outside`（`descriptor/ground_desc.cc` の 357 行）。
-- GUI: `simskin.cc` の 89〜166 行の、その他（`RibiArrow`・`Construction`・`Sidewalk`・`TunnelTexture` など）・メニュー（`GeneralTools`・`SimpleTools`・`DialogeTools`・`BarTools` など）・記号（`Seasons`・`Passagiere`・`Post`・`Waren` など）・カーソル（`Builder`・`GeneralTools`・`Marked`）。`BigLogo`・`Mouse`・駅の種類の記号などは無くてもよい（同じファイルの「fakultative」）。
+- 地面: `ClimateTexture`・`LightTexture`・`ShoreTrans`・`SlopeTrans`・`Basement`・`Slopes`・`Fence`・`Marker`・`Borders`・`Water`・`Outside`（`descriptor/ground_desc.cc` の 357 行）。海岸の絵 `Shore` は、無くても動くので作っていない（[ground.md](ground.md)）。
+- GUI: `simskin.cc` の 89〜166 行の、その他（`RibiArrow`・`Construction`・`Sidewalk`・`TunnelTexture` など）・メニュー（`GeneralTools`・`SimpleTools`・`DialogeTools`・`BarTools` など）・記号（`Seasons`・`Passagiere`・`Post`・`Waren` など）・カーソル（`Builder`・`GeneralTools`・`Marked`）。`BigLogo`・`Mouse`・駅の種類の記号などは無くても起動する（同じファイルの「fakultative」）。ただし駅の種類の記号が無いと駅・車庫の窓を開くと落ちるので置いた（[gui.md](gui.md)）。
 - 道路が 1 つ以上（`bauer/wegbauer.cc` の 103 行）。`cityrules.tab`（`simcity.cc` の 301 行）。
 - 本家 125.0.1 でも同じかは確かめていない。
 

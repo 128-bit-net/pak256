@@ -1,0 +1,5 @@
+/* 表の左の列（言葉・項目の名前）は、日本語を 1 文字ずつ折り返さない。空白と句読点では折り返す。 */
+.vp-doc th:first-child,
+.vp-doc td:first-child {
+  word-break: keep-all;
+}

@@ -51,11 +51,11 @@
 
 ## 縮尺
 
-縮尺（1 単位 = 1.65m、1 タイル = 26.4m、高さ 1m ≒ 5.94px）と、セルに収まる高さの上限は [standards.md](standards.md) の 1・5 章。車両と並べた釣り合いは [#104](https://github.com/128-bit-net/pak256/issues/104) で見て、建物はこのままにした（[記録](records/2026-11-26_scale-check.md)）。役場の時計塔は約 20m。
+縮尺（1 単位 = 1.65m、1 タイル = 26.4m、高さ 1m ≒ 5.94px）は [サイトの縮尺と大きさ](https://128-bit-net.github.io/pak256/spec/scale)、セルに収まる高さの上限は [サイトのタイルとセル](https://128-bit-net.github.io/pak256/spec/tile-and-cell)。車両と並べた釣り合いは [#104](https://github.com/128-bit-net/pak256/issues/104) で見て、建物はこのままにした（[記録](records/2026-11-26_scale-check.md)）。役場の時計塔は約 20m。
 
 ## 絵の形
 
-- 256px のセル 2 枚（夏・冬。512×256 の 1 行、セルの名前は `<名前>.0.0`・`<名前>.0.1`）。タイルの菱形の位置と足元の座標の式は [standards.md](standards.md) の 2・5 章（`draw_buildings.py` の `P()`）。
+- 256px のセル 2 枚（夏・冬。512×256 の 1 行、セルの名前は `<名前>.0.0`・`<名前>.0.1`）。タイルの菱形の位置は [サイトのタイルとセル](https://128-bit-net.github.io/pak256/spec/tile-and-cell)、足元の座標の式は [standards.md](standards.md) の 5 章（`draw_buildings.py` の `P()`）。
 - `draw_buildings.py`（MIT）が PNG と表（`.yaml`）を書き出す。書き出した物もコミットしてある。作り直すとき: `python -X utf8 objects/city/town_buildings/draw_buildings.py`（Pillow だけで動く）。
 - 光は左上から。左下を向く面を明るく、右下を向く面を暗くした。色は makeobj が別の意味に読む色を避ける（`draw_trees.py` と同じ表）。
 - 影は描いていない。

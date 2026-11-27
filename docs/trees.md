@@ -69,7 +69,7 @@
 
 ## 縮尺
 
-縮尺（実物比例、1m ≒ 6.86px・高さ 1m ≒ 5.94px の換算）は [standards.md](standards.md) の 1 章。
+縮尺（実物比例、1m ≒ 6.86px・高さ 1m ≒ 5.94px の換算）は [サイトの縮尺と大きさ](https://128-bit-net.github.io/pak256/spec/scale)。
 
 ## 絵の形
 
