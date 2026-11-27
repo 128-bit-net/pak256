@@ -111,6 +111,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `package.py` | `build/` の pak と `config/`・`text/`・`sound/`・`demo/demo.sve`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
 | `check_demo.py` | 初期マップ `demo/demo.sve` が使う物の名前が、`build/pak/` にあるかの検査（下の「初期マップ」。CI で流す） |
 | `test_check_demo.py` | `check_demo.py` の検査（保存データの名前の読み方・`makeobj list` の読み方） |
+| `demo_citycar.py` | 初期マップの街の車の値を `config/simuconf.tab` に合わせる（下の「街の車の値を合わせる」） |
+| `test_demo_citycar.py` | `demo_citycar.py` の検査（2 つの値だけを書き換えること・読めない形で止まること） |
 | `ci/setup_makeobj.sh` | CI の Linux に makeobj を用意する |
 | `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
@@ -205,6 +207,20 @@ OTRP の fork の `simmain.cc` を読み、v64 で起動して確かめた（202
 4. 映したい場所に画面を合わせて保存し、`demo/demo.sve` に置き換える。圧縮は gzip・bzip2・無圧縮のどれか（`tools/check_demo.py` が読める形）。
 5. `python -X utf8 tools/build.py` の後、`python -X utf8 tools/check_demo.py` を流す。
 6. ゲームで確かめる: `-load` を付けずに起動して、地図が映ることを画面で見る（`tools/title_shot.py`。[game-check.md](game-check.md) の「起動の画面を撮る」）。保存データの中に手元のパスや個人の情報が無いことも見る。
+
+### 街の車の値を合わせる
+
+保存データは `citycar_level`（交通量）と `default_citycar_life`（寿命）を自分で持つので、`config/simuconf.tab` の値を変えても `demo.sve` には効かない（値は [config.md](config.md) の「街の車」）。値を変えたとき・地図を作り直したときは、次を流す（[#194](https://github.com/128-bit-net/pak256/issues/194)、[記録](records/2026-11-27_demo-citycar.md)）。
+
+```
+python -X utf8 tools/demo_citycar.py           # 今の値を表示する。simuconf.tab と違えば終了コード 1
+python -X utf8 tools/demo_citycar.py --write   # demo.sve の 2 つの値だけを書き換える
+```
+
+- 地図は読み直し・保存し直しをしないので、2 つの値のほか（地図・画面の位置・車両の位置）は変わらない。
+- 場所は本体の `dataobj/settings.cc` の `settings_t::rdwr` の並びから出す。確かめたのは保存の版 0.122.0.64 で、版の行が `Simutrans 0.122.` で始まらない保存データは書き換えずに止まる。本体の版を上げて地図を作り直したら、並びを確かめ直す。
+- 地図の上を走っている街の車は、残りの寿命を車ごとに持つので、この道具では変わらない。
+- CI は 2 つの値の一致を検査していない。
 
 ### 物を消す・名前を変えるとき
 
