@@ -21,6 +21,11 @@ inputsupplier: [0]
 inputfactor: [50]
 needs_ground: 1
 intro_year: 1890
+smoke: pak256_smoke_chimney
+smoketile: {0: "1,0"}
+smokeoffset: {0: "2,-26"}
+smokeuplift: 14
+smokelifetime: 6000
 dims: 3,3
 backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_industry.py が描く
   0:

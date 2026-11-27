@@ -219,6 +219,7 @@ def yaml_lines(spec):
         f"freight: {spec['freight']}",
         f"payload: {spec['payload']}",
         "engine_type: diesel",
+        "smoke: pak256_smoke_ship  # 加速中に出る（objects/smoke/。docs/smoke.md）",
         f"power: {spec['power']}",
         f"speed: {spec['speed']}",
         f"gear: {spec['gear']}",

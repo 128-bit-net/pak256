@@ -8,6 +8,7 @@ waytype: water
 freight: Kohle
 payload: 165
 engine_type: diesel
+smoke: pak256_smoke_ship  # 加速中に出る（objects/smoke/。docs/smoke.md）
 power: 1050
 speed: 25
 gear: 100

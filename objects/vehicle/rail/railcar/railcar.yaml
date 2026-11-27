@@ -9,6 +9,7 @@ cell_size: 512
 freight: Passagiere
 payload: 80
 engine_type: diesel
+smoke: pak256_smoke_diesel  # 加速中に出る（objects/smoke/。docs/smoke.md）
 power: 220
 speed: 90
 gear: 100

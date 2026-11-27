@@ -1,0 +1,32 @@
+# 煙の物（絵は仮）。この dat と PNG は draw_smoke.py が書き出す。直すときはスクリプトを直して流し直す。
+obj=smoke
+name=pak256_smoke_chimney
+copyright=pak256.LongScale チーム
+# 煙突の煙（工場）
+image[0]=chimney.0.0
+image[1]=chimney.0.1
+image[2]=chimney.0.2
+image[3]=chimney.0.3
+image[4]=chimney.0.4
+image[5]=chimney.0.5
+-
+obj=smoke
+name=pak256_smoke_diesel
+copyright=pak256.LongScale チーム
+# ディーゼルの車両の排気
+image[0]=diesel.0.0
+image[1]=diesel.0.1
+image[2]=diesel.0.2
+image[3]=diesel.0.3
+image[4]=diesel.0.4
+-
+obj=smoke
+name=pak256_smoke_ship
+copyright=pak256.LongScale チーム
+# 船の排気
+image[0]=ship.0.0
+image[1]=ship.0.1
+image[2]=ship.0.2
+image[3]=ship.0.3
+image[4]=ship.0.4
+-
