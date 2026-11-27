@@ -42,6 +42,16 @@
 - 図: `site/figures/draw_spec_figures.py`（車線の位置、歩行者の足元、道路の車両の 8 方向）。8 方向の図は、このリポジトリの仮のバスと石炭のトラックのシートを使う。
 - 画面: [`shoot.py`](2026-11-27_spec-road-vehicles-screens/shoot.py) を OTRP v64、`flat_512_left_v64` で流し（2026-11-27、pak は `tools/build.py` で組んだ今の物と AMI `ami-256-alpha.9`）、[`crop.py`](2026-11-27_spec-road-vehicles-screens/crop.py) で切り出した。
 
+## 組んだサイトの画面
+
+手元の `vitepress preview` を Edge の画面なしの撮影（幅 1280px）で撮った（ゲームの画面ではない）。
+
+![道路の車両](2026-11-27_spec-road-vehicles-screens/1_vehicle-road.png)
+
+![街の車](2026-11-27_spec-road-vehicles-screens/2_citycar.png)
+
+![歩行者](2026-11-27_spec-road-vehicles-screens/3_pedestrian.png)
+
 ## 確かめていないこと
 
 - 本家 125.0.1、右側通行。

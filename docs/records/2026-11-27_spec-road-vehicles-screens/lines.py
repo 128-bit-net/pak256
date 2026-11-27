@@ -1,4 +1,4 @@
-"""#205: AMI の生活道路（ami_road_local）の東西の直線の画像から、白線の位置を測る。
+"""#205: AMI の生活道路（ami_road_local）の東西の直線の画像から、白線の位置を測る。MIT License。
 
 リポジトリの直下で、先に tools/build.py を流してから `python -X utf8 docs/records/2026-11-27_spec-road-vehicles-screens/lines.py`。
 出力は、道路の端から白線までの距離（タイルの単位と 1/256 タイル）の範囲。

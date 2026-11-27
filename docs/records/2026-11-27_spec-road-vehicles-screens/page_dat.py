@@ -1,4 +1,4 @@
-"""#205: vehicle-road.md・citycar.md・pedestrian.md のコードブロックをそのまま dat にし、仮の形の画像を作って makeobj で組む。
+"""#205: vehicle-road.md・citycar.md・pedestrian.md のコードブロックをそのまま dat にし、仮の形の画像を作って makeobj で組む。MIT License。
 
 リポジトリの直下で `python -X utf8 docs/records/2026-11-27_spec-road-vehicles-screens/page_dat.py`（Pillow と、PATH の makeobj が要る）。
 組んだ物は一時フォルダに置く。各行は「ページ・例の番号・終了コード・Warning と ERROR の行・組んだ物」。

@@ -30,7 +30,7 @@
 |---|---|
 | `distributionweight` | 出やすさ。省くと 1。読み込んだすべての街の車の中で、この値の割合で選ばれる |
 | `speed` | 最高速度（km/h）。省くと 80。道路の上限のほうが低ければ、そちらになる |
-| `intro_year`・`intro_month`・`retire_year`・`retire_month` | 登場と引退。年表を使う地図で効く |
+| `intro_year`・`intro_month`・`retire_year`・`retire_month` | 登場と引退。省くと 1900 年と 2999 年。年表を使う地図で効く |
 | `image[向き]` | 絵 |
 
 ### 例

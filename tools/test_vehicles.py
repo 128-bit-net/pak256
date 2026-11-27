@@ -78,6 +78,16 @@ class TestRules(unittest.TestCase):
             lx, ly = V.DRIVELEFT_64[d]
             self.assertEqual((xy[0] + lx * 4, xy[1] + ly * 4), (-xy[0], -xy[1]), d)
 
+    def test_lane_table_on_site(self):
+        # サイトの「道路の車両」の「車線の位置」の表が、計算と同じ
+        with open(os.path.join(ROOT, "site", "spec", "vehicle-road.md"), encoding="utf-8") as f:
+            text = f.read()
+        for d in V.DIRECTIONS:
+            dx, dy = (int(v) for v in V.lane_offset_px(d))
+            row = f"| ({dx}, {dy}) | ({V.ORIGIN[0] + dx}, {V.ORIGIN[1] + dy}) |"
+            line = next(ln for ln in text.splitlines() if ln.startswith(f"| `{d}` |"))
+            self.assertIn(row, line, d)
+
     def test_lane_is_on_the_right(self):
         # 右側の車線の点は、進む向きの右にある（外積の向き）
         for d in V.DIRECTIONS:

@@ -7,6 +7,7 @@
 """
 import math
 import os
+import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -219,19 +220,20 @@ def vehicle_directions():
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..", "..")
-# 道路の車両の右側の車線の点（基準点からのずれ。256px のタイル）。site/spec/vehicle-road.md の表と同じ
-LANE = {"s": (-24, -12), "w": (24, -12), "sw": (0, -12), "se": (-24, 0),
-        "n": (24, 12), "e": (-24, 12), "ne": (0, 12), "nw": (24, 0)}
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import vehicles as V  # noqa: E402
 
 
 def road_tile(d, cx, cy, k):
-    """基準点が (cx, cy) の平らなタイルと、東西（画面の左上から右下）の舗装を描き、地面の座標の変換を返す。"""
+    """基準点が (cx, cy) の平らなタイルに、東西（画面の左上から右下）の道路を描き、地面の座標の変換を返す。
+
+    舗装はタイルの端までで、白線は端から 0.156 タイル（中心から 0.344）。白線の外が路肩。
+    """
 
     def p(x, y):
         return (cx + (x - y) * 128 * k, cy + (x + y) * 64 * k)
 
-    d.polygon([p(-0.5, -0.5), p(0.5, -0.5), p(0.5, 0.5), p(-0.5, 0.5)], fill=GROUND, outline=CELL)
-    d.polygon([p(-0.5, -0.344), p(0.5, -0.344), p(0.5, 0.344), p(-0.5, 0.344)], fill=(150, 150, 154))
+    d.polygon([p(-0.5, -0.5), p(0.5, -0.5), p(0.5, 0.5), p(-0.5, 0.5)], fill=(150, 150, 154), outline=CELL)
     for y in (-0.344, 0.344):
         d.line([p(-0.5, y), p(0.5, y)], fill=(245, 245, 245), width=2)
     return p
@@ -259,7 +261,7 @@ def road_lane():
         d.polygon(box, fill=(214, 196, 150), outline=INK)
         d.line([box[0], box[1]], fill=DIM, width=4)
         cross(d, (cx, cy))
-        point = (cx + (LANE["e"][0] + shift[0]) * k, cy + (LANE["e"][1] + shift[1]) * k)
+        point = (cx + (V.lane_offset_px("e")[0] + shift[0]) * k, cy + (V.lane_offset_px("e")[1] + shift[1]) * k)
         cross(d, point, DIM)
         d.line([(cx, cy), point], fill=MARK, width=1)
         text(d, (20, oy), title, 22)
@@ -268,7 +270,7 @@ def road_lane():
     text(d, (20, 50), "青の十字 = 車体の前の端の中央、青の辺 = 前の端", 18, DIM)
     text(d, (20, 820), "絵の点は基準点から (-24, 12)。左側通行では (48, -24) が", 19)
     text(d, (20, 846), "足され、基準点の反対側 (24, -12) に出る", 19)
-    text(d, (20, 874), "灰色は舗装の目安（実際の道路は AMI の版で変わる）", 16, CELL)
+    text(d, (20, 874), "灰色は舗装（タイルの端まで）。白い線は白線の目安（AMI の版で変わる）", 16, CELL)
     img.save(os.path.join(OUT, "road-lane.png"), optimize=True)
 
 
@@ -289,11 +291,11 @@ def pedestrian_foot():
     cross(d, (cx, cy))
     a, b = p(0.25, 0.5), p(0.25, 0.5 - o)
     d.line([a, b], fill=INK, width=3)
-    text(d, (a[0] + 10, a[1]), "道路の端から offset/256 タイル", 15)
+    text(d, (a[0] + 10, a[1]), "道路の端（タイルの端）から offset/256", 15)
     text(d, (cx + 14, cy - 24), "基準点", 15, MARK)
     text(d, (20, 20), "offset=18 の足元の点（青の十字）。進む向きの右側に描く", 20)
     text(d, (20, 56), "東へ進む（e）: 基準点から (-55, 27.5)　西へ進む（w）: (55, -27.5)", 16, DIM)
-    text(d, (20, 520), "灰色は舗装の目安。足元は舗装の外の路肩に来る", 14, CELL)
+    text(d, (20, 520), "灰色は舗装（タイルの端まで）。足元は白線の外の路肩に来る", 14, CELL)
     img.save(os.path.join(OUT, "pedestrian-foot.png"), optimize=True)
 
 

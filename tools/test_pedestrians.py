@@ -86,6 +86,14 @@ class PedestrianTest(unittest.TestCase):
                     rx, ry = -hy, hx  # 地面の右の向き。画面では (128(x−y), 64(x+y))
                     self.assertGreater(x * 128 * (rx - ry) + y * 64 * (rx + ry), 0, "足元が進む向きの右側に無い")
 
+    def test_foot_table_on_site(self):
+        # サイトの「歩行者」の offset=18 の表が、計算と同じ
+        with open(os.path.join(ROOT, "site", "spec", "pedestrian.md"), encoding="utf-8") as f:
+            text = f.read()
+        for direction in D.V.DIRECTIONS:
+            x, y = D.foot_offset_px(direction, 18)
+            self.assertIn(f"| `{direction}` | ({round(x, 1):g}, {round(y, 1):g}) |", text, direction)
+
     def test_documented(self):
         with open(os.path.join(ROOT, "docs", "pedestrians.md"), encoding="utf-8") as f:
             text = f.read()

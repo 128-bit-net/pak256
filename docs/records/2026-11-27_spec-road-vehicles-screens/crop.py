@@ -1,4 +1,4 @@
-"""#205: shoot.py の出力から、ページに載せる画面を切り出して site/public/spec/ に書く（256 色）。
+"""#205: shoot.py の出力から、ページに載せる画面を切り出して site/public/spec/ に書く（256 色）。MIT License。
 
 リポジトリの直下で `python -X utf8 docs/records/2026-11-27_spec-road-vehicles-screens/crop.py <shoot.py の出力>`。
 コマの名前と切り出す範囲は 2026-11-27 に撮った回の物で、撮り直すと合わなくなる。
