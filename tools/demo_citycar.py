@@ -41,6 +41,9 @@ def wanted_values(simuconf=SIMUCONF):
     missing = [k for k in KEYS if k not in values]
     if missing:
         raise ValueError(f"simuconf.tab に指定が無い: {', '.join(missing)}")
+    for key, value in values.items():  # 本体は範囲に丸めるので、そのまま書くと本体の値とずれる
+        if not RANGES[key][0] <= value <= RANGES[key][1]:
+            raise ValueError(f"simuconf.tab の {key} が範囲の外: {value}")
     return values
 
 

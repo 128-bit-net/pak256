@@ -41,6 +41,10 @@ class DemoCitycarTest(unittest.TestCase):
             with open(path, "w", encoding="utf-8") as f:
                 f.write("# citycar_level = 1\ncitycar_level = 8\ncitycar_level = 5\ndefault_citycar_life=36\n")
             self.assertEqual(demo_citycar.wanted_values(path), {"citycar_level": 8, "default_citycar_life": 36})
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("citycar_level = 20\ndefault_citycar_life = 36\n")
+            with self.assertRaises(ValueError):
+                demo_citycar.wanted_values(path)
 
     def test_write_save_keeps_compression(self):
         with tempfile.TemporaryDirectory() as t:

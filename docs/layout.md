@@ -205,7 +205,7 @@ OTRP の fork の `simmain.cc` を読み、v64 で起動して確かめた（202
 2. 後で消すつもりの物（仮の停留所・駅・見本の物）を置かない。pak から消すと、地図のその物が欠ける。
 3. 建てた直後の建物は、ゲームを進めて建設中の絵が終わってから保存する。
 4. 映したい場所に画面を合わせて保存し、`demo/demo.sve` に置き換える。圧縮は gzip・bzip2・無圧縮のどれか（`tools/check_demo.py` が読める形）。
-5. `python -X utf8 tools/build.py` の後、`python -X utf8 tools/check_demo.py` を流す。
+5. `python -X utf8 tools/build.py` の後、`python -X utf8 tools/check_demo.py` を流す。街の車の値は `python -X utf8 tools/demo_citycar.py` で確かめる（違えば `--write`。下の「街の車の値を合わせる」）。
 6. ゲームで確かめる: `-load` を付けずに起動して、地図が映ることを画面で見る（`tools/title_shot.py`。[game-check.md](game-check.md) の「起動の画面を撮る」）。保存データの中に手元のパスや個人の情報が無いことも見る。
 
 ### 街の車の値を合わせる
