@@ -3,7 +3,7 @@
 obj: building
 name: pak256_tram_stop
 copyright: pak256.LongScale チーム
-# 路面電車の停留所。旅客。奥の側に緑の屋根の待合（高さ 2.9m）のある乗り場、手前の側に低い歩道
+# 路面電車の停留所。旅客。奥の側に緑の屋根の待合（高さ 2.9m）2 つのある乗り場（間は架線の柱の所）、手前の側に低い歩道
 type: stop
 waytype: tram_track
 enables_pax: 1

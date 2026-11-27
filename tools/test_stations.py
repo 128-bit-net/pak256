@@ -111,6 +111,31 @@ class StationTest(unittest.TestCase):
                                 bad.append((x, y, round(c, 3)))
                     self.assertEqual(bad[:5], [], f"{sheet}: {row} 行 {col} 列が道路に掛かる（{len(bad)} 画素）")
 
+    def test_tram_stop_clear_of_catenary_pole(self):
+        """路面電車の停留所の絵は、画面で架線の柱の列に、歩道より高い画素を置かない（#195）。
+
+        柱は AMI の ami_tram_catenary（addons/ami の catenary_parts.py の TRAM_CAT_POLE_U 4.2・CAT_POLE_S 0.35。
+        1 タイルは 10）: 升の中央 a = 0.5、軌道の中心から 0.42 タイル奥（c = 0.08）、太さ 0.035。画面の横位置は
+        |a - c| = 0.385〜0.455 タイル（128px 倍）の列で、偶数の向き（NS）はセルの中央の左、奇数（EW）は右。
+        AMI の版で柱が動いたら、ここの値も直す。
+        """
+        from PIL import Image
+        near, far = 0.5 - 0.08 - 0.035, 0.5 - 0.08 + 0.035
+        sheet = os.path.join(ROOT, "objects", "station", "tram_stops", "tram_stop.png")
+        with Image.open(sheet) as im:
+            px = im.convert("RGB").load()
+        for row in (0, 1):
+            for col in range(LAYOUTS):
+                side = -1 if col % 2 == 0 else 1
+                bad = []
+                for x in range(256):
+                    k = (x + 0.5 - 128) / 128 * side
+                    if not near <= k <= far:
+                        continue
+                    top = 128 + k * 64 - 3  # 歩道（高さ 0.15m）の奥の端の画面の y。少し上まで許す
+                    bad += [(x, y) for y in range(int(top)) if px[col * 256 + x, row * 256 + y] != (231, 255, 255)]
+                self.assertEqual(bad[:5], [], f"{sheet}: {row} 行 {col} 列が架線の柱の列に掛かる（{len(bad)} 画素）")
+
     def test_bus_stop_back_edge(self):
         """バス停の後ろの絵の歩道は、タイルの端（c = 0）の近くまである（#139）。
 
