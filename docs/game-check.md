@@ -136,6 +136,51 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 - 追い越し禁止の道は `command_x(tool_build_way).work(pl, 座標1, 座標2, "<道路の name>," + prohibited_mode + ",0,0,0")` で敷く。停留所で満載待ちの車両の後ろに、街の車が詰まって止まる（2026-11-27、#173）。
 - pak の絵の色は各色 5 ビット（緑も）。画面の画素と元の PNG を照らし合わせるときは、RGB の下 3 ビットを落とす（2026-11-27、#173）。
 
+## 歩行者を出す・探す（#184）
+
+歩行者の絵と動きの決まりは [pedestrians.md](pedestrians.md)。ここは確かめの手順（出る条件は OTRP の `vehicle/pedestrian.cc`・`simcity.cc`・`simhalt.cc` を読んだ物）。
+
+**歩行者を直接置くスクリプトの命令は見つかっていない**（本体の `script/` を `pedestrian` で探して、`mo_pedestrian` と道の「歩行者の立ち入り禁止」の値だけ。2026-11-27）。旅客が出る場面を作って、出てくるのを待つ。
+
+出る条件:
+
+- 出るきっかけは 2 つ。街の建物が旅客を出したとき（本体の設定 `random_pedestrians`）と、停留所に旅客が着いたとき（`stop_pedestrians`）。`flat_512_left_v64` は、設定を足さなくても出た（きっかけがどちらかは分けて確かめていない）。
+- 出る場所は、その建物（停留所はそのタイル）と、東西南北の隣のタイル。そこに道路が無いと出ない。
+- 道路のうち、つながりが 2 方向のタイル（直線と角）だけ。行き止まり・交差点・歩行者の立ち入り禁止の道には出ない（出た後で交差点を通ることはある）。
+- 歩行者の pak が要る（年代が有効な地図では、登場している物）。寿命があり、しばらくすると消える（[pedestrians.md](pedestrians.md)）。
+
+街と道とバス停は `tools/vehicle_check/road_stop_bus.nut`（道は y=60、街は x=60 と x=100）が置く。次の形で、出して探して撮る（リポジトリの直下から。`env` は検証環境）。
+
+```python
+import sys, time
+sys.path.insert(0, "tools")
+from game import Game
+
+with Game(env, "flat_512_left_v64", 47880, simuconf_extra=["show_names = 0"]) as g:
+    g.sq_file("tools/vehicle_check/road_stop_bus.nut")
+    g.settle(20)   # 建物が建ちきるまで進める
+    scan = ('local s=""; for(local x=50;x<=110;x++) for(local y=54;y<=66;y++){ local t=square_x(x,y).get_ground_tile(); '
+            'if (t.find_object(mo_pedestrian)) s+=x+","+y+" "; } return s')
+    found = []
+    for _ in range(60):
+        found = g.sq(scan).split()
+        if found:
+            break
+        time.sleep(2)
+    x, y = found[0].split(",")
+    g.sq(f"gui.set_zoom(3); gui.close_all_windows(); gui.jump(coord3d({x},{y},0)); return 1")
+    time.sleep(0.5)
+    g.capture("work/pedestrian.png")
+```
+
+- 向きを絞るときは、`t.get_way_dirs(wt_road)` を一緒に返す（5・10 が直線、3・6・9・12 が角）。
+- 歩行者は歩いて動き、消える。探してからすぐ撮り、写っていなければ撮り直す。大人が 16px と小さいので、撮った画像は切り抜いて拡大して見る。
+- 歩く位置の測り方・向き色の印の pak・斜めの道などは、#172 の[記録](records/2026-11-27_pedestrians.md)のスクリプト（記録の時点の物で、直さない）。
+
+### 画面の中心（`gui.jump` で飛んだタイル）
+
+1600x900・拡大 3 では、`gui.jump` で飛んだタイル（地面の高さ 0）の中心は画面の **(896, 575)**。画面の真ん中 (800, 450) から右へ 96・下へ 125px（2026-11-27、OTRP v64、`flat_512_left_v64`。飛んだタイルを中心に道路を十字の 5 タイルで敷き、前後の画像の差分の外接枠 (640, 446)〜(1152, 704) の中心を取った。2 か所で同じ値）。`tools/vehicle_check/run.py` の `JUMP_X, JUMP_Y` はこの値。#172 の記録のスクリプトの (895, 576) とは 1px 違い。
+
 ## 別の道具から使う
 
 ```python
