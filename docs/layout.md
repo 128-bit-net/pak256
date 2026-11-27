@@ -230,6 +230,7 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 - `vendor/ami/text/` に、AMI の `addons/ami/release/text/` の訳を中身を変えずに写す。元のコミットと各ファイルの blob の SHA は `vendor/ami/text.env`。
 - 写すのは `python -X utf8 tools/build_ami256.py text`（`gh` で `ami.env` の `AMI_COMMIT` の物を取る。AMI の clone は要らない）。AMI の版を上げたら流す。流し忘れは `tools/test_ami_text.py` が止める。
+- 今の AMI の訳は日本語だけ。AMI に `en_ami.tab` などが足されたら、同じ道具が `en.ami.tab` として写し、ほかの直しは要らない。
 - 名前は `ja_ami.tab` を `ja.ami.tab` に変える。本家 125.0.1 の `translator.cc`（`load_files_from_folder`）は `ja.xxx.tab` か `xxx_ja.tab` の形だけを読み、`ja_ami.tab` は読まない（2026-11-27、コードの読み。本家のゲームでは未確認）。OTRP は名前の頭 2 文字で読むので、どちらも読める。
 - `build/pak/` に `ami_*.pak` があるときだけ、`package.py` と `game.py` が pak の `text/` に入れる（`--no-ami` で組んだ物には入らない）。
 
