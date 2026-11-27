@@ -13,6 +13,7 @@ demo/                 初期マップ demo.sve（下の「初期マップ」。#
 vendor/ami/           同梱する AMI の版の指定・組む元と許諾の文（下の「AMI の 256 版を同梱する」）
 tools/                道具（下の「道具」）
 docs/                 文書
+site/                 公開する説明書のサイトの元（下の「公開のサイト」。#200）
 build/                作った dat・pak（git に入れない）
 dist/                 作った配布の zip（git に入れない）
 ci.env                CI の道具の版（makeobj など）
@@ -185,6 +186,15 @@ CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.gi
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
 - AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.9`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+
+## 公開のサイト
+
+遊ぶ人とアドオンを作る人が読むサイトは、`site/` を [VitePress](https://vitepress.dev/) で組み、GitHub Pages（https://128-bit-net.github.io/pak256/ ）に公開する（[#200](https://github.com/128-bit-net/pak256/issues/200)）。
+
+- `docs/` と分けて置く。`docs/` はリポジトリで作業する人の文書と記録（画像が多い `docs/records/` はサイトに載せない）で、docs-lint は `docs/` で `index.md` を禁じるが、サイトのトップは `index.md` が要る。
+- `.github/workflows/site.yml` が、PR で組めることを確かめ、main への push で公開する。公開には、リポジトリの設定の Pages の Source が「GitHub Actions」である必要がある。
+- 手元で見るときは `site/` で `npm ci` の後に `npm run dev`。切れた内部リンクは `npm run build` が失敗にする（docs-lint は `site/` を検査しない）。
+- 版を公開したら、`site/index.md` の「今の版と状態」の版の名前と日付を直す。
 
 ## 初期マップ
 
