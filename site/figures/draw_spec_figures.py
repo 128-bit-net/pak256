@@ -156,10 +156,73 @@ def scale():
     img.save(os.path.join(OUT, "scale.png"), optimize=True)
 
 
+def vehicle_position():
+    """線路の車両（length=12）を、タイルの基準点から後ろへ伸ばした図。向きは e（右下へ進む）と ne（右へ進む）。"""
+    img = Image.new("RGB", (1040, 500), BG)
+    d = ImageDraw.Draw(img)
+    length = 12 / 16  # タイルの単位
+    half = 3.9 / TILE_M / 2  # 幅 3.9m（2.8m × 1.40）
+    for ox, title, heading, label in (
+        (20, "e（右下へ進む。軸の向き）", (1.0, 0.0), "length 12 = 19.8m"),
+        (520, "ne（右へ進む。横の斜め）", (math.sqrt(0.5), -math.sqrt(0.5)), "length 12 = 画面で約 136px（図は 0.75 倍）"),
+    ):
+        k = 0.75  # 3×2 のタイルが半分の幅に収まる倍率
+        cx, cy = ox + 300, 300  # 基準点（タイルの中心）
+
+        def p(x, y):
+            return (cx + (x - y) * 128 * k, cy + (x + y) * 64 * k)
+
+        # 周りの 3×3 のタイル
+        for tx in (-1, 0):
+            for ty in (-1, 0, 1):
+                corners = [p(tx - 0.5 + a, ty - 0.5 + b) for a, b in ((0, 0), (1, 0), (1, 1), (0, 1))]
+                d.polygon(corners, fill=GROUND if (tx, ty) == (0, 0) else (214, 228, 200), outline=CELL)
+        hx, hy = heading
+        rx, ry = -hy, hx
+        box = [(hx * a + rx * s, hy * a + ry * s) for a, s in ((0, half), (0, -half), (-length, -half), (-length, half))]
+        d.polygon([p(*q) for q in box], fill=(214, 196, 150), outline=INK)
+        d.line([p(*box[0]), p(*box[1])], fill=DIM, width=4)
+        d.line([(cx - 10, cy), (cx + 10, cy)], fill=MARK, width=3)
+        d.line([(cx, cy - 10), (cx, cy + 10)], fill=MARK, width=3)
+        text(d, (ox + 10, 20), title, 18)
+        text(d, (cx + 14, cy + 14), "基準点", 15, MARK)
+        text(d, (ox + 10, 52), "青の辺 = 車体の前の端（基準点を通る）", 15, DIM)
+        text(d, (ox + 10, 76), label, 15)
+        a = p(0, 0)
+        b = p(-hx * 0.9, -hy * 0.9)
+        d.line([a, b], fill=MARK, width=1)
+        text(d, (b[0], b[1] - 8), "後ろへ", 14, MARK, "md")
+    img.save(os.path.join(OUT, "vehicle-position.png"), optimize=True)
+
+
+def vehicle_directions():
+    """pak256 の仮の気動車のシート（objects/vehicle/rail/railcar/railcar.png）の 8 方向に、キーと基準点を書き足す。"""
+    sheet = Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                                    "objects", "vehicle", "rail", "railcar", "railcar.png")).convert("RGBA")
+    keys = ("s", "w", "sw", "se", "n", "e", "ne", "nw")
+    ways = ("左下", "左上", "左（真横）", "下（手前）", "右上", "右下", "右（真横）", "上（奥）")
+    w, h = 320, 280  # 1 枠。512 のセルの基準点 (256, 320) を (160, 170) に置く
+    img = Image.new("RGB", (w * 4, h * 2), BG)
+    d = ImageDraw.Draw(img)
+    for i, (key, way) in enumerate(zip(keys, ways)):
+        ox, oy = (i % 4) * w, (i // 4) * h
+        bx, by = ox + 160, oy + 170
+        d.rectangle([ox, oy, ox + w - 1, oy + h - 1], outline=CELL)
+        d.polygon([(bx, by - 64), (bx + 128, by), (bx, by + 64), (bx - 128, by)], fill=GROUND)
+        car = sheet.crop((i * 512 + 256 - 160, 320 - 170, i * 512 + 256 + 160, 320 + 110))
+        img.paste(car, (ox, oy), car)
+        d.line([(bx - 10, by), (bx + 10, by)], fill=MARK, width=2)
+        d.line([(bx, by - 10), (bx, by + 10)], fill=MARK, width=2)
+        text(d, (ox + 10, oy + 8), "%s: 画面の%sへ進む" % (key, way), 17)
+    img.save(os.path.join(OUT, "vehicle-directions.png"), optimize=True)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     tile_and_cell()
     scale()
+    vehicle_position()
+    vehicle_directions()
     print("OK:", os.path.normpath(OUT))
 
 

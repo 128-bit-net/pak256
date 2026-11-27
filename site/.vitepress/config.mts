@@ -32,10 +32,10 @@ export default defineConfig({
       },
       {
         // 物の種類ごとのページ。書いたら link を足す（#177 の構成の順）。
-        text: '種類ごと（準備中）',
-        collapsed: true,
+        text: '種類ごと',
         items: [
-          { text: '線路の車両' },
+          { text: '車両の大きさ', link: '/spec/vehicle-size' },
+          { text: '線路の車両', link: '/spec/vehicle-rail' },
           { text: '道路の車両・街の車・歩行者' },
           { text: '駅・停留所・信号' },
           { text: '船・港・飛行機・空港・川' },

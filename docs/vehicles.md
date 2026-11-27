@@ -1,12 +1,12 @@
 # 車両の長さと描画位置
 
-車両を描くときの決まり。[#40](https://github.com/128-bit-net/pak256/issues/40) で、道路の車両（バス・トラック）の分を決めた。線路の車両の分は [#46](https://github.com/128-bit-net/pak256/issues/46) で足した（concept の D。下の「線路の車両」）。背景は [concept.md](concept.md) の C・D。
+pak256 の車両の値の表と、描くスクリプト・試験の手順。道路の車両（バス・トラック）の分は [#40](https://github.com/128-bit-net/pak256/issues/40)、線路の車両の分は [#46](https://github.com/128-bit-net/pak256/issues/46) で作った（concept の D）。背景は [concept.md](concept.md) の C・D。
 
-決まりは `tools/vehicles.py`（MIT）に計算として置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、[standards.md](standards.md)・この文書・`vehicles.py` を一緒に直す。線路の車両（気動車・付随車）の分は下の「線路の車両」（[#46](https://github.com/128-bit-net/pak256/issues/46)）。
+決まりの計算は `tools/vehicles.py`（MIT）に置いてある。描くスクリプトはそれを読み、`tools/test_vehicles.py` が絵と表を検査する。決まりを変えるときは、サイトの仕様（`site/spec/`）か [standards.md](standards.md) と、この文書の表・`vehicles.py` を一緒に直す。
 
 ## 長さ・描画位置
 
-大きさ（手本の 2 倍）・`length` の決め方・画面での 1 単位の長さ・描画位置（前後・車線・高さ）・セルの大きさの**決まりは [standards.md](standards.md) の 4 章**にある（#80 でまとめた）。計算は `tools/vehicles.py`。この文書には、決めたときの確かめと、standards.md に書ききれない細目（車線のずれの表・OTRP 固有の注意）を残す。
+道路と線路の車両の大きさ・`length`・描く位置・セルの決まりは、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)（元は [site/spec/vehicle-size.md](../site/spec/vehicle-size.md)）。道路の車両の車線のずれは [standards.md](standards.md) の 4 章と下の表。この文書には、表と、サイトに書ききれない細目（車線のずれの表・OTRP 固有の注意）を残す。
 
 ### 前後の位置（細目）
 
@@ -33,7 +33,7 @@
 - 道路の中心からの距離は、軸の向きで 3/16 タイル（4.95m）。AMI の 256 版の道路（`ami-256-alpha.1`）の車線の中心（路側の白線 3.37 の半分、タイルの 0.1685）より 0.5m 外で、画面では軸の向きで約 2.4px 外になる（白線との距離から測って 0.184 タイル）。斜めは、本体のずれで道路の中心から 0.133 タイル、AMI の斜めの車線の中心は断面の縮め方の読み方で 0.107〜0.119 タイルなので、画面で約 1〜5px 外（計算だけ。斜めは画面で測っていない）。ゲームで、左右どちらの通行でも 8 方向とも車線に乗って見えた（下の「試験」）。
 - 車体の幅は実物の幅より広い（手本の 2 倍。[standards.md](standards.md) の 4 章。バスは 3.1m 相当）。
 
-高さ（車輪の下端・1m = 5.94px）とセルの大きさ（256 か 512 か）は [standards.md](standards.md) の 2・4 章。512 のセルの作り方は [layout.md](layout.md) の「セルの大きさ」。
+高さ（車輪の下端・1m = 5.94px）とセルの大きさ（256 か 512 か）は、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)。512 のセルの作り方は [layout.md](layout.md) の「セルの大きさ」。
 
 ## 見本
 
@@ -80,7 +80,7 @@
 
 ## 線路の車両
 
-[#46](https://github.com/128-bit-net/pak256/issues/46)（気動車と付随車）。線路は AMI の 256 版の `ami_rail_ballast`（`ami-256-alpha.2`）。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/rail/<名前>/`（`railcar`・`railcar_trailer`）。描く道具は `objects/vehicle/rail/draw_trains.py`（MIT）で、道路の車両の道具（`draw_vehicles.py`）の箱を組む関数・色の決まりを読んで使う。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/rail/draw_trains.py`。Pillow だけで動く）。車両を足すときは `VEHICLES` に 1 件足し、この表に 1 行足す。検査は `tools/test_vehicles.py` の `TestRailVehicles`。
+[#46](https://github.com/128-bit-net/pak256/issues/46)（気動車と付随車）。決まりはサイトの [線路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-rail)（元は [site/spec/vehicle-rail.md](../site/spec/vehicle-rail.md)）。線路は AMI の 256 版の `ami_rail_ballast`。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。置き場は `objects/vehicle/rail/<名前>/`（`railcar`・`railcar_trailer`）。描く道具は `objects/vehicle/rail/draw_trains.py`（MIT）で、道路の車両の道具（`draw_vehicles.py`）の箱を組む関数・色の決まりを読んで使う。直すときはスクリプトの表（`VEHICLES`）を直して流し直す（`python -X utf8 objects/vehicle/rail/draw_trains.py`。Pillow だけで動く）。車両を足すときは `VEHICLES` に 1 件足し、この表に 1 行足す。検査は `tools/test_vehicles.py` の `TestRailVehicles`。
 
 | `name` | 画面の名前（ja / en） | `freight` | 実物の長さ・幅・高さ | `length` | `payload` | `speed` | `power` | `gear` | `weight` | `cost` | `runningcost` | `intro_year` |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -89,14 +89,7 @@
 
 - **値の目安**: pak128 の気動車（`Haru_VT98` とその付随車 `Haru_VT98_car`）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名・連結の指定・煙・音は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。道路の車両の石炭のトラックと同じ扱い。法律の専門家には確かめていない）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1952）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
 - 気動車は動力あり（`engine_type: diesel`。架線の要らない種類にした）、付随車は動力なし。連結の指定は付随車の `constraint[prev]` だけ。付随車は気動車の後ろにしかつながない（付随車の `constraint[prev]` に気動車と付随車を書いた。先頭にはならない）。気動車 1 両だけの編成も、ゲームで走って往復した（`rail_run.py --trailer 0`）。気動車だけが煙 `pak256_smoke_diesel` を出す（[smoke.md](smoke.md)）。気動車の発車の音は [sound.md](sound.md)（付随車は先頭にならないので付けない）。
-- **長さ**: 20m → `length=12`（[standards.md](standards.md) の 4 章）。車体の絵は 12 × 1.65m = 19.8m に描く。幅と高さは実物の 1.40 倍・1.20 倍に描く（pak128.Japan の手本の 2 倍。描いた値で幅 3.9m・高さ 4.3m）。道床の見立て（約 3.4m）より幅が広いが、駅のホームには当たらない（[記録](records/2026-11-26_scale-check.md)）。
-- **横の位置**: 線路の中心（基準点）に描く。本体は左側通行のずれを道路の車両（`road_vehicle_t`）にしか足さず（`simvehicle.cc` の `road_vehicle_t::get_screen_offset`）、線路の車両は通行の向きに関わらず線路の中心に出る。`tools/vehicles.py` の `footprint(…, centered=True)` が、このずれ無しの車体の枠を出す。
-- **前後の位置**: 道路の車両と同じ（車体の前の端が基準点）。前後を同じ形に描いたので、逆向きに走っても形は崩れない。
-- **高さ**: 車輪の下端は地面の高さ（`RAIL_WHEEL_DROP_PX = 0`）。AMI の線路は新描画位置でレールが地面より下がる（レールの基準面が `Datum(4,1)` で、256 版は 2 倍）が、ゲームで走らせて撮ると、車輪の下端が地面のままで、車体の下の暗い帯の下端がレールの上に乗って見えた（試験は [記録](records/2026-11-25_rail-train.md)）。
-- **セル**: 20m の車体は、画面で横の斜め（11.3px/単位）で 136px 伸びて 1 タイルのセル（256）に収まらないので、512 のセルに描く。256 のセルの絵を 512 のセルの真ん中に置き（256 のセルの座標 + 128）、表に `cell_size: 512` と、各絵の位置合わせ `,-128,-128` を書く（[layout.md](layout.md) の「セルの大きさ」の試しと同じ形）。makeobj は警告なく組め、ゲームで 512 のセルの車両が線路の上の決まった位置に出ることを東西の直線で確かめた。
-- 絵: 気動車は両端に運転席（前面ガラス）、付随車は両端に貫通扉の窓。クリーム色の車体に緑の帯、床の下に暗い台車の帯。
-- **隣の線路**（[#104](https://github.com/128-bit-net/pak256/issues/104)）: 太くした車両を、1 タイル隣り合う 2 本の線路の 90° の曲がりで走らせても、はみ出しは隣の線路に届かなかった（[記録](records/2026-11-26_scale-check.md)）。
-- **曲がり・坂**（[#71](https://github.com/128-bit-net/pak256/issues/71)。画面は [記録](records/2026-11-25_rail-leftovers.md)）: 車体は 1 枚の絵で、曲がりの角のタイルでは進む向きの斜めに描かれる。AMI の線路の 90° の曲がりは 1 タイルの中で折れるので、20m（`length=12`）の車体は角の外へはみ出して草地に掛かって見える（付随車との継ぎ目も折れない）。坂では車体が水平のまま走り、1 段の坂をまたぐ継ぎ目に段差が出るが、車輪はどちらの車もレールの上に乗った。**直さない**: 1 両 1 枚の絵はこの本体の決まりで、はみ出しを無くすには車両を短くして両数を増やすか、車両ごとに曲がり用の絵を足すしかなく、仮の絵の段階では釣り合わない。見えたことは記録に残した。
+- **大きさと描き方**: 20m → `length=12`、512 のセル。車輪の下端は地面の高さ（`tools/vehicles.py` の `RAIL_WHEEL_DROP_PX = 0`）。線路の中心に描く（`footprint(…, centered=True)`）。気動車は両端に運転席（前面ガラス）、付随車は両端に貫通扉の窓。クリーム色の車体に緑の帯、床の下に暗い台車の帯。幅と高さは、描いた値で 3.9m・4.3m。
 - 旅客は、駅（`pak256_train_station`。[stations.md](stations.md)）で積み降ろす。信号（`pak256_rail_signal`。[signals.md](signals.md)）を置き、1 本の線路に複数の編成を走らせる試験は `tools/vehicle_check/signal.nut`（#73）。車庫は AMI の `ami_rail_depot`（`ami_rail.pak`）。
 
 ## 路面電車
@@ -108,14 +101,11 @@
 | `pak256_tram` | 路面電車 / Tram | `Passagiere` | 12m・2.2m・3.5m | 7 | 72 | 50 | 113 | 110 | 18 | 1308000 | 55 | 1930 |
 
 - **値の目安**: pak128 の路面電車（`MHz_TRAM_1930`）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（石炭のトラックと同じ扱い。法律の専門家には確かめていない）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1925）。値の釣り合いは roadmap の段階 4 で見直す。
-- **架線**: `engine_type` は `electric`。AMI の `ami_tram_catenary`（`ami_tram.pak`。`waytype=tram_track`・電化。[#189](https://github.com/128-bit-net/pak256/issues/189)）を張った軌道だけを走る。架線は**線路のツールバー**の架線（`wayobjs(2)`）に並ぶ（本体が `tram_track` の way-object を `track` として扱う）。撤去は線路のツールバーの架線の撤去（[config.md](config.md)。スクリプトで確かめた。ボタンを押して置く操作は確かめていない）。橋・トンネル・高架の架線は無い。屋根の上の集電装置（くの字の腕と舟）は、架線のトロリ線の高さ（地面から約 48px）に届く高さに描く（`draw_tram.py` の `WIRE_PX`）。
-- **架線の無い所**（2026-11-27、OTRP v64。[記録](records/2026-11-27_ami189.md)）: 車庫を含めて架線が無いと、スクリプトでは編成を作れるが車庫から出ない（車庫の窓で買えるかは見ていない）。道路の区間と車庫だけに張ると、架線の切れる手前の停留所で止まり「運行できる経路がありません」と出る。
+- **架線**: `engine_type` は `electric`。AMI の `ami_tram_catenary`（`ami_tram.pak`。`waytype=tram_track`・電化。[#189](https://github.com/128-bit-net/pak256/issues/189)）を張った軌道だけを走る。橋・トンネル・高架の架線は無い。架線のツールバーの置き場所は [config.md](config.md)。集電装置の高さは `draw_tram.py` の `WIRE_PX`（AMI の版を上げて架線の高さが変わったら合わせる）。架線の無い所の動きは [記録](records/2026-11-27_ami189.md)。
 - **#189 より前の保存データ**（v0.5.0 で確かめた）: 読めるが、架線の無い軌道の上の路面電車はその場で止まり「運行できる経路がありません」と出る。軌道と車庫の前に架線を張ると、車庫に戻さなくても走り出す。
-- **大きさ**: [standards.md](standards.md) の 4 章。画面で長さ 79px・幅 22px・高さ 23px（目標 82・22・25）。
-- **位置**: 線路の車両と同じで、車線のずれを付けず軌道の中心（基準点）に描く（`footprint(centered=True)`）。道路に敷いた軌道では道路の中央を走る。本体は路面電車を線路の車両（`rail_vehicle_t`）として扱う。
+- **大きさ**: 画面で長さ 79px・幅 22px・高さ 23px（目標 82・22・25）。軌道の中心に描く（`footprint(centered=True)`）。
 - **連結**: `constraint` は、単独か路面電車どうしだけ（`none` と `pak256_tram`）。本体は線路の車庫でも路面電車を扱うが、気動車とはつながない。
-- 煙・引退年は書かない。発車の音は [sound.md](sound.md)。郵便・貨物の路面電車は無い。
-- **曲がり**: 車体は 1 枚の絵で、角のタイルでは進む向きの斜めに描かれる。`length=7` は 1 タイルの半分より短く、AMI の路面軌道の 90° の曲がりで車体は軌道の内側へ少し寄るが、道路の舗装の中に収まる。2 両連結では継ぎ目が折れない（[記録](records/2026-11-26_tram.md)）。1 段の坂では車体が水平のまま走り、目立つ沈みや浮きは無い（東西の向き。[#176 の記録](records/2026-11-27_standards-8-2.md)）。
+- 煙・引退年は書かない。発車の音は [sound.md](sound.md)。郵便・貨物の路面電車は無い。曲がりと坂の見え方はサイトの「線路の車両」。
 
 ## 船
 
@@ -145,8 +135,7 @@
 - **値の目安**: pak128 のモノレールの車両 `PMNV-TC-1_Turbo_Car` の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名・連結の指定は写していない（扱いは線路の車両と同じ）。登場年は pak256 の開始年に合わせて 1930（pak128 は 1985）。引退年は書かない。
 - **動力**: `engine_type: diesel`。電化（AMI の `ami_monorail_power`）を張らなくても走るようにした。
 - **連結**: 指定は無い。1 両で走り、何両でもつなげる。
-- **長さと位置**: 線路の車両と同じ決まり（15m → `length=9`、軌道の中心に描く、車体の前の端が基準点）。どの向きも 256 のセルに収まる。
-- **大きさ**: 幅と高さは線路の車両の倍率（1.40・1.20）で描く（幅 4.2m・高さ 6.0m）。モノレールの手本の絵は測っていない（pak128.Japan の手本との比べは無い）。
+- **大きさ**: 15m → `length=9`、256 のセル。幅と高さは線路の車両の倍率で描く（幅 4.2m・高さ 6.0m）。手本は測っていないので、目標は決めていない。
 - **桁との合わせ方**: AMI の桁は幅 2.24m・上面 1.85m。車体の裾（スカート）を地面まで下ろして桁の側面を隠し、床の下面を 2.4m にした。車体の端の面は桁の通る所を空けた。
 - **懸垂式**: AMI の懸垂式（`ami_monorail_suspended_*`）も同じ `monorail_track` なので、ツールバーに出てこの車両も走れるはずだが、絵は跨座式用なので合わない（ゲームでは確かめていない）。
 - **ゲームでの確かめ**: `tools/vehicle_check/monorail_run.py`（`monorail.nut`・`monorail_city.nut`）が、地上・高架・トンネル・曲がりの 4 本の線を作って撮り、運んだ数と収支を出す。画面と結果は[記録](records/2026-11-26_monorail.md)。
@@ -169,7 +158,7 @@
 
 ## 決めていないこと
 
-- 線路の車両の、画面で縦向きの斜め・分岐のタイルで斜めになる瞬間の見え方（直線・90° の曲がり・1 段の坂は上の「曲がり・坂」。分岐・横向きの斜め・2 段の坂は [#176 の記録](records/2026-11-27_standards-8-2.md)）。
-- 逆向き運転の `reverse_base_offset`（上の「前後の位置（細目）」と [standards.md](standards.md) の 4 章）。線路の終点での折り返し（編成の向きを入れ替えない通常の折り返し）では、前後対称の絵で崩れは見えなかった。
+- 線路の車両の、画面で縦向きの斜め・分岐のタイルで斜めになる瞬間の見え方（サイトの「線路の車両」の「確かめていないこと」）。
+- 逆向き運転の `reverse_base_offset`（上の「前後の位置（細目）」）。線路の終点での折り返し（編成の向きを入れ替えない通常の折り返し）では、前後対称の絵で崩れは見えなかった。
 - 2 両に分けて連結する連節バスの曲がりの見え方（連節バスは pak256 にまだ無い。1 枚の長いバス `length=14` の仮の物は [#176 の記録](records/2026-11-27_standards-8-2.md) で撮った）。
 - 追い越し（OTRP の `overtaking_base_offset`。既定では左側通行のずれと同じ値を足す）のときの車線の位置。
