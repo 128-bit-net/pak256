@@ -1,4 +1,4 @@
-"""作る人向けの仕様の寸法の図を描く（MIT）。
+"""アドオン作者向けの仕様の寸法の図を描く（MIT）。
 
 使い方（リポジトリの直下で。Pillow が要る）:
     python -X utf8 site/figures/draw_spec_figures.py

@@ -194,13 +194,14 @@ CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.gi
 
 ## 公開のサイト
 
-遊ぶ人とアドオンを作る人が読むサイトは、`site/` を [VitePress](https://vitepress.dev/) で組み、GitHub Pages（https://128-bit-net.github.io/pak256/ ）に公開する（[#200](https://github.com/128-bit-net/pak256/issues/200)）。
+遊ぶ人とアドオン作者が読むサイトは、`site/` を [VitePress](https://vitepress.dev/) で組み、GitHub Pages（https://128-bit-net.github.io/pak256/ ）に公開する（[#200](https://github.com/128-bit-net/pak256/issues/200)）。
 
 - `docs/` と分けて置く。`docs/` はリポジトリで作業する人の文書と記録（画像が多い `docs/records/` はサイトに載せない）で、docs-lint は `docs/` で `index.md` を禁じるが、サイトのトップは `index.md` が要る。
 - `.github/workflows/site.yml` が、PR で組めることを確かめ、main への push で公開する。公開には、リポジトリの設定の Pages の Source が「GitHub Actions」である必要がある。
 - 手元で見るときは `site/` で `npm ci` の後に `npm run dev`。切れた内部リンクは `npm run build` が失敗にする（docs-lint は `site/` を検査しない）。
+- 本文で `#RRGGBB` をコードとして書くと、前に色の見本の四角が付く（`site/.vitepress/color-chips.ts`）。
 - 版を公開したら、`site/index.md` の「今の版と状態」の版の名前と日付を直す。
-- **アドオンを作る人向けの仕様は `site/spec/` に置く**（#177）。同じ決まりを `docs/` に重ねて書かず、`docs/` はサイトへリンクする。`docs/` に残すのは、この pak の物の値の表（検査が読む）と、開発の手順。
+- **アドオン作者向けの仕様は `site/spec/` に置く**（#177）。同じ決まりを `docs/` に重ねて書かず、`docs/` はサイトへリンクする。`docs/` に残すのは、この pak の物の値の表（検査が読む）と、開発の手順。
 - 寸法の図は `site/figures/draw_spec_figures.py` で描き直す（Pillow と日本語の書体が要る。出力 `site/public/spec/` はコミットする）。画面の写真（`scale-road.png`・`scale-rail.png`）は [記録](records/2026-11-27_spec-common.md)。
 
 ## 初期マップ

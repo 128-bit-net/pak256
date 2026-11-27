@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { colorChips } from './color-chips'
 
 const repo = 'https://github.com/128-bit-net/pak256'
 
@@ -9,17 +10,18 @@ export default defineConfig({
   // GitHub Pages のプロジェクトサイト（https://128-bit-net.github.io/pak256/）で配信する。
   base: '/pak256/',
   cleanUrls: true,
+  markdown: { config: colorChips },
   themeConfig: {
     nav: [
       { text: '導入方法', link: '/install' },
-      { text: '作る人向けの仕様', link: '/spec/' },
+      { text: 'アドオン作者向けの仕様', link: '/spec/' },
       { text: 'ダウンロード', link: `${repo}/releases/latest` },
     ],
     sidebar: [
       { text: 'pak256.LongScale とは', link: '/' },
       { text: '導入方法', link: '/install' },
       {
-        text: '作る人向けの仕様',
+        text: 'アドオン作者向けの仕様',
         items: [
           { text: '入口', link: '/spec/' },
           { text: '縮尺と大きさ', link: '/spec/scale' },

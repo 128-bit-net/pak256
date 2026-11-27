@@ -2,18 +2,18 @@
 
 ## 要る本体
 
-確かめた本体は **OTRP v64 の Windows 版**です。本家の Simutrans（125.0.1 など）と、Windows 以外の環境では確かめていません。
+要る本体は **OTRP の最新版の Windows 版**です。最新版は、配布元の Releases の一覧の一番上の版（プレリリースを含む）を指します。本家の Simutrans と、Windows 以外の環境では確かめていません。
 
-OTRP は [配布元の Releases](https://github.com/teamhimeh/simutrans/releases/tag/v64) から入手します。本体の入れ方は [OTRP の wiki](https://github.com/teamhimeh/simutrans/wiki/OTRP-Home) など、配布元の案内を見てください。
+OTRP は [配布元の Releases](https://github.com/teamhimeh/simutrans/releases) の一覧の一番上の版を入手します。「Latest」の印が付いた版が、一番上より古いことがあります。本体の入れ方は [OTRP の wiki](https://github.com/teamhimeh/simutrans/wiki/OTRP-Home) など、配布元の案内を見てください。
 
 ## pak を置く
 
 1. [Releases](https://github.com/128-bit-net/pak256/releases/latest) から `pak256-<版>.zip` をダウンロードします。`Source code` はゲームでは使いません。
-2. zip を展開すると `pak256` というフォルダができます。これを、本体の実行ファイル（`sim-WinGDI64-OTRPv64.exe`）があるフォルダに置きます。
+2. zip を展開すると `pak256` というフォルダができます。これを、本体の実行ファイルがあるフォルダに置きます。
 
 ```
 本体のフォルダ/
-├─ sim-WinGDI64-OTRPv64.exe
+├─ （本体の実行ファイル）
 ├─ pak256/          ← zip から展開したフォルダ
 │   ├─ *.pak
 │   ├─ config/
@@ -21,17 +21,10 @@ OTRP は [配布元の Releases](https://github.com/teamhimeh/simutrans/releases
 └─ …
 ```
 
-## 起動する
+## ゲームの画面での操作
 
-pak を指定して起動します。効果音を鳴らすには `-sound` も付けます。
-
-```
-sim-WinGDI64-OTRPv64.exe -objects pak256/ -sound
-```
-
-- `-sound` を付けないと、本体は消音で始まります。ゲームの中の音の設定で消音を外すこともできます。
-- 毎回入力しないように、この 1 行を書いたバッチファイル（`.bat`）を本体のフォルダに置くと便利です。
-- 設定と保存データを本体のフォルダに置きたいときは、`-singleuser` も付けます。
+- **pak を選ぶ**: 起動の画面で pak を選ぶように出たら、`pak256` を選びます。
+- **効果音を鳴らす**: 本体は効果音を消した状態で始まります。ツールバーの左端の歯車（ゲームオプション）を押し、出てきた並びのスピーカーのボタンで「サウンド設定」の窓を開いて、「効果音オフ」のチェックを外します。ゲームを起動し直すと消えた状態に戻るので、起動のたびに外します。
 
 ## 版を上げる
 
@@ -41,6 +34,6 @@ sim-WinGDI64-OTRPv64.exe -objects pak256/ -sound
 
 α版の間は、版を上げると**前の版の保存データが読めなかったり、置いた物が消えたりすることがあります**。
 
-- 版を上げる前に、保存データを別の場所に写しておいてください。保存データは `save` フォルダにあります。`-singleuser` を付けて起動しているときは本体のフォルダの中、付けていないときは多くの場合「ドキュメント」の `Simutrans` フォルダの中です。
+- 版を上げる前に、保存データを別の場所に写しておいてください。保存データは `save` フォルダにあります。多くの場合は「ドキュメント」の `Simutrans` フォルダの中です。本体の `config/simuconf.tab` で `singleuser_install = 1` にしているときは、本体のフォルダの中です。
 - どの版の保存データを引き継げるかは、各版の [Release の説明](https://github.com/128-bit-net/pak256/releases) に書きます。使っていた版より後の版の説明を順に確かめてください。
 - 書いていない版の保存データは、確かめていません。
