@@ -190,7 +190,7 @@ CI は `.github/workflows/ci.yml`。文書の検査（docs-lint）は別の `.gi
 - CI の makeobj は本家 125.0 の Linux 版で、版は手元の Windows 版と同じ 60.12（CI のログの「Makeobj version」。2026-11-26 に確かめた）。Release の pak も CI のこの makeobj で組まれる。
 - makeobj は本家（`simutrans/simutrans`）のリリースの Linux 版（`ci.env` の `MAKEOBJ_TAG`）。道具の版は `ci.env` に置き、workflow に直に書かない。
 - `v*` のタグを打つと、同じ zip を添えた Release を **下書き** で作る。説明は手で書いて公開する。タグに `-` を含むもの（`v0.0.0-test` など）はプレリリースにする。
-- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.9`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
+- AMI は `vendor/ami/ami.env` で固定した版（今は `ami-256-alpha.10`）が同梱される。`ami.env` を空にすると入らない。AMI の pak を入れるには、`LICENSE.md` の例外と `CREDITS.md` の行（#7 で済み）が要る。`package.py` は、許諾の文が無ければ止まる。
 
 ## 公開のサイト
 
@@ -249,7 +249,7 @@ CI が `tools/check_demo.py` を流し、`demo.sve` が使う `pak256_`・`ami_`
 AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入れない。版を固定して取ってくる。
 
 - `vendor/ami/ami.env` に AMI の版・zip の置き場の URL・その SHA-256 を書く。`tools/fetch_ami.py`（`tools/build.py` から呼ぶ）が zip を取り、SHA-256 を確かめて、中の pak を `build/pak/` に置く。GitHub の Release の URL は `gh release download` で取る（それ以外の URL は urllib）。取った zip は `build/cache/` に残す（SHA-256 が合わなければ消して止まる）。
-- 版は `ami.env` で固定してある（`ami-256-alpha.9`。道の縁を横 2px・縦 1px の段にする直し（#111。AMI #322）、台の上の十字の草の線と坂の継ぎ目の奥の縁の直し（#134。AMI #340）、模様の粒を大きさに合わせる直し（AMI #311）、色の舗装・黄色の中央線・転車台（AMI #313・#314・#331）、白線が向きを変える継ぎ目の欠けの直し（AMI #354）、コンクリートの粒を大きさに合わせる直し（AMI #355）、雪の道の基盤の版の下の端の暗い点線の直し（#159。AMI #360）を含み、AMI の道路の停留所は無い。alpha.9 は、路面軌道の架線（AMI #376）・雪の生活道路のカーブの点線の直し（#378）・256 のコンクリートのしみと粒の直し（#379）・リニア（#371）・景観の補助（#372）・狭軌（#370）・跨座式の直角の曲がりの桁の直し（#375）を足した（#189）。残った見た目の崩れは[記録](records/2026-11-27_ami189.md)。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 9 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
+- 版は `ami.env` で固定してある（`ami-256-alpha.10`。道の縁を横 2px・縦 1px の段にする直し（#111。AMI #322）、台の上の十字の草の線と坂の継ぎ目の奥の縁の直し（#134。AMI #340）、模様の粒を大きさに合わせる直し（AMI #311）、色の舗装・黄色の中央線・転車台（AMI #313・#314・#331）、白線が向きを変える継ぎ目の欠けの直し（AMI #354）、コンクリートの粒を大きさに合わせる直し（AMI #355）、雪の道の基盤の版の下の端の暗い点線の直し（#159。AMI #360）を含み、AMI の道路の停留所は無い。alpha.9 は、路面軌道の架線（AMI #376）・雪の生活道路のカーブの点線の直し（#378）・256 のコンクリートのしみと粒の直し（#379）・リニア（#371）・景観の補助（#372）・狭軌（#370）・跨座式の直角の曲がりの桁の直し（#375）を足した（#189）。alpha.10 は、路面軌道の架線の曲がりの柱を弧の外側へ（AMI #393）・リニアの行き止まりの手前の側壁を奥の絵へ（#394）・英語の名前の訳と道路標識の日本語の訳（#396）を足した（#219）。残った見た目の崩れは[記録](records/2026-11-27_ami219.md)。256 版の zip で、`ami_road.pak`・`ami_rail.pak` など 9 つの pak が入る。`ami-256-alpha.1` は `ami_road.pak` だけだった）。AMI の版を上げるときは、`ami.env` の 3 つ（版・URL・SHA-256）と、組んだ元の `AMI_COMMIT` を書き換える（下の `upload` が書く）。手元で組んだ AMI の pak を試すときは、フォルダか zip を環境変数 `AMI_DIST` で渡す（`ami.env` より優先する）。
 - **zip の置き場**（2026-11-25、ユーザーの決定）: 256 版は AMI（`128na/simutrans-addon-dev`）の Release に出さない（256 はローカルのみ）。pak256 の非公開の Release（タグ `vendor-<AMI の版>`、プレリリース・latest にしない。配布物ではない）に zip を 1 つ置き、`ami.env` の URL がそこを指す。取るのは `gh`（CI は workflow の `GH_TOKEN` に `github.token`、手元は `gh auth login`）。AMI の版を上げるときは、下の「AMI の 256 版を組む」の手順で zip を組んで上げ、`ami.env` を書き換える。
 - どちらの取り方でも、pak を 1 つも取れなければ止まる。どちらも指定が無いときは、AMI 抜きで組む。
 - AMI の pak を入れたときは、AMI の許諾の文 `vendor/ami/ami_license.txt`（AMI の `addons/ami/release/license.txt` の写し）を `build/ami_license.txt` に写す。AMI の zip に許諾の文が入っているかに頼らない（256 版の zip は pak だけ）。無ければ止まる。AMI の許諾の文が変わったら写し直す。
@@ -264,7 +264,7 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
 
 - `vendor/ami/text/` に、AMI の `addons/ami/release/text/` の訳を中身を変えずに写す。元のコミットと各ファイルの blob の SHA は `vendor/ami/text.env`。
 - 写すのは `python -X utf8 tools/build_ami256.py text`（`gh` で `ami.env` の `AMI_COMMIT` の物を取る。AMI の clone は要らない）。AMI の版を上げたら流す。流し忘れは `tools/test_ami_text.py` が止める。
-- 今の AMI の訳は日本語だけ。AMI に `en_ami.tab` などが足されたら、同じ道具が `en.ami.tab` として写し、ほかの直しは要らない。
+- 今の AMI の訳は日本語（`ja.ami.tab`）と英語（`en.ami.tab`。#219）で、本体はファイル名の頭の 2 文字で言語を決める。AMI にほかの言語が足されたら、同じ道具が写し、ほかの直しは要らない。
 - 名前は `ja_ami.tab` を `ja.ami.tab` に変える。本家 125.0.1 の `translator.cc`（`load_files_from_folder`）は `ja.xxx.tab` か `xxx_ja.tab` の形だけを読み、`ja_ami.tab` は読まない（2026-11-27、コードの読み。本家のゲームでは未確認）。OTRP は名前の頭 2 文字で読むので、どちらも読める。
 - `build/pak/` に `ami_*.pak` があるときだけ、`package.py` と `game.py` が pak の `text/` に入れる（`--no-ami` で組んだ物には入らない）。
 
@@ -281,7 +281,7 @@ AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roa
   - 256 だけのために AMI の道具を直す必要が出たとき（#81 など）は、`--only` の試しで直し方を確かめ、128 の出力が変わらないことを確かめてから、進捗管理に知らせる。AMI の側で起票して直し、その後に `AMI_COMMIT` を上げる。pak256 の側に AMI の道具の直しを持たない。
 - **組む段**（`build`。止まったら worktree を残すので、原因を直して `--resume --from <段>` で続ける。済んだ段は worktree の隣の `.steps.json` に控え、前の段が済んでいない `--from` は止める）:
   1. `dat`: `blender/ami_dat.py` で `src256/` の dat を書く。コミット済みの dat と（行末を除いて）違えば知らせる（AMI の書き忘れ。組む pak はこの dat で作る）。
-  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（`60820de` で 258 対象。AMI の全シート（`src/` に絵のある物）から `SCALED_EXCLUDED`（今は空）を除き、基盤の版と一緒に描かれる壁の単独の名前も除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描いた対象が自分のアイコンを書くときに、まだ描いていないほかのシート（twin の壁の front など）を読んで落ちることがある（シートは描けている）ので、失敗した対象は全部を描いた後に、同じ段の順で 1 回だけ描き直し、それでも落ちたら止まる（#83 の試しで 2 対象が落ちた）。描き直した対象はマニフェストの `retried` に書く（1 回目のログは上書きされる）。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
+  2. `render`: `render_parallel.py` で `catalog.SCALED_TARGETS`（`ca46424` で 258 対象。AMI の全シート（`src/` に絵のある物）から `SCALED_EXCLUDED`（今は空）を除き、基盤の版と一緒に描かれる壁の単独の名前も除いた物）を描く。先に描いた物の絵を読む物（踏切のシート 8 枚・跨座式のトンネル）は 2 回目にまとめて描く。描いた対象が自分のアイコンを書くときに、まだ描いていないほかのシート（twin の壁の front など）を読んで落ちることがある（シートは描けている）ので、失敗した対象は全部を描いた後に、同じ段の順で 1 回だけ描き直し、それでも落ちたら止まる（#83 の試しで 2 対象が落ちた）。描き直した対象はマニフェストの `retried` に書く（1 回目のログは上書きされる）。描画の枠はほかの作業者と分け合う（AMI の `render_slots.py`）。全部で 15〜25 分ほど。
   3. `icons`: `blender/icons.py` を全部のシートに流す（`render.py` は描いたシートの分しか書かない）。Blender は例外でも終了コード 0 なので、ログ（`work/icons.log`）の `Traceback` でも止める。
   4. `check`: AMI の 256 の検査（`check_scaled`・`check_icons`・`check_cells`・`check_crossing`・`check_depot`・`check_embankment`・`check_snow_edge`・`check_curve_join`。`check_cells.py`・`check_snow_edge.py`・`check_curve_join.py` の `--self-test`（自己検査は、わざと壊した絵の `ERROR` の行を出して通る）、`dat_lint_extra.py`（`--self-test` と `src256`）、`dat_linter lint --tile-size 512`（`src256`）。AMI の `check.sh` の `CHECK_256_FULL=1` の 256 の分。ほかに pak256 の `check_way_edges.py` で道の縁の段を見る。`dat_linter` は環境変数 `DAT_LINTER_BIN`・`PATH`・`check.sh` の既定の置き場（`~/.cache/simutrans-addon-dev/ci-tools/dat_linter/`。AMI の clone で `check.sh` を一度流すと入る）の順に探し、無ければ描く前に止まる）。
   5. `build`: `build.py`（`dist256/` に pak。makeobj の警告で止まる。makeobj は `PATH` のもの）。
