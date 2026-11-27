@@ -9,7 +9,7 @@ OTRP の fork のコードを読み、音の窓はゲーム（OTRP v64）でも�
 - `-sound` が無いと本体は消音で始まる（`simmain.cc`）。前の回に窓で外していても、起動し直すと消音に戻る（コードを読んだ内容。起動し直しては試していない）。
 - pak を指定しないと、pak を選ぶ画面が出ることがある（`simmain.cc`・`gui/pakselector.cc`。pak が 1 つだけなら出ないことがある）。ゲームでは試していない。
 - 保存データの場所は、`config/simuconf.tab` の `singleuser_install` が 1 なら本体のフォルダ（`simmain.cc`）。
-- `-mute` も `-sound` も無い起動で、ツールバーの左端の歯車から「サウンド設定」の窓が開き、「効果音オフ」にチェックが入っていた。
+- `-mute` も `-sound` も無い起動で、ツールバーの左端の歯車から「サウンド設定」の窓が開き、「効果音オフ」にチェックが入っていた。窓が出る前の「ゲームオプション」の並び（スピーカーのボタン）は [GUI の絵の画面](2026-11-25_toolbar-icons-screens/2_settings.png)。
 
 ![サウンド設定の窓](2026-11-27_site-fixes-screens/sound.png)
 
