@@ -1,0 +1,167 @@
+"""作る人向けの仕様の寸法の図を描く（MIT）。
+
+使い方（リポジトリの直下で。Pillow が要る）:
+    python -X utf8 site/figures/draw_spec_figures.py
+出力は site/public/spec/ の PNG で、コミットする（CI では描かない）。
+文字の書体は環境の日本語の書体を使うので、環境が違うと文字の画素は変わる。
+"""
+import math
+import os
+
+from PIL import Image, ImageDraw, ImageFont
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "spec")
+FONTS = (
+    "C:/Windows/Fonts/meiryo.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+)
+
+TILE_M = 26.4
+HEIGHT_PX_PER_M = 5.94
+
+BG = (250, 250, 248)
+INK = (30, 30, 30)
+CELL = (110, 110, 120)
+GROUND = (170, 205, 150)
+MARK = (200, 40, 40)
+DIM = (30, 80, 170)
+
+
+def font(size):
+    for path in FONTS:
+        if os.path.exists(path):
+            return ImageFont.truetype(path, size)
+    raise SystemExit("日本語の書体が見つからない。FONTS に足す。")
+
+
+def text(d, xy, s, size=15, fill=INK, anchor="la"):
+    d.text(xy, s, font=font(size), fill=fill, anchor=anchor)
+
+
+def dim_line(d, a, b, fill=DIM):
+    """両端に短い縦線の付いた寸法線。"""
+    d.line([a, b], fill=fill, width=2)
+    n = math.hypot(b[0] - a[0], b[1] - a[1])
+    ox, oy = -(b[1] - a[1]) / n * 6, (b[0] - a[0]) / n * 6
+    for x, y in (a, b):
+        d.line([(x - ox, y - oy), (x + ox, y + oy)], fill=fill, width=2)
+
+
+def cell(d, ox, oy, size, k):
+    """左上が (ox, oy) の size px のセルを k 倍で描き、基準点を返す。"""
+    shift = (size - 256) // 2
+
+    def p(x, y):
+        return (ox + (x + shift) * k, oy + (y + shift) * k)
+
+    d.rectangle([ox, oy, ox + size * k, oy + size * k], fill=(255, 255, 255), outline=CELL, width=2)
+    if size == 512:
+        for i in range(0, 16, 2):
+            # 中央の 256 の枠は破線
+            a, b = shift + 256 * i / 16, shift + 256 * (i + 1) / 16
+            for y in (shift, shift + 256):
+                d.line([(ox + a * k, oy + y * k), (ox + b * k, oy + y * k)], fill=CELL)
+            for x in (shift, shift + 256):
+                d.line([(ox + x * k, oy + a * k), (ox + x * k, oy + b * k)], fill=CELL)
+    top, right, bottom, left = p(128, 128), p(256, 192), p(128, 256), p(0, 192)
+    d.polygon([top, right, bottom, left], fill=GROUND, outline=INK)
+    base = p(128, 192)
+    d.line([(base[0] - 10, base[1]), (base[0] + 10, base[1])], fill=MARK, width=2)
+    d.line([(base[0], base[1] - 10), (base[0], base[1] + 10)], fill=MARK, width=2)
+    return base
+
+
+def tile_and_cell():
+    img = Image.new("RGB", (1300, 720), BG)
+    d = ImageDraw.Draw(img)
+
+    k = 1.5
+    ox, oy = 130, 90
+    text(d, (ox, 30), "256 のセル（1 タイル。自前の物の既定）", 20)
+    base = cell(d, ox, oy, 256, k)
+    text(d, (base[0] + 14, base[1] - 24), "基準点 (128, 192)", 15, MARK)
+    for xy, label, anchor in (
+        ((128, 128), "上 (128, 128)", "md"),
+        ((0, 192), "左 (0, 192)", "rd"),
+        ((256, 192), "右 (256, 192)", "ld"),
+        ((128, 256), "下 (128, 256)", "ld"),
+    ):
+        text(d, (ox + xy[0] * k, oy + xy[1] * k - 6), label, 14, INK, anchor)
+    y = oy + 256 * k + 20
+    dim_line(d, (ox, y), (ox + 256 * k, y))
+    text(d, (ox + 128 * k, y + 8), "タイルの幅 256px（= 26.4m の正方形の対角線）", 15, DIM, "ma")
+    x = ox - 82
+    dim_line(d, (x, oy + 128 * k), (x, oy + 256 * k))
+    text(d, (x - 6, oy + 192 * k), "128px", 15, DIM, "rm")
+
+    k = 1.0
+    ox, oy = 710, 90
+    text(d, (ox, 30), "512 のセル（大きな建物・長い車両）", 20)
+    base = cell(d, ox, oy, 512, k)
+    text(d, (base[0] + 14, base[1] - 24), "基準点 (256, 320)", 15, MARK)
+    text(d, (ox + 132, oy + 134), "破線 = 中央の 256 のセル", 14, CELL)
+    text(d, (ox + 256, oy + 400), "256 のセルの座標に +128（位置合わせ ,-128,-128）", 15, INK, "ma")
+    y = oy + 512 + 20
+    dim_line(d, (ox, y), (ox + 512, y))
+    text(d, (ox + 256, y + 8), "512px", 15, DIM, "ma")
+    img.save(os.path.join(OUT, "tile-and-cell.png"), optimize=True)
+
+
+def scale():
+    img = Image.new("RGB", (1000, 660), BG)
+    d = ImageDraw.Draw(img)
+    k = 2.5
+    # タイルの画面の座標。(u, v) はタイルの 2 辺に沿った 0..1 の位置。
+    cx, top = 400, 230
+
+    def p(u, v, h=0.0):
+        return (cx + (u - v) * 128 * k, top + (u + v) * 64 * k - h * HEIGHT_PX_PER_M * k)
+
+    text(d, (30, 24), "1 タイル = 16 単位 = 26.4m 四方（1 単位 = 1.65m）", 20)
+    text(d, (30, 56), "画面の px は 256px のタイルでの値（図は 2.5 倍）", 15)
+    d.polygon([p(0, 0), p(1, 0), p(1, 1), p(0, 1)], fill=GROUND, outline=INK)
+
+    # 例の建物: 9m × 7m、高さ 6m の箱
+    u0, v0 = 0.28, 0.34
+    u1, v1 = u0 + 9 / TILE_M, v0 + 7 / TILE_M
+    h = 6.0
+    d.polygon([p(u0, v1), p(u1, v1), p(u1, v1, h), p(u0, v1, h)], fill=(225, 215, 200), outline=INK)
+    d.polygon([p(u1, v0), p(u1, v1), p(u1, v1, h), p(u1, v0, h)], fill=(185, 175, 162), outline=INK)
+    d.polygon([p(u0, v0, h), p(u1, v0, h), p(u1, v1, h), p(u0, v1, h)], fill=(160, 90, 70), outline=INK)
+    text(d, (p(u1, v1)[0] - 4, p(u1, v1)[1] + 46), "例: 9m × 7m、高さ 6m の箱", 15, INK, "ma")
+
+    # 辺の長さ
+    a, b = p(0, 1), p(1, 1)
+    a, b = (a[0] - 10, a[1] + 18), (b[0] - 10, b[1] + 18)
+    dim_line(d, a, b)
+    _, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+    text(d, (30, my + 50), "辺 26.4m", 16, DIM, "la")
+    text(d, (30, my + 76), "辺に沿った 1m ≒ 横 4.85px・縦 2.42px", 15, DIM, "la")
+
+    # 対角線
+    y = p(1, 1)[1] + 60
+    dim_line(d, (p(0, 1)[0], y), (p(1, 0)[0], y))
+    text(d, (cx, y + 10), "対角線 256px ≒ 37.3m（この向きは 1m ≒ 6.86px）", 15, DIM, "ma")
+
+    # 高さの目盛り
+    x = 800
+    ground = p(1, 0)[1]
+    for m in range(0, 21, 5):
+        yy = ground - m * HEIGHT_PX_PER_M * k
+        d.line([(x - 6, yy), (x + 6, yy)], fill=DIM, width=2)
+        text(d, (x + 12, yy), "%dm = %dpx" % (m, round(m * HEIGHT_PX_PER_M)), 15, DIM, "lm")
+    d.line([(x, ground), (x, ground - 20 * HEIGHT_PX_PER_M * k)], fill=DIM, width=2)
+    text(d, (x - 20, ground + 20), "高さ 1m ≒ 5.94px", 16, DIM, "la")
+    img.save(os.path.join(OUT, "scale.png"), optimize=True)
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    tile_and_cell()
+    scale()
+    print("OK:", os.path.normpath(OUT))
+
+
+if __name__ == "__main__":
+    main()
