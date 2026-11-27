@@ -55,8 +55,8 @@ pak を組むときに WAV は要らない（名前だけを持ち、ゲーム�
 python -X utf8 tools/vehicle_check/sound_run.py --env <検証環境> --port 47920 --scene bus
 ```
 
-場面は `bus`・`coal`・`plant`・`rail`・`tram`・`monorail`・`air`・`ship`。停留所や産業の上にマウスのカーソルを置いて聞き、Enter で閉じる。
-`--check` を付けると、鳴らさずに停留所からの発車だけを読んで閉じる。
+場面は `bus`・`coal`・`plant`・`rail`・`tram`・`monorail`・`air`・`ship`。停留所や産業の上にマウスのカーソルを置いて聞き、Enter で閉じる（端末で流す）。`plant` の発電所の音は、石炭が届いてから鳴る。
+`--check` を付けると、鳴らさずに画面の中央の近くの停留所からの発車だけを読んで閉じる。
 
 ## sound.tab
 

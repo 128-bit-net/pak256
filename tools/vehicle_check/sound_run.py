@@ -8,7 +8,9 @@
 場面: bus（バスと郵便のトラック）・coal（石炭のトラックと炭鉱）・plant（石炭のトラックと発電所）・
 rail（気動車）・tram・monorail・air（旅客機）・ship（船 2 種）
 
---check は耳を使わない確かめ: 鳴らさずに起動し、どれかの編成が停留所から出たことを読んで、画面を撮って閉じる。
+plant の発電所の音は、トラックが石炭を届けて生産が始まってから鳴るので、しばらく待つ。Enter を待つので、端末で流す。
+
+--check は耳を使わない確かめ: 鳴らさずに起動し、画面の中央の近くの停留所から編成が出たことを読んで、画面を撮って閉じる。
 """
 import argparse
 import os
@@ -38,9 +40,11 @@ CONVOYS = ('local s=""; foreach (c in world.get_convoy_list()) { local p = c.get
            ' s += p.x + " " + p.y + " " + (t.get_halt() == null ? 0 : 1) + ";"; } return s')
 
 
-def nut(game, name, head="", player_nr=0):
+def nut(game, name, head="", player_nr=0, must_end_ok=True):
     result = game.sq_file(os.path.join(HERE, name), head=head, player_nr=player_nr)
     print(f"[{name}] {result}", flush=True)
+    if must_end_ok and not str(result).rstrip().endswith("ok"):  # 置けなかった場面で無音を待たせない
+        sys.exit(f"[sound] {name} が最後まで通らなかった")
 
 
 def setup(game, scene):
@@ -53,11 +57,11 @@ def setup(game, scene):
     elif scene == "tram":
         head = "OX <- 60; OY <- 60; CARS <- 1;\n"
         nut(game, "tram.nut", head=head)
-        nut(game, "tram_cities.nut", head=head, player_nr=1)
+        nut(game, "tram_cities.nut", head=head, player_nr=1, must_end_ok=False)
     elif scene == "monorail":
         head = "OX <- 40; OY <- 60;\n"
         nut(game, "monorail.nut", head=head)
-        nut(game, "monorail_city.nut", head=head, player_nr=1)
+        nut(game, "monorail_city.nut", head=head, player_nr=1, must_end_ok=False)
     elif scene == "air":
         air_run.setup(game)
     elif scene == "ship":
@@ -68,18 +72,25 @@ def jump(game, spot):
     game.sq("gui.close_all_windows(); gui.jump(coord3d(%d,%d,%d)); gui.set_zoom(3); return 1" % spot)
 
 
-def departed(game, limit):
-    """停留所の上にいた編成が、そこから動くのを limit 秒まで待つ。動いた編成の番号を返す（無ければ None）。"""
+NEAR = 6  # 画面の中央の停留所と見なす距離（縦と横のタイル数の和）
+
+
+def departed(game, spot, limit, water=False):
+    """spot の近くの停留所の上にいた編成が、そこから動くのを limit 秒まで待つ。動いた編成の番号を返す（無ければ None）。
+
+    船は停留所の升でなく隣の水の升に停まるので、water なら spot の隣の升も停留所の上と数える。
+    """
     on_halt = {}
     end = time.monotonic() + limit
     while time.monotonic() < end:
         rows = [tuple(int(v) for v in r.split()) for r in game.sq(CONVOYS).split(";") if r]
         for i, (x, y, halt) in enumerate(rows):
-            if halt:
+            d = abs(x - spot[0]) + abs(y - spot[1])
+            if (halt and d <= NEAR) or (water and d <= 1):
                 on_halt[i] = (x, y)
             elif i in on_halt:
                 return i
-        time.sleep(0.3)
+        time.sleep(1.0)  # 短い間隔で読み続けると run_squirrel が失敗することがある
         game.check_fatal()
     return None
 
@@ -105,7 +116,7 @@ def main():
         game.sq("debug.set_game_speed(%d); return 1" % (4 if args.check else 1))
         jump(game, spot)
         if args.check:
-            i = departed(game, 400)
+            i = departed(game, spot, 400, water=args.scene == "ship")
             print(f"[check] {args.scene}: " + ("停留所から発車した" if i is not None else "発車を見なかった"), flush=True)
             ok = i is not None
         if args.capture:
