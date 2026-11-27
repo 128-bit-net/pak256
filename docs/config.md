@@ -101,6 +101,7 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 - モノレールの道具（`toolbar[8]`。#156。飛行機の次。アイコンはバーの 57 番）は `ways(5,0)`・`ways(5,1)`・`tunnels(5)`・`wayobjs(5)`・軌道の撤去（`general_tool[17]`。アイコンはバーの 56 番）・架線の撤去（`general_tool[33]`）・`buildings(33,5)`（車庫）・`buildings(34,5)`（駅）・`buildings(35,5)`（拡張。今は無い）。高架の切り替え（`general_tool[14]`）は、高架の軌道のボタンが重複して出たので入れていない。
 - リニアの道具（`toolbar[9]`。#189。モノレールの次。アイコンはバーの 59 番）は `ways(6,0)`・`ways(6,1)`（超電導・常電導・チューブ式の地上と高架）・`tunnels(6)`・`wayobjs(6)`（超電導のガイドとチューブ式のチューブ。電化を兼ねる）・軌道の撤去（`general_tool[17]`。アイコンはバーの 58 番）・架線の撤去（`general_tool[33]`）・`buildings(33,6)`（車庫）。リニアの駅と車両は pak256 にも AMI にも無い。
 - 狭軌（AMI の `ami_narrow.pak`。`narrowgauge_track`）は pak には入るが、駅と車両が無いのでツールバーを置かない（#189）。
+- 路面軌道の架線 `ami_tram_catenary`（#189）は、路面電車の段でなく線路の段の架線（`wayobjs(2)`）に並ぶ。本体は `tram_track` の way-object を線路（`wt_rail`）の物として扱う。撤去も線路の段の架線の撤去（`general_tool[33]` の道の種類 2）。
 - 景観の補助（#189。AMI の `ami_scenery.pak`・`ami_road.pak`）は、新しいボタンを足さずに既存の道具に並ぶ。環状交差点の路面表示 `ami_mark_roundabout` と説明用の色の線 `ami_describe_<色>` は路面電車のツールバー（`ways(2,7)`）、高架の説明用の色の線 `ami_describe_<色>_elev` は線路のツールバーの高架（`ways(2,1)`）、盛土の建物 `ami_embankment_building`・`_corner` は編集のツールバーの名所の窓（`dialog_tool[21]`。#189 で足した。公共のプレーヤーのときに出る）。
 - 路面電車の道具（`toolbar[5]`。#153。アイコンはバーの 3 番）は `ways(2,7)`（本体は `tram_track` の way を線路の路面軌道として扱う）・軌道の撤去（`general_tool[17]` の線路。アイコンは線路の撤去と同じ 46 番）・`buildings(33,7)`（車庫）・`buildings(34,7)`（停留所）・`buildings(35,7)`（拡張。今は無い）。`ways(2,7)` には、AMI の `waytype=tram_track` の way がすべて並ぶ（`ami_tram` のほかに、路面表示 `ami_mark_*`・盛土・橋脚。pak256 の側では絞れない）。
 

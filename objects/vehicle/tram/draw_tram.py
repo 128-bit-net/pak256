@@ -46,7 +46,9 @@ WINDOW_M = (1.7, 2.8)  # 窓の下端と上端
 BAND_M = 1.5  # 下の帯の上端
 BOGIE_WIDTH_M = 1.8
 TARGET_PX = (82, 22, 25)  # 長さ・幅は Toden 400（41,11）の 2 倍。高さは屋根まで（3.5m × 1.2 = 約 25px）
-WIRE_PX = 48  # AMI の路面軌道の架線（ami_tram_catenary）のトロリ線の高さ（画面の px。地面から）。集電装置の舟はここに届く
+# AMI の路面軌道の架線のトロリ線の高さ（地面からの画面の px。集電装置の舟はここに届く）。AMI の docs/objects/rail.md の寸法の表の
+# CAT_WIRE_Z（128 でタイルの中心の地面から約 24px。256 は 2 倍）。AMI の版を上げて架線の高さが変わったら合わせる
+WIRE_PX = 48
 COLLECTOR_HALF = 0.055  # 舟の長さの半分（タイルの単位）
 
 # 値は pak128 の路面電車（MHz_TRAM_1930）の機能上の数値に合わせた（docs/vehicles.md の表）
