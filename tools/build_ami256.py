@@ -19,6 +19,8 @@ build: vendor/ami/build.env の AMI_COMMIT（--ref で一度だけ別のコミ�
     --only <対象 ...> は試し: その対象だけを描き、絵のある物だけを組む（BUILD_SKIP_MISSING=1）。置き場には上げられない。
     止まったら worktree を残すので、直してから --resume --from <段> で続ける（済んだ段は worktree の隣の .steps.json に控える）。
     zip の隣の .json に、組んだ元のコミット・済んだ段・AMI の追跡ファイルの変更・Blender と makeobj の版を書く。
+text: vendor/ami/ami.env の AMI_COMMIT の訳（addons/ami/release/text/*.tab）を gh で取り、vendor/ami/text/ に写して、
+    元のコミットとファイルの blob の SHA を vendor/ami/text.env に書く（AMI を上げたら流す。docs/layout.md の「AMI の物の名前の訳」）。
 compare: 2 つの zip の pak の名前・大きさ・物（makeobj list）を比べる。
 upload: dist/ami-256-<版>.zip を pak256 の非公開の Release（タグ vendor-ami-256-<版>、プレリリース）に上げ、vendor/ami/ami.env を書き換える。
 
@@ -27,6 +29,7 @@ upload: dist/ami-256-<版>.zip を pak256 の非公開の Release（タグ vendo
     python -X utf8 tools/build_ami256.py build --version try --only ami_road_local
     python -X utf8 tools/build_ami256.py compare dist/ami-256-alpha.4.zip build/cache/ami-256-alpha.3.zip
     python -X utf8 tools/build_ami256.py upload --version alpha.4 [--dry-run]
+    python -X utf8 tools/build_ami256.py text
 AMI の clone は --ami-repo か環境変数 AMI_REPO（既定は pak256 の本体の checkout の隣の simutrans-addon-dev）。
 Blender は環境変数 SHEET_BLENDER か --blender（既定は AMI の sheet_settings と同じ D:\\bin\\blender\\blender.exe）。makeobj は PATH のもの。
 """
@@ -52,6 +55,12 @@ BUILD_ENV = os.path.join(VENDOR, "build.env")
 WORK = os.path.join(ROOT, "build", "ami256")
 DIST = os.path.join(ROOT, "dist")
 RELEASE_REPO = "128-bit-net/pak256"
+TEXT_DIR = os.path.join(VENDOR, "text")
+TEXT_ENV = os.path.join(VENDOR, "text.env")
+AMI_GH_REPO = "128na/simutrans-addon-dev"
+AMI_TEXT_PATH = "addons/ami/release/text"
+# AMI の訳の名前（ja_ami.tab）。本家 125.0.1 は ja_ami.tab の形を読まないので、ja.ami.tab の形にして置く
+AMI_TEXT_RE = re.compile(r"^([a-z]{2})_([a-z0-9]+)\.tab$")
 # 同梱する pak（旧描画位置の ami_rail_old と全部入りの ami は入れない。AMI の build.py の分け方と合わせる）
 PAKS = ("ami_rail", "ami_road", "ami_tram", "ami_extra", "ami_monorail", "ami_maglev", "ami_narrow", "ami_canal", "ami_scenery")
 STEPS = ("dat", "render", "icons", "check", "build", "release")
@@ -605,7 +614,63 @@ def cmd_upload(a):
         text = f.read()
     with open(fetch_ami.ENV_FILE, "w", encoding="utf-8", newline="") as f:
         f.write(rewrite_env(text, values))
-    log(f"{tag} に上げ、vendor/ami/ami.env を書き換えた。docs と合わせて PR にする")
+    log(f"{tag} に上げ、vendor/ami/ami.env を書き換えた。text で訳を写し直し、docs と合わせて PR にする")
+
+
+# ---- text ----
+
+def blob_sha(data):
+    """git の blob の SHA-1（git hash-object と同じ）。"""
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def gh_contents(path, ref, raw=False):
+    """AMI のリポジトリの ref の path を gh api で取る。raw ならファイルのバイト、でなければ JSON。"""
+    cmd = ["gh", "api", f"repos/{AMI_GH_REPO}/contents/{path}?ref={ref}"]
+    if raw:
+        cmd += ["-H", "Accept: application/vnd.github.raw"]
+    try:
+        r = subprocess.run(cmd, capture_output=True, timeout=TIMEOUT_GIT)
+    except FileNotFoundError:
+        die("gh が無い（GitHub CLI を入れて gh auth login する）")
+    except subprocess.TimeoutExpired:
+        die(f"gh api が {TIMEOUT_GIT} 秒で終わらない: {path}")
+    if r.returncode != 0:
+        die(f"gh api が失敗（{path} {ref}）: {r.stderr.decode(errors='replace').strip()}")
+    return r.stdout if raw else json.loads(r.stdout.decode("utf-8"))
+
+
+def cmd_text(a):
+    env = fetch_ami.read_env()
+    commit = env.get("AMI_COMMIT", "")
+    if not SHA_RE.match(commit):
+        die(f"ami.env の AMI_COMMIT が 40 桁の SHA でない: {commit!r}")
+    files = {}
+    for entry in gh_contents(AMI_TEXT_PATH, commit):
+        m = AMI_TEXT_RE.match(entry["name"])
+        if not m:
+            die(f"AMI の訳の名前が想定と違う: {entry['name']}（本体が読む名前を決めて道具を直す）")
+        data = gh_contents(entry["path"], commit, raw=True)
+        if blob_sha(data) != entry["sha"]:
+            die(f"取った {entry['name']} の中身が AMI の blob と違う")
+        files[f"{m.group(1)}.{m.group(2)}.tab"] = data
+    if not files:
+        die(f"AMI の {AMI_TEXT_PATH} に訳が無い")
+    # 前に AMI から写した物で今は無い物は消す（text.env に書いていない物は、pak256 の側の物なので残す）
+    old = fetch_ami.read_env(TEXT_ENV) if os.path.isfile(TEXT_ENV) else {}
+    for name in old:
+        if name.endswith(".tab") and name not in files and os.path.isfile(os.path.join(TEXT_DIR, name)):
+            os.remove(os.path.join(TEXT_DIR, name))
+    os.makedirs(TEXT_DIR, exist_ok=True)
+    for name, data in files.items():
+        with open(os.path.join(TEXT_DIR, name), "wb") as f:
+            f.write(data)
+    lines = ["# vendor/ami/text/ に写した AMI の訳の元（tools/build_ami256.py text が書く。docs/layout.md の「AMI の物の名前の訳」）。",
+             "# <写したファイル>=<AMI の blob の SHA-1>", f"AMI_TEXT_COMMIT={commit}"]
+    lines += [f"{name}={blob_sha(data)}" for name, data in sorted(files.items())]
+    with open(TEXT_ENV, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(lines) + "\n")
+    log(f"AMI {commit[:12]} の訳 {len(files)} 個を vendor/ami/text/ に写した: {', '.join(sorted(files))}")
 
 
 def main(argv=None):
@@ -627,10 +692,11 @@ def main(argv=None):
     u = sub.add_parser("upload", help="組んだ zip を置き場に上げ、ami.env を書き換える")
     u.add_argument("--version", required=True)
     u.add_argument("--dry-run", action="store_true")
+    sub.add_parser("text", help="ami.env の AMI_COMMIT の訳を vendor/ami/text/ に写す")
     a = ap.parse_args(argv)
     if a.cmd == "build" and a.from_step != STEPS[0] and not a.resume:
         ap.error("--from は --resume と使う")
-    {"build": cmd_build, "compare": cmd_compare, "upload": cmd_upload}[a.cmd](a)
+    {"build": cmd_build, "compare": cmd_compare, "upload": cmd_upload, "text": cmd_text}[a.cmd](a)
 
 
 if __name__ == "__main__":

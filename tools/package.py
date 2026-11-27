@@ -3,7 +3,7 @@
 zip の中身（先頭のフォルダ名は pak256。本体の pak のフォルダにそのまま置ける）:
     pak256/*.pak              build/pak/ の pak（自前の物と、あれば AMI）
     pak256/config/            config/ の中身（.gitkeep は除く）
-    pak256/text/              text/ の中身（同上）
+    pak256/text/              text/ の中身（同上）と、AMI の pak を入れたときだけ vendor/ami/text/ の AMI の物の名前の訳（*.tab）
     pak256/sound/             sound/ の中身（音。docs/sound.md）
     pak256/demo.sve           demo/demo.sve（保存データが無いときに本体が読む初期マップ。docs/layout.md の「初期マップ」）
     pak256/LICENSE.md
@@ -29,6 +29,8 @@ DIST = os.path.join(ROOT, "dist")
 TOP = "pak256"
 SKIP = {".gitkeep"}
 SETTING_DIRS = ("config", "text", "sound")  # build/pak/ の pak と一緒に入れるフォルダ
+AMI_PREFIX = "ami_"  # AMI の pak の名前の頭
+AMI_TEXT = ("vendor", "ami", "text")  # AMI の物の名前の訳の置き場（docs/layout.md の「AMI の物の名前の訳」）
 DEMO = "demo.sve"  # 本体が pak のフォルダから読む初期マップの名前。元はリポジトリの demo/demo.sve
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)  # 同じ中身なら同じ zip になるように
 
@@ -46,6 +48,7 @@ def collect_runtime(root=ROOT, build=BUILD):
     for p in paks:
         files.append((f"{TOP}/{os.path.basename(p)}", p))
     files += collect_settings(root)
+    files += collect_ami_text(root, paks)
     demo = os.path.join(root, "demo", DEMO)
     if os.path.isfile(demo):
         files.append((f"{TOP}/{DEMO}", demo))
@@ -66,6 +69,14 @@ def collect_settings(root):
                 rel = os.path.relpath(path, root).replace(os.sep, "/")
                 files.append((f"{TOP}/{rel}", path))
     return files
+
+
+def collect_ami_text(root, paks):
+    """(zip の中の名前, 元のファイル) のうち、AMI の物の名前の訳。paks（pak のパスか名前）に AMI の pak があるときだけ。"""
+    if not any(os.path.basename(p).startswith(AMI_PREFIX) for p in paks):
+        return []
+    tabs = sorted(glob.glob(os.path.join(root, *AMI_TEXT, "*.tab")))
+    return [(f"{TOP}/text/{os.path.basename(p)}", p) for p in tabs]
 
 
 def collect(root=ROOT, build=BUILD):

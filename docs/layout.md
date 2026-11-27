@@ -166,7 +166,7 @@ python -X utf8 tools/build.py
 ```
 pak256/*.pak            build/pak/ の pak（自前の物と AMI）
 pak256/config/          config/ の中身
-pak256/text/            text/ の中身
+pak256/text/            text/ の中身と、AMI の pak を入れたときだけ vendor/ami/text/ の訳（下の「AMI の物の名前の訳」）
 pak256/sound/           sound/ の中身
 pak256/demo.sve         demo/demo.sve（初期マップ）
 pak256/LICENSE.md
@@ -224,6 +224,16 @@ AMI（`128na/simutrans-addon-dev` の `addons/ami`）は、pak256 の git に入
   - [LICENSE.md](../LICENSE.md) に例外を書く: 同梱する AMI の pak と絵は CC BY 4.0（CC BY-SA ではない）。今の「配布物（`.pak`）にも同じ許諾が及びます」の例外にする。
   - 配布の zip に、`build/ami_license.txt` を `ami_license.txt` の名前で入れる（`tools/package.py`）。
 
+### AMI の物の名前の訳
+
+256 版の zip には pak しか入らないので、訳は別に持つ（[#196](https://github.com/128-bit-net/pak256/issues/196)）。
+
+- `vendor/ami/text/` に、AMI の `addons/ami/release/text/` の訳を中身を変えずに写す。元のコミットと各ファイルの blob の SHA は `vendor/ami/text.env`。
+- 写すのは `python -X utf8 tools/build_ami256.py text`（`gh` で `ami.env` の `AMI_COMMIT` の物を取る。AMI の clone は要らない）。AMI の版を上げたら流す。流し忘れは `tools/test_ami_text.py` が止める。
+- 今の AMI の訳は日本語だけ。AMI に `en_ami.tab` などが足されたら、同じ道具が `en.ami.tab` として写し、ほかの直しは要らない。
+- 名前は `ja_ami.tab` を `ja.ami.tab` に変える。本家 125.0.1 の `translator.cc`（`load_files_from_folder`）は `ja.xxx.tab` か `xxx_ja.tab` の形だけを読み、`ja_ami.tab` は読まない（2026-11-27、コードの読み。本家のゲームでは未確認）。OTRP は名前の頭 2 文字で読むので、どちらも読める。
+- `build/pak/` に `ami_*.pak` があるときだけ、`package.py` と `game.py` が pak の `text/` に入れる（`--no-ami` で組んだ物には入らない）。
+
 ### AMI の 256 版を組む
 
 AMI は 128 用で、256 は AMI の範囲外（2026-11-25、ユーザー。[roadmap.md](roadmap.md) の「進め方」）。256 版の zip は pak256 の側で組む（#83。alpha.3 までは AMI の進捗管理が手元で組んでいた）。組むのは `tools/build_ami256.py`。AMI の描く道具の 256 の倍率（`SHEET_PAK_SIZE=256`。AMI の `addons/ami/README.md` の「pak の大きさ」）をそのまま使う。
@@ -264,7 +274,7 @@ python -X utf8 tools/build_ami256.py upload --version alpha.4
 - `ja.tab`・`en.tab`: 物の名前（dat の `name`）と訳の行が交互に並ぶ。本体が引く貨物の分類名（`CATEGORY_01`〜`07`）も入れる（貨物の窓に出る）。画面に出ない貨物 `None` は訳を置かない（`tools/test_text.py` の `UNTRANSLATED`）。先頭の `§` は UTF-8 の印。注釈は先頭の `#` の行にだけ書く（名前の位置の `#` 行だけが注釈で、訳の位置の `#` 行は訳として読まれる）。物を足した PR で、名前を足す。`tools/test_text.py` が、行の数・名前の抜け・ja と en のずれを検査する。
 - `citylist_ja.txt`・`citylist_en.txt`: 街の名前。1 行に 1 つ。本体は、新しい街ごとに一覧から名前を選ぶ。一覧が空の言語では、本体の既定の音節の組み合わせで名前を作る。一覧を使い切ると、街の名前が全部同じ既定の名前になるので、地図の大きさに合わせて数を足す（今は 104）。利用者が自分の一覧を置くと、本体はそちらを先に読む。
 - 名前が画面に出るのは、木のように選んで置く物。地面・GUI の物は画面に名前が出ないので、今は訳さない。
-- AMI の物の名前は AMI の側（`ja_ami.tab` など）で持つ。ここには書かない。
+- AMI の物の名前は AMI の側で持つ。`text/` には書かない。取り込み方は下の「AMI の物の名前の訳」。
 - 訳語は、既存の訳にある名前を先に探して合わせる。ただし pak128 の訳の文・並びは写さない。一般名詞・地名のように誰が付けても同じになる語は、同じでよい。
 
 ## 見本の物

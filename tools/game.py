@@ -192,6 +192,8 @@ def pak_dir_sources(pak_dir, root=ROOT):
     else:
         base, demo = root, os.path.join(root, "demo", package.DEMO)
     sources += [(arc.split("/", 1)[1], src) for arc, src in package.collect_settings(base)]
+    if base == root:  # build/pak/ の形のときだけ訳を足す（展開した pak256/ の形は pak_dir の text/ に入っている）
+        sources += [(arc.split("/", 1)[1], src) for arc, src in package.collect_ami_text(root, paks)]
     if os.path.isfile(demo):
         sources.append((package.DEMO, demo))
     return sources

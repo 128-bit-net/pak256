@@ -13,6 +13,7 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/gui`（GUI の絵一式。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_gui.py`・`gui_icons.py`・`logo.py` は MIT） |
 | `objects/scenery/sample_marker`（見本。#9 で消す） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `AMI（vendor/ami）`（同梱する AMI の pak。256 版） | 128na | `128na/simutrans-addon-dev` | | CC BY 4.0 |
+| `vendor/ami/text`（AMI の物の名前の訳。配布物では `text/` の `*.ami.tab`。AMI の写し） | 128na | `128na/simutrans-addon-dev` | ファイル名だけ変えた | CC BY 4.0 |
 | `objects/scenery/trees`（木 8 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_trees.py` は MIT） |
 | `objects/goods`（貨物 4 つ。名前と値は pak128 と同じ） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/city/town_buildings`（役場・住宅・商業・工業 11 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_buildings.py` は MIT） |
