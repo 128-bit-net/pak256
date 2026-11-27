@@ -94,9 +94,7 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 | 1 | `pak256_river_20` | 川 | 0.54 | 20km/h |
 | 2 | `pak256_river_10` | 小川 | 0.40 | 10km/h |
 
-- 本体（OTRP の `way_builder_t::build_river`）は、新しい川をいちばん下（最後の番号）の物で引き、合流のたびに下流の升を 1 段太くする。合流の無い川は小川のままになる。
-- 船は、速さの上限が 0 より大きい水の道だけを通れる（`water_vehicle_t::check_next_tile`）。合流の無い川でも船が通れるように、小川にも 10km/h を付けた。
-- `river_type[]` に並べる名前は全部 pak にある川にする。本体が確かめるのは最後の名前だけで、合流で太らせるときは確かめずに使う（`tools/test_river.py` が見る）。
+- 太さの変わり方・船が通れる条件・`river_type[]` の注意は、サイトの [川](https://128-bit-net.github.io/pak256/spec/river)（元は [site/spec/river.md](../site/spec/river.md)）。根拠は [記録](records/2026-11-27_spec-ship-air.md)。`river_type[]` の名前が全部 pak にあることは `tools/test_river.py` が見る。
 - 川の数と長さは、新しい地図の窓の設定。`river_min_length`（8）だけを pak で指定している。
 - 費用と維持費は 0（pak128 と同じ）。ツールバーとアイコンは作らない（プレイヤーは川を敷かない）。
 - AMI の運河（`ami_canal`）は川に使わない。`system_type=0` の石の岸の運河で、AMI の 256 版に川の物は無い。

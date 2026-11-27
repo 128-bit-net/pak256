@@ -415,8 +415,139 @@ def signal_sheet():
     img.save(os.path.join(OUT, "signal-sheet.png"), optimize=True)
 
 
+def sheet_directions(path, name, w, h, base, title):
+    """512 のセルの 8 方向のシート（1 行）に、キーと基準点を書き足す。w × h の枠の base に、セルの基準点 (256, 320) を置く。"""
+    sheet = Image.open(os.path.join(ROOT, *path)).convert("RGBA")
+    keys = ("s", "w", "sw", "se", "n", "e", "ne", "nw")
+    ways = ("左下", "左上", "左（真横）", "下（手前）", "右上", "右下", "右（真横）", "上（奥）")
+    img = Image.new("RGB", (w * 2, h * 4 + 34), BG)
+    d = ImageDraw.Draw(img)
+    text(d, (10, 6), title, 17)
+    bx0, by0 = base
+    for i, (key, way) in enumerate(zip(keys, ways)):
+        ox, oy = (i % 2) * w, (i // 2) * h + 34
+        bx, by = ox + bx0, oy + by0
+        d.rectangle([ox, oy, ox + w - 1, oy + h - 1], outline=CELL)
+        d.polygon([(bx, by - 64), (bx + 128, by), (bx, by + 64), (bx - 128, by)], fill=GROUND)
+        art = sheet.crop((i * 512 + 256 - bx0, 320 - by0, i * 512 + 256 - bx0 + w, 320 - by0 + h))
+        img.paste(art, (ox, oy), art)
+        cross(d, (bx, by), MARK, 8)
+        text(d, (ox + 10, oy + 8), "%s: 画面の%sへ進む" % (key, way), 17)
+    img.save(os.path.join(OUT, name), optimize=True)
+
+
+def ship_directions():
+    sheet_directions(("objects", "vehicle", "water", "ferry", "ferry.png"), "ship-directions.png", 480, 300, (240, 160),
+                     "pak256 の仮の旅客船（30m、length 18）。緑の菱形が 1 タイル")
+
+
+def air_directions():
+    sheet_directions(("objects", "vehicle", "air", "airliner", "airliner.png"), "air-directions.png", 440, 320, (220, 180),
+                     "pak256 の仮の旅客機（18.9m、length 11）。緑の菱形が 1 タイル")
+
+
+def port_layouts():
+    """桟橋と岸壁の 4 通りの向き。青い線が水のある側の辺。"""
+    labels = ("0: 水が南", "1: 水が東", "2: 水が北", "3: 水が西")
+    img = Image.new("RGB", (256 * 4, 220 * 2), BG)
+    d = ImageDraw.Draw(img)
+    for row, (name, title) in enumerate((("pier", "桟橋"), ("quay", "岸壁"))):
+        path = os.path.join(ROOT, "objects", "station", "ports", name + ".png")
+        for i, label in enumerate(labels):
+            ox, top = ground_frame(img, d, row * 4 + i, 4, "%s %s" % (title, label))
+            art = cell_art(path, 0, i)
+            img.paste(art, (ox, top), art)
+            bx, by = ox + 128, top + 192
+            up, right, down, left = (bx, by - 64), (bx + 127, by), (bx, by + 64), (bx - 128, by)
+            edge = ((left, down), (down, right), (up, right), (left, up))[i]
+            d.line(list(edge), fill=DIM, width=5)
+    img.save(os.path.join(OUT, "port-layouts.png"), optimize=True)
+
+
+def air_widths():
+    """上から見た滑走路・誘導路の幅と、駅の停止線とターミナルの位置。"""
+    img = Image.new("RGB", (1040, 440), BG)
+    d = ImageDraw.Draw(img)
+    size = 260
+    asphalt, taxi, apron = (110, 110, 114), (146, 144, 140), (172, 170, 164)
+
+    def tile(ox, oy, title):
+        d.rectangle([ox, oy, ox + size, oy + size], fill=GROUND, outline=CELL)
+        text(d, (ox, oy - 14), title, 20, INK, "ls")
+
+    for ox, title, width, colour in ((40, "滑走路", 0.72, asphalt), (380, "誘導路", 0.40, taxi)):
+        oy = 90
+        tile(ox, oy, title)
+        lo, hi = ox + (0.5 - width / 2) * size, ox + (0.5 + width / 2) * size
+        d.rectangle([lo, oy + 1, hi, oy + size - 1], fill=colour)
+        dim_line(d, (lo, oy + size + 22), (hi, oy + size + 22))
+        text(d, ((lo + hi) / 2, oy + size + 32), "%.2f タイル（約 %.1fm）" % (width, width * TILE_M), 16, DIM, "ma")
+    ox, oy = 720, 90
+    tile(ox, oy, "駅（誘導路は下の辺につながる）")
+    d.rectangle([ox + 6, oy + 6, ox + size - 6, oy + size - 1], fill=apron)
+    d.rectangle([ox + 0.01 * size, oy + 0.10 * size, ox + 0.15 * size, oy + 0.90 * size], fill=(60, 96, 140))
+    text(d, (ox + 0.17 * size, oy + 0.80 * size), "ターミナル\n（脇の奥の辺）", 15)
+    stop_y = oy + size - 0.90 * size
+    d.line([(ox + size / 2, oy + size), (ox + size / 2, stop_y)], fill=(232, 196, 48), width=4)
+    d.line([(ox + 0.30 * size, stop_y), (ox + 0.70 * size, stop_y)], fill=(232, 196, 48), width=6)
+    text(d, (ox + 0.52 * size, stop_y + 10), "機首が止まる線", 15)
+    x = ox + size + 18
+    dim_line(d, (x, stop_y), (x, oy + size))
+    text(d, (ox + size / 2, oy + size + 32), "つながる辺から 0.90 タイル", 16, DIM, "ma")
+    text(d, (40, 14), "上から見た図。幅はタイルの幅（26.4m）を 1", 17, CELL)
+    img.save(os.path.join(OUT, "air-widths.png"), optimize=True)
+
+
+def air_layout():
+    """tools/vehicle_check/air.nut の空港の並びを、上から見た升目で描く。"""
+    k = 40
+    ox, oy = 60, 60
+    img = Image.new("RGB", (ox * 2 + 19 * k, oy + 6 * k + 90), BG)
+    d = ImageDraw.Draw(img)
+    runway = [(x, 0) for x in range(19)]
+    taxi = [(x, 3) for x in range(2, 17)] + [(x, y) for x in (2, 16) for y in (1, 2)]
+    taxi += [(x, 4) for x in (5, 6, 7, 11)]
+    stops = [(x, 5) for x in (5, 6, 7)]
+    hangar = [(11, 5)]
+
+    def tiles(cells, fill):
+        for x, y in cells:
+            d.rectangle([ox + x * k, oy + y * k, ox + (x + 1) * k, oy + (y + 1) * k], fill=fill, outline=(255, 255, 255))
+
+    d.rectangle([ox, oy, ox + 19 * k, oy + 6 * k], fill=GROUND)
+    tiles(runway, (110, 110, 114))
+    tiles(taxi, (156, 154, 150))
+    tiles(stops, (60, 96, 140))
+    tiles(hangar, (142, 76, 62))
+    text(d, (ox, oy - 12), "滑走路（東西に 19 升）", 18, INK, "ls")
+    text(d, (ox + 8.5 * k, oy + 2 * k), "平行な誘導路（滑走路の 3 升南）", 17, INK, "mm")
+    text(d, (ox + 6.5 * k, oy + 6 * k + 12), "駅 3 つ（1 つの駅になる）", 17, INK, "ma")
+    text(d, (ox + 11.5 * k, oy + 6 * k + 40), "格納庫", 17, INK, "ma")
+    text(d, (ox, oy + 6 * k + 66), "上から見た図。上が北。駅と格納庫は、誘導路から南へ出た行き止まり", 15, CELL)
+    img.save(os.path.join(OUT, "air-layout.png"), optimize=True)
+
+
+def river_widths():
+    """pak256 の川 3 段の、東西の直線の絵と水面の幅。"""
+    tiers = (("pak256_river_30", "大きな川", 0.68), ("pak256_river_20", "川", 0.54), ("pak256_river_10", "小川", 0.40))
+    img = Image.new("RGB", (256 * 3, 220), BG)
+    d = ImageDraw.Draw(img)
+    for i, (name, title, width) in enumerate(tiers):
+        ox, top = ground_frame(img, d, i, 3, "%s: %.2f（約 %dm）" % (title, width, round(width * TILE_M)))
+        # ribi の番号 10（東西）は、8 列のシートの 1 行 2 列
+        art = Image.open(os.path.join(ROOT, "objects", "river", name + ".png")).convert("RGBA").crop((2 * 256, 256, 3 * 256, 512))
+        img.paste(art, (ox, top), art)
+    img.save(os.path.join(OUT, "river-widths.png"), optimize=True)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    ship_directions()
+    air_directions()
+    port_layouts()
+    air_widths()
+    air_layout()
+    river_widths()
     station_position()
     station_layouts()
     signal_sheet()

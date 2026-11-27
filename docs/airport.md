@@ -22,35 +22,20 @@
 | `pak256_airliner` | 旅客機 / Airliner | 18 | 211 | 1599 | 50 | 7 | 2110146 | 65 | 1930 | 11 |
 
 - 値は pak128 の同じ時代の旅客機（Junkers Ju 52）の機能上の数値（dat の文・絵・作者名は写していない。[goods.md](goods.md) と同じ扱い）。登場年だけ pak256 の開始年にした。引退年は書かない。1 機で飛ぶ（前後につながない）。郵便の飛行機は無い。
-- 大きさは**実物比例**（[standards.md](standards.md) の 4 章「船・飛行機」。車両の「手本の 2 倍」は当てはめない）。実物の Junkers Ju 52/3m の長さ 18.9m・翼の幅 29.25m・高さ 4.5m（[SKYbrary](https://skybrary.aero/index.php/JU52)・[Warbirds Resource Group](https://warbirdsresourcegroup.org/LRG/luftwaffe_junkers_ju52_specifications.html)。2026-11-26 に検索で確かめた）から、`length` = 18.9 ÷ 1.65 = 11（胴は 11 × 1.65 = 18.15m に描く）。翼の幅と高さは実物の値のまま（高さは別の型や測り方で 5.55m・6.1m とする資料もある）。
-- 描画位置は機首が基準点で、胴は後ろへ伸びる。飛行機に車線のずれは無いので、道の中心に描く。翼がタイルを超えるので 512 のセル。
+- 大きさ・`length`・描く位置・セルの決まりは、サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）。手本の実物は Junkers Ju 52/3m の長さ 18.9m・翼の幅 29.25m・高さ 4.5m（[SKYbrary](https://skybrary.aero/index.php/JU52)・[Warbirds Resource Group](https://warbirdsresourcegroup.org/LRG/luftwaffe_junkers_ju52_specifications.html)。2026-11-26 に検索で確かめた。高さは別の型や測り方で 5.55m・6.1m とする資料もある）。`length` は 11。
 - 置き場は `objects/vehicle/air/`。`draw_aircraft.py`（MIT）が書き出す。
 
 ## 空港の作り方
 
-本体の決まり（OTRP の `simvehicle.cc`・`simtool.cc` を読み、ゲームで下の並びを確かめた）。
-
-- 離着陸は滑走路（`system_type: 1`）でする。滑走路の端（1 方向だけにつながる升）が要る。誘導路は、端でない升につなぐ。
-- 駅と格納庫は誘導路の升に置く。駅は滑走路の上には置けない。
-- pak256 の駅と格納庫は向き 4 通りで、**誘導路の行き止まり**に置く。
-- 駅は並べると 1 つの駅になる。拾う範囲は 2 タイル（`station_coverage`）なので、街の建物の近くに置く。
-- 着陸の前に、飛行機は滑走路の手前を大回りする。本体の読みでは、地図の端の近くの空港には着陸の経路が作れない（確かめていない）。
-- 確かめた並び: 東西の滑走路 19 升、3 升南の平行な誘導路、両端の近くの 2 本の短い誘導路で滑走路へ、南への行き止まりに駅と格納庫（`tools/vehicle_check/air.nut`）。
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「本体の動きの注意」。確かめた並びを作る道具は `tools/vehicle_check/air.nut`。経緯と本体の読みは [記録](records/2026-11-27_spec-ship-air.md)、ゲームの確かめは [記録](records/2026-11-26_air.md)。
 
 ## 絵の決まり
 
-- 滑走路は幅がタイルの 0.72、誘導路は 0.40。滑走路の端には縦じま、誘導路には黄色い線。まっすぐ抜ける滑走路に脇からつながる枝は、誘導路の幅と色で描く。
-- 坂の絵と雪の絵は無い（滑走路は平らな所に置く前提）。
-- 駅は舗装の駐機場と、脇の奥の辺の細長いターミナル。黄色い停止線は、飛行機の機首が止まる所（つながる辺から 0.90 タイル）。ターミナルを手前や行き止まりの端に置くと、飛行機を隠すか機首と重なる。
-- 格納庫は、口が画面の手前を向く向き（南・東につながる）では中が見え、奥を向く向きでは屋根と壁を飛行機の上に描く。
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「大きさと基準点」「絵」。幅と停止線の値は `objects/airport/draw_airport.py`。
 
 ## 飛行の高さと影
 
-256px のタイルでの見え方（2026-11-26、OTRP v64。[記録](records/2026-11-26_air.md)）。
-
-- 影は本体が描く。飛んでいる間、機体と同じ絵を黒の半透明（75%）で地面に描く（OTRP と本家 125.0.1 の `get_outline_image`・`get_outline_colour` が同じ）。絵に影を入れない。
-- OTRP v64 は、既定（`allow_higher_flight`）で高さが最高速で決まる: `max(5, speed / 33)` 段。旅客機（211km/h）は 6 段 = 192px（画面で機体と影が約 200px 離れて見えた）。1 段は 32px。
-- 本家 125.0.1 は、ソースの読みでは 3 段（96px）で、速さによらない（ゲームでは確かめていない）。
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「本体の動きの注意」「層と季節」。
 
 ## 確かめていないこと
 
