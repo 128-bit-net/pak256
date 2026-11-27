@@ -14,7 +14,7 @@
 
 - 停留所の向きの数と置ける升（`simtool.cc` の `tool_build_station_t::tool_station_aux`）: 2・8・16 は直線の道（行き止まりを含む）、4 は行き止まりの升。それ以外の数は FATAL ERROR。坂は向きの数が 48 を超える物だけ置ける（このページは 48 以上の数を扱わない）。
 - 置き換え（同じ関数）: 古い停留所の容量が新しい物以上なら「Upgrade must have a higher level」。Ctrl を押すと外れる（ページには書いていない）。
-- 容量は `level` × 32（`descriptor/writer/building_writer.cc`）。`allow_underground` は 0 が地上だけ、1 が地下だけ、2 が両方（`descriptor/building_desc.h`）。
+- 容量は `level` × 32（`descriptor/writer/building_writer.cc`）。`allow_underground` は 0 が地上だけ、1 が地下だけ、2 が両方（`descriptor/building_desc.h`）。48 以上の向きの数（斜め・坂）はコードの読みで、ゲームでは確かめていない。
 - 信号の絵（`obj/signal.cc` の `signal_t::calc_image`）: 1 方向だけの信号は、向きの添字が n = 0・s = 1・w = 2・e = 3。e と n は手前の絵（`foreground_image`）、s と w は奥の絵。`offset_left` が 0 でなく、信号を左に立てる地図では、絵がずれて前後も入れ替わる。
 - 名前で書く形（`image[e][0]` など）は、書き出しの順が n・s・e・w で、番号の順（n・s・w・e）と e と w が入れ替わる（`descriptor/writer/roadsign_writer.cc`）。makeobj 60.12 で組んで確かめてはいないので、ページには番号の形だけを書いた。
 - `min_speed`・`cost`・`offset_left` の既定と、信号の種類のキー（`roadsign_writer.cc`）。
@@ -32,9 +32,11 @@
   | `1,1`（3 つめ無し） | FATAL ERROR「check_l1 has wrong number of layouts」で本体が止まる | | |
 
   容量が同じ停留所を重ねると「Upgrade must have a higher level」。
-- **信号の手前と奥**: 周回の線路（`tools/vehicle_check/signal.nut`）で、画面の手前の側に立つ s（左の辺、南向き）と w（上の辺、西向き）の信号の脇を列車が通ると、頭が列車の陰に隠れた。pak256 の信号は進む向きの左に立てているので、本体の「e・n は手前、s・w は奥」の順（右に立てた絵に合う）と合わない。前の `docs/signals.md` にあった「実物（柱と頭で 5m 前後）どおりだと、256px のタイルでは小さすぎて、列車の陰に隠れたため」（大きく描いた理由）は、この順も原因と見られる（大きさを変えて比べてはいない）。直し方は決めていない。e・n の信号の脇を列車が通る画面は撮っていない。
+- **信号の手前と奥**: 周回の線路（`tools/vehicle_check/signal.nut`）で、画面の手前の側に立つ s（左の辺、南向き）と w（上の辺、西向き）の信号の脇を列車が通ると、頭が列車の陰に隠れた。pak256 の信号は進む向きの左に立てているので、本体の「e・n は手前、s・w は奥」の順（右に立てた絵に合う）と合わない。前の `docs/signals.md` にあった「実物（柱と頭で 5m 前後）どおりだと、256px のタイルでは小さすぎて、列車の陰に隠れたため」（大きく描いた理由）は、この順も原因と見られる（大きさを変えて比べてはいない）。直し方は決めていない。
+- 同じ配置で信号を 3 回置くと（`shoot.py` の `rail_ne`）、向きが反対の片方向になり、編成は東・北へ周回した。奥の側に立つ n（左の辺）と e（上の辺）の信号は列車より手前に描かれ、土台と柱が列車の屋根に重なった。
+- 使った実行ファイル（`sim-WinGDI64-OTRPv64.exe`）に、`signal_reverse_front_back`・`Stops on slope require`・`has wrong number of layouts` の文字列があることを確かめた。
 
-  ![列車がいないときと、脇を通るとき](../../site/public/spec/signal-screen.png)
+  ![列車がいないとき、手前の側の信号の脇、奥の側の信号の脇](../../site/public/spec/signal-screen.png)
 
 ## docs から消した経緯
 
@@ -88,4 +90,4 @@
 - 本家 125.0.1、右側通行。
 - ページの dat の例をゲームで動かすこと。
 - 16 通りの向き、坂に建てられないこと、`type=extension` の建物。
-- 信号を左に立てる設定の地図、e・n の信号の脇を列車が通る画面。
+- 信号を左に立てる設定の地図、4 回目の置き直し。

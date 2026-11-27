@@ -4,6 +4,7 @@
     python -X utf8 docs/records/2026-11-27_spec-stations-screens/shoot.py <検証環境> <ポート> <出力> <場面>
 場面:
 - rail: tools/vehicle_check/signal.nut（周回の線路・駅・車庫・信号・編成）。駅と、信号の脇を列車が通る所を何枚も撮る。
+- rail_ne: rail と同じ配置で、信号を 3 回置いて向きを反対（東向き・北向き）にする。奥の側の信号の脇を列車が通る所を撮る。
 - road: tools/vehicle_check/road_stop_bus.nut と road_stop_coal.nut。バス停と荷役所に車が停まる所を何枚も撮る。
 ページには、出力から選んで切り出した物を載せる（crop.py）。
 """
@@ -76,6 +77,22 @@ with Game(env, "flat_512_left_v64", port, work=out + "/_w", simuconf_extra=["sho
         watch(g, [(54, 60)], "signal_w", 10)
         watch(g, [(60, 60)], "signal_w2", 6)
         watch(g, [(40, 63)], "signal_s", 10)
+    elif scene == "rail_ne":
+        # signal.nut の信号は 2 回置き（西向き・南向き）。3 回目は反対の片方向（東向き・北向き）になる。
+        # 周回の向きを合わせるため、車庫から出る前に信号だけを 3 回置きにした形で流す
+        code = squirrel("tools/vehicle_check/signal.nut")
+        old = 'r("signal " + p[0] + "," + p[1] + " (2)", command_x.build_sign_at(pl, coord3d(p[0], p[1], 0), sig));'
+        assert old in code
+        code = code.replace(old, old + ' r("signal (3)", command_x.build_sign_at(pl, coord3d(p[0], p[1], 0), sig));')
+        print(g.sq(code, timeout=90), flush=True)
+        g.settle(20)
+        jump(g, 54, 60)
+        shot(g, "signal_e_empty")
+        jump(g, 40, 63)
+        shot(g, "signal_n_empty")
+        g.sq("debug.set_game_speed(4); return 1")
+        watch(g, [(54, 60)], "signal_e", 10, limit=200)
+        watch(g, [(40, 63)], "signal_n", 10, limit=200)
     elif scene == "road":
         print(g.sq(squirrel("tools/vehicle_check/road_stop_bus.nut"), timeout=90), flush=True)
         print(g.sq(squirrel("tools/vehicle_check/road_stop_coal.nut", "").replace("OX <- 60; OY <- 60;", "OX <- 60; OY <- 90;"), timeout=90), flush=True)
