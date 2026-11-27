@@ -134,8 +134,11 @@ def dat_text():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--marker", action="store_true", help="出る位置を確かめる印にする（git に入れない）")
-    ap.add_argument("--out", default=HERE, help="書き出す場所")
+    ap.add_argument("--out", help="書き出す場所（省くとこのフォルダ。--marker では必ず渡す）")
     args = ap.parse_args()
+    if args.marker and not args.out:
+        ap.error("--marker は --out で別の場所に書く（コミットした絵を上書きしないため）")
+    args.out = args.out or HERE
     os.makedirs(args.out, exist_ok=True)
     for spec in SMOKES:
         sheet(spec, args.marker).save(os.path.join(args.out, spec["stem"] + ".png"))

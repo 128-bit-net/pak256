@@ -1,6 +1,7 @@
 """煙（obj=smoke）の検査（docs/smoke.md・#174）。
 
-表が引く煙の名前が smoke.dat に無いと、本体が pak を読めない。makeobj は組むときに気づかないので、ここで確かめる。
+表が引く煙の名前が smoke.dat に無くても makeobj は組むときに気づかない（産業は必須の参照、車両は必須でない参照）。
+つづりの違いは煙が出ないか読み込みの失敗になるので、ここで確かめる。
     python -X utf8 -m unittest discover -s tools -p "test_*.py"
 """
 import glob
