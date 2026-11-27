@@ -1,8 +1,8 @@
 # 大きさの規格
 
-大きさの決まりをまとめた文書（[#80](https://github.com/128-bit-net/pak256/issues/80)）。アドオン作者向けの仕様は、[公開のサイト](https://128-bit-net.github.io/pak256/spec/)（元は `site/spec/`）へ順に移している（[#177](https://github.com/128-bit-net/pak256/issues/177)）。1〜3 章と、4 章のうち道路と線路の車両に共通の決まり・線路の車両の決まりは移し終え、ここには行き先と、検査が読む表を残す。章の番号はコードの注釈が引くので変えない。
+大きさの決まりをまとめた文書（[#80](https://github.com/128-bit-net/pak256/issues/80)）。アドオン作者向けの仕様は、[公開のサイト](https://128-bit-net.github.io/pak256/spec/)（元は `site/spec/`）へ順に移している（[#177](https://github.com/128-bit-net/pak256/issues/177)）。1〜3 章と、4 章のうち道路と線路の車両の決まり・歩行者の決まりは移し終え、ここには行き先と、検査が読む表を残す。章の番号はコードの注釈が引くので変えない。
 
-- **サイトへ移していない決まりの本体はここに書く。** 移した分（1〜3 章と、4 章の車両の共通の決まりと線路の車両）の決まりはサイトが本体。 [concept.md](concept.md)・[vehicles.md](vehicles.md)・[buildings.md](buildings.md) などは、この文書へリンクで引く。ただし各文書の表（車両の値・種類ごとの高さなど）と、車線のずれの 8 方向の表は、確かめた記録としてそれぞれの文書に残してあり、ここからは指すだけにした。決まりを変えるときは、この文書と、残してある表・`tools/vehicles.py` を一緒に直す。
+- **サイトへ移していない決まりの本体はここに書く。** 移した分（1〜3 章と、4 章の道路と線路の車両・歩行者）の決まりはサイトが本体。 [concept.md](concept.md)・[vehicles.md](vehicles.md)・[buildings.md](buildings.md) などは、この文書へリンクで引く。ただし各文書の表（車両の値・種類ごとの高さなど）は、確かめた記録としてそれぞれの文書に残してあり、ここからは指すだけにした（車線のずれの 8 方向の表はサイトの「道路の車両」にある）。決まりを変えるときは、この文書と、残してある表・`tools/vehicles.py` を一緒に直す。
 - 決めた経緯と理由は、各項目の「出典」の文書にある。ここは結論と数値だけを書く。
 - 決まりの前提でまだ確かめていないことは、末尾の 8 章にまとめた。
 
@@ -22,7 +22,7 @@
 
 出典: [vehicles.md](vehicles.md)（道路の車両は #40、線路の車両は #46）。大きさは #104。計算は `tools/vehicles.py` に置き、`tools/test_vehicles.py` が検査する。
 
-道路と線路の車両に共通の決まりと、線路の車両の決まりは、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)と[線路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-rail)（元は [site/spec/](../site/spec/index.md)）が本体。ここには検査が読む表と、移していない決まりを残す。
+道路と線路の車両の決まりは、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)・[線路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-rail)・[道路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-road)・[街の車](https://128-bit-net.github.io/pak256/spec/citycar)（元は [site/spec/](../site/spec/index.md)）が本体。ここには検査が読む表と、移していない決まりを残す。
 
 ### 大きさ（道路と線路の車両。2026-11-26、ユーザーの決定）
 
@@ -59,9 +59,7 @@
 
 ### 描画位置
 
-前後・高さ・線路の車両の横の位置は、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)の「描く位置」。次は道路の車両の分（サイトの道路の車両のページを足すまで、ここが本体）。
-
-- **横（道路の車両）**: 絵は右側の車線に描く。基準点は、本体の左側通行のずれ（256px のタイルで軸の向きが (±48, ±24)）のちょうど半分を反対に置いた所で、道路の中心から軸の向きで 3/16 タイル。向きごとのずれは [vehicles.md](vehicles.md) の「横の位置（車線）」の表。`simuconf.tab` の `driveleft_base_offset_*` は書かない（本家では効かないため）。
+前後・高さ・線路の車両の横の位置は、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)の「描く位置」。道路の車両の横の位置（車線のずれの 8 方向の表）は、サイトの [道路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-road)の「車線の位置」。計算は `tools/vehicles.py` の `lane_offset_px`。
 
 ### セル
 
@@ -109,7 +107,7 @@ dat の値（`speed`・`power`・`cost` など）は規格ではなく、各車�
 
 ### 歩行者
 
-歩行者は実物の大きさでも車両の「手本の 2 倍」でもなく、大人 16px（2026-11-27、ユーザーの決定。#172）。比べと理由は [pedestrians.md](pedestrians.md)。
+サイトの [歩行者](https://128-bit-net.github.io/pak256/spec/pedestrian)（元は [site/spec/pedestrian.md](../site/spec/pedestrian.md)）。大人 16px（2026-11-27、ユーザーの決定。#172。比べは[記録](records/2026-11-27_pedestrians.md)）。
 
 ## 5. 建物
 

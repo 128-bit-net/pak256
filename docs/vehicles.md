@@ -6,7 +6,7 @@ pak256 の車両の値の表と、描くスクリプト・試験の手順。道�
 
 ## 長さ・描画位置
 
-道路と線路の車両の大きさ・`length`・描く位置・セルの決まりは、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)（元は [site/spec/vehicle-size.md](../site/spec/vehicle-size.md)）。道路の車両の車線のずれは [standards.md](standards.md) の 4 章と下の表。この文書には、表と、サイトに書ききれない細目（車線のずれの表・OTRP 固有の注意）を残す。
+道路と線路の車両の大きさ・`length`・描く位置・セルの決まりは、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)（元は [site/spec/vehicle-size.md](../site/spec/vehicle-size.md)）。道路の車両の車線のずれの表と dat は、サイトの [道路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-road)（元は [site/spec/vehicle-road.md](../site/spec/vehicle-road.md)）。この文書には、値の表と、サイトに書ききれない細目（OTRP 固有の注意・車線との比べ）を残す。
 
 ### 前後の位置（細目）
 
@@ -16,22 +16,10 @@ pak256 の車両の値の表と、描くスクリプト・試験の手順。道�
 
 ### 横の位置（車線）
 
-- 絵は右側の車線に描く。本体は 1 組の絵を、右側通行ではそのまま、左側通行では決まったずれを足して描く。このずれ（64px のタイルで 12,6 など、`vehicles.py` の `DRIVELEFT_64`。256px のタイルでは 4 倍）は、本家 125.0.1（`vehicle_base.cc` で固定）と OTRP（`simuconf.tab` の `driveleft_base_offset_*` で変えられる既定）で同じ。
-- 右側の車線の基準点は、このずれのちょうど半分を反対の向きに置いた所。左側通行でも道路の中心から同じ距離の反対側に来る。`simuconf.tab` の `driveleft_base_offset_*` は書かない（本家では効かないため）。
+右側の車線の決まりと 8 方向のずれの表は、サイトの [道路の車両](https://128-bit-net.github.io/pak256/spec/vehicle-road)の「車線の位置」。計算は `vehicles.py` の `lane_offset_px`。左側通行のずれ（`vehicles.py` の `DRIVELEFT_64`。256px のタイルでは 4 倍）は、本家 125.0.1（`vehicle_base.cc` で固定）と OTRP（`simuconf.tab` の `driveleft_base_offset_*` で変えられる既定）で同じ。`driveleft_base_offset_*` は書かない（本家では効かないため）。
 
-| 向き（dat の添字） | 進む向き（画面） | 右側の車線の点のずれ（px） |
-|---|---|---|
-| `n` | 右上 | (24, 12) |
-| `s` | 左下 | (-24, -12) |
-| `e` | 右下 | (-24, 12) |
-| `w` | 左上 | (24, -12) |
-| `ne` | 右 | (0, 12) |
-| `sw` | 左 | (0, -12) |
-| `se` | 下 | (-24, 0) |
-| `nw` | 上 | (24, 0) |
-
-- 道路の中心からの距離は、軸の向きで 3/16 タイル（4.95m）。AMI の 256 版の道路（`ami-256-alpha.1`）の車線の中心（路側の白線 3.37 の半分、タイルの 0.1685）より 0.5m 外で、画面では軸の向きで約 2.4px 外になる（白線との距離から測って 0.184 タイル）。斜めは、本体のずれで道路の中心から 0.133 タイル、AMI の斜めの車線の中心は断面の縮め方の読み方で 0.107〜0.119 タイルなので、画面で約 1〜5px 外（計算だけ。斜めは画面で測っていない）。ゲームで、左右どちらの通行でも 8 方向とも車線に乗って見えた（下の「試験」）。
-- 車体の幅は実物の幅より広い（手本の 2 倍。[standards.md](standards.md) の 4 章。バスは 3.1m 相当）。
+- 道路の中心からの距離（軸の向きで 3/16 タイル = 4.95m）は、AMI の 256 版の生活道路（`ami-256-alpha.9`）の車線の中心より外になる。東西の直線の画像で路側の白線は道路の端から 0.154〜0.170 タイル（[測る道具](records/2026-11-27_spec-road-vehicles-screens/lines.py)）で、道路の中心と白線の内側の縁の中ほど（中心から約 0.165 タイル）を車線の中心とすると、約 0.023 タイル（約 0.6m、画面で約 3px）外。斜めは、本体のずれで道路の中心から 0.133 タイル、AMI の斜めの車線の中心は断面の縮め方の読み方で 0.107〜0.119 タイルなので、画面で約 1〜5px 外（`ami-256-alpha.1` の時の計算だけ。斜めは画面で測っていない）。ゲームで、左右どちらの通行でも 8 方向とも車線に乗って見えた（下の「試験」）。
+- 車体の幅は実物の幅より広い（手本の 2 倍。サイトの「車両の大きさ」。バスは 3.1m 相当）。
 
 高さ（車輪の下端・1m = 5.94px）とセルの大きさ（256 か 512 か）は、サイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)。512 のセルの作り方は [layout.md](layout.md) の「セルの大きさ」。
 
@@ -50,7 +38,7 @@ pak256 の車両の値の表と、描くスクリプト・試験の手順。道�
 | `pak256_coal_truck` | 石炭トラック / Coal Truck | `Kohle` | 7m（仮。2 軸の貨物車の大きさ）・2.5m・2.7m（運転席の上） | 8 | 12 | 55 | 95 | 90 | 8 | 384000 | 24 | 1930 |
 
 - 単位: `speed` は km/h、`weight` は t、`cost`・`runningcost` は 1/100 単位。
-- 大きさと `length` の決まりは [standards.md](standards.md) の 4 章（手本は pak128。バス 9・郵便 6・石炭 8）。表の実物の寸法は元の値で、描く大きさではない。絵の車体は `length` × 1.65m に描く（バス 14.85m・郵便 9.9m・石炭 13.2m 相当）。絵は同じ「描画位置」の決まりのとおり（車体の前の端が基準点、右側の車線）。どれも 1 タイルに収まるので 256 のセル。
+- 大きさと `length` の決まりはサイトの [車両の大きさ](https://128-bit-net.github.io/pak256/spec/vehicle-size)（手本は pak128。バス 9・郵便 6・石炭 8）。表の実物の寸法は元の値で、描く大きさではない。絵の車体は `length` × 1.65m に描く（バス 14.85m・郵便 9.9m・石炭 13.2m 相当）。絵は同じ「描画位置」の決まりのとおり（車体の前の端が基準点、右側の車線）。どれも 1 タイルに収まるので 256 のセル。
 - **値の目安**（バスと郵便のトラック）: バスは pak128 の `NovaBus_RTS-06_WFD`（定員 70・速さ 60・出力 205・重さ 11・費用 661000・`RunningCost` 39）、郵便のトラックは pak128 の `Mail_Truck_2`（定員 44・出力 77・費用 863000・維持費 38）。速さは pak128 の郵便のトラック（74）より落として 60 にそろえた（AMI の道路 `ami_road_local` は 40km/h、`ami_road_general` は 120km/h。道路の上限で決まる）。重さは pak128 の郵便のトラックが 2t と軽すぎるので、7m の箱型のトラックとして 5t にした（根拠のある計算ではなく、仮の値）。`gear` は pak128 の 80（どちらも）。絵は使っていない。
 - **値の目安**（石炭のトラック）: pak128 の石炭のトラックの 1 つ（`Bulk_Truck_2`、2 軸の貨物車）の dat の値（機能上の数値）を、同じにした。dat の文・コメント・絵・作者名は写していない（名前と機能上の数値だけなので、元の作者の記載は要らないと判断した。[goods.md](goods.md) と同じ。法律の専門家には確かめていない）。登場年だけは、見本のバスと同じ 1930 にした（pak128 は 1955。遊べる版の保存データが 1930 年代から始まるため）。値の釣り合いは、産業と車両がそろってから見直す（roadmap の段階 4）。
 - **登場年は 1930**。pak256 の開始年（`config/simuconf.tab` の `starting_year`）に合わせた仮の値。pak128 の元の車は 1979 年（郵便のトラック）と 1992 年（バス）なので、時代の幅（初期の車・新しい車）は [roadmap.md](roadmap.md) の「車両の顔ぶれと時代」で決める。引退年は書かない。
@@ -58,12 +46,12 @@ pak256 の車両の値の表と、描くスクリプト・試験の手順。道�
 - 積み荷の絵: 石炭のトラックだけが `freightimage`（シートの 2 行目。荷台に石炭の山）を持つ。バスと郵便のトラックは空の絵（`emptyimage`）だけ。連結（`constraint`）・煙（[smoke.md](smoke.md)）・引退年も書いていない。発車の音は [sound.md](sound.md)。
 - 旅客と郵便は、バス停（`pak256_bus_stop`。[stations.md](stations.md)）で積み降ろす。トラックの荷役所（`pak256_truck_stop`）は貨物だけで、旅客・郵便は扱わない。石炭は、炭鉱の脇と発電所の脇に置いた荷役所（[stations.md](stations.md)）で行う（最初の産業の連鎖。[goods.md](goods.md)・[industry.md](industry.md)）。
 - 車庫は AMI の 256 版の `ami_road_depot`（[stations.md](stations.md)）を使う。
-- 曲がり・十字路・坂・向かい合う 2 台のすれ違い（[#116](https://github.com/128-bit-net/pak256/issues/116)。[記録](records/2026-11-26_truck-curves-passing.md)）: 郵便と石炭のトラックは舗装の中を走り、すれ違いで重ならない。車体は坂でも水平のまま。
+- 曲がり・十字路・坂・向かい合う 2 台のすれ違いの見え方はサイトの「道路の車両」の「本体の動きの注意」（確かめは [#116](https://github.com/128-bit-net/pak256/issues/116)。[記録](records/2026-11-26_truck-curves-passing.md)）。
 - `style: panel` の車両（部分に分けた箱）は、面の向きを部分の箱の中心から決める。車体全体の中心から決めると、前の部分の後ろの面を手前向きと誤り、運転台の上に塗り重なる（郵便のトラックで起きた。#116。検査は `test_nothing_painted_over_the_skirt`）。
 
 ## 街の車
 
-[#173](https://github.com/128-bit-net/pak256/issues/173)。街の中を勝手に走る自家用車（本体の `obj: citycar`）。置き場は `objects/citycar/citycars/`、描く道具は `draw_citycars.py`（MIT。道路の車両の道具の面の決まりを読んで使う）。直すときはスクリプトの表（`CARS`）を直して流し直す（`python -X utf8 objects/citycar/citycars/draw_citycars.py`。Pillow だけで動く）。検査は `tools/test_citycars.py`。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。
+[#173](https://github.com/128-bit-net/pak256/issues/173)。街の中を勝手に走る自家用車（本体の `obj: citycar`）。決まりはサイトの [街の車](https://128-bit-net.github.io/pak256/spec/citycar)（元は [site/spec/citycar.md](../site/spec/citycar.md)）。置き場は `objects/citycar/citycars/`、描く道具は `draw_citycars.py`（MIT。道路の車両の道具の面の決まりを読んで使う）。直すときはスクリプトの表（`CARS`）を直して流し直す（`python -X utf8 objects/citycar/citycars/draw_citycars.py`。Pillow だけで動く）。検査は `tools/test_citycars.py`。絵は仮（箱を組んだ物）で、pak128 の絵は使っていない。
 
 | `name` | 画面の名前（ja / en） | 手本（pak128 の `citycars`） | `distributionweight` | `speed` | `intro_year` |
 |---|---|---|---|---|---|
@@ -72,11 +60,8 @@ pak256 の車両の値の表と、描くスクリプト・試験の手順。道�
 | `pak256_citycar_large` | 街の車（大型） / Large Car | `MS_28_mercedes_brown` | 3 | 50 | 1930 |
 
 - 値（`distributionweight`・`speed`）は手本と同じ（機能上の数値だけで、dat の文・絵は写していない）。登場年は pak256 の開始年（1930）、引退年は書かない（仮に広く取る。時代の幅は車両の時代の段で決める）。
-- 手本の寸法は、pak128 の `citycars` の PNG を、車両と同じ測り方（[standards.md](standards.md) の 4 章。`sw` の外接枠の横 = 長さ、`se` の横 = 幅、`sw` の縦 − 幅の半分 = 高さ）で測った（2026-11-27）。
-- 大きさは道路の車両と同じ「pak128 の手本の 2 倍」。表は [standards.md](standards.md) の 4 章。手本の幅はバス（11px）と同じなので、画面の幅もバスと同じ 22px になる。
-- citycar の dat に `length` は無いので、描く長さは目標の長さ（px）をそのまま単位に直す（端数のまま）。
-- 描画位置は道路の車両と同じ（右側の車線・車体の前の端が基準点）。本体は左側通行のずれを `private_car_t::get_screen_offset` で道路の車両と同じに足す（`vehicle/simroadtraffic.cc`）。
-- ゲームで走らせた結果は [記録](records/2026-11-27_citycars.md)。街が車を出す数の本体の式と、台数・寿命の設定は [config.md](config.md) の「街の車」。
+- 手本の寸法は、pak128 の `citycars` の PNG を、車両と同じ測り方（サイトの「車両の大きさ」の「画面の大きさ」。`sw` の外接枠の横 = 長さ、`se` の横 = 幅、`sw` の縦 − 幅の半分 = 高さ）で測った（2026-11-27）。目標の表は [standards.md](standards.md) の 4 章。手本の幅はバス（11px）と同じなので、画面の幅もバスと同じ 22px になる。
+- ゲームで走らせた結果は [記録](records/2026-11-27_citycars.md)。台数と寿命の設定と本体の式は [config.md](config.md) の「街の車」。
 
 ## 線路の車両
 

@@ -7,6 +7,7 @@
 """
 import math
 import os
+import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -217,8 +218,112 @@ def vehicle_directions():
     img.save(os.path.join(OUT, "vehicle-directions.png"), optimize=True)
 
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.join(HERE, "..", "..")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import vehicles as V  # noqa: E402
+
+
+def road_tile(d, cx, cy, k):
+    """基準点が (cx, cy) の平らなタイルに、東西（画面の左上から右下）の道路を描き、地面の座標の変換を返す。
+
+    舗装はタイルの端までで、白線は端から 0.156 タイル（中心から 0.344）。白線の外が路肩。
+    """
+
+    def p(x, y):
+        return (cx + (x - y) * 128 * k, cy + (x + y) * 64 * k)
+
+    d.polygon([p(-0.5, -0.5), p(0.5, -0.5), p(0.5, 0.5), p(-0.5, 0.5)], fill=(150, 150, 154), outline=CELL)
+    for y in (-0.344, 0.344):
+        d.line([p(-0.5, y), p(0.5, y)], fill=(245, 245, 245), width=2)
+    return p
+
+
+def cross(d, xy, fill=MARK, r=9):
+    x, y = xy
+    d.line([(x - r, y), (x + r, y)], fill=fill, width=3)
+    d.line([(x, y - r), (x, y + r)], fill=fill, width=3)
+
+
+def road_lane():
+    """東へ進む車両（e）の、右側の車線の点と、左側通行で本体がずらした点。"""
+    img = Image.new("RGB", (640, 900), BG)
+    d = ImageDraw.Draw(img)
+    k = 1.9
+    length, half = 9 / 16, 3.1 / TILE_M / 2  # バス
+    for oy, title, shift in ((90, "右側通行: 絵のとおり", (0, 0)), (450, "左側通行: 本体が (48, -24) ずらす", (48, -24))):
+        cx, cy = 330, oy + 190
+        p = road_tile(d, cx, cy, k)
+        # e の右側の車線の点 (-24, 12) は、地面では (0, 3/16)
+        front, side = 0.0, 3 / 16
+        box = [p(front, side - half), p(front, side + half), p(front - length, side + half), p(front - length, side - half)]
+        box = [(x + shift[0] * k, y + shift[1] * k) for x, y in box]
+        d.polygon(box, fill=(214, 196, 150), outline=INK)
+        d.line([box[0], box[1]], fill=DIM, width=4)
+        cross(d, (cx, cy))
+        point = (cx + (V.lane_offset_px("e")[0] + shift[0]) * k, cy + (V.lane_offset_px("e")[1] + shift[1]) * k)
+        cross(d, point, DIM)
+        d.line([(cx, cy), point], fill=MARK, width=1)
+        text(d, (20, oy), title, 22)
+        text(d, (cx + 14, cy + 14), "基準点", 19, MARK)
+    text(d, (20, 16), "例: 東へ進む車両（キー e）", 22)
+    text(d, (20, 50), "青の十字 = 車体の前の端の中央、青の辺 = 前の端", 18, DIM)
+    text(d, (20, 820), "絵の点は基準点から (-24, 12)。左側通行では (48, -24) が", 19)
+    text(d, (20, 846), "足され、基準点の反対側 (24, -12) に出る", 19)
+    text(d, (20, 874), "灰色は舗装（タイルの端まで）。白い線は白線の目安（AMI の版で変わる）", 16, CELL)
+    img.save(os.path.join(OUT, "road-lane.png"), optimize=True)
+
+
+def pedestrian_foot():
+    """offset=18 の歩行者の足元の点（東へ進む e と西へ進む w）。"""
+    img = Image.new("RGB", (900, 560), BG)
+    d = ImageDraw.Draw(img)
+    k = 2.0
+    cx, cy = 450, 300
+    p = road_tile(d, cx, cy, k)
+    o = 18 / 256
+    y = 0.5 - o
+    for sign, key, offset in ((1, "e", (-55, 27.5)), (-1, "w", (55, -27.5))):
+        foot = (cx + offset[0] * k, cy + offset[1] * k)
+        d.line([p(-0.5, sign * y), p(0.5, sign * y)], fill=DIM, width=1)
+        cross(d, foot, DIM)
+        d.line([(cx, cy), foot], fill=MARK, width=1)
+    cross(d, (cx, cy))
+    a, b = p(0.25, 0.5), p(0.25, 0.5 - o)
+    d.line([a, b], fill=INK, width=3)
+    text(d, (a[0] + 10, a[1]), "道路の端（タイルの端）から offset/256", 15)
+    text(d, (cx + 14, cy - 24), "基準点", 15, MARK)
+    text(d, (20, 20), "offset=18 の足元の点（青の十字）。進む向きの右側に描く", 20)
+    text(d, (20, 56), "東へ進む（e）: 基準点から (-55, 27.5)　西へ進む（w）: (55, -27.5)", 16, DIM)
+    text(d, (20, 520), "灰色は舗装（タイルの端まで）。足元は白線の外の路肩に来る", 14, CELL)
+    img.save(os.path.join(OUT, "pedestrian-foot.png"), optimize=True)
+
+
+def road_directions():
+    """pak256 の仮のバスと石炭のトラックのシートの 8 方向に、キーと基準点を書き足す。"""
+    keys = ("s", "w", "sw", "se", "n", "e", "ne", "nw")
+    w, h = 256, 180  # 1 枠。256 のセルの基準点 (128, 192) を (128, 112) に置く
+    img = Image.new("RGB", (w * 4, h * 4), BG)
+    d = ImageDraw.Draw(img)
+    for row, name in enumerate(("bus", "coal_truck")):
+        sheet = Image.open(os.path.join(ROOT, "objects", "vehicle", "road", name, name + ".png")).convert("RGBA")
+        for i, key in enumerate(keys):
+            ox, oy = (i % 4) * w, (row * 2 + i // 4) * h
+            bx, by = ox + 128, oy + 112
+            d.rectangle([ox, oy, ox + w - 1, oy + h - 1], outline=CELL)
+            d.polygon([(bx, by - 64), (bx + 127, by), (bx, by + 64), (bx - 128, by)], fill=GROUND)
+            car = sheet.crop((i * 256, 192 - 112, i * 256 + 256, 192 - 112 + h))
+            img.paste(car, (ox, oy), car)
+            cross(d, (bx, by), MARK, 7)
+            text(d, (ox + 10, oy + 8), key, 17)
+    img.save(os.path.join(OUT, "road-directions.png"), optimize=True)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    road_lane()
+    pedestrian_foot()
+    road_directions()
     tile_and_cell()
     scale()
     vehicle_position()
