@@ -18,6 +18,8 @@
 
 ## 本体のコードで確かめた事（OTRP の fork を読んだだけ）
 
+- `waytype` の名前: `track`・`tram_track`・`monorail_track`・`maglev_track`・`narrowgauge_track`（`descriptor/writer/get_waytype.cc`）。
+
 - 向きの絵の代わり: 画像が無い向きは `dir - 4`（`descriptor/vehicle_desc.h` の画像の取り出し）。
 - 連結の指定: `constraint` が 1 つも無ければ何でもつながる。`none` は車両の無い参照（`can_follow`・`can_lead`）。
 - 電化: 動力のある車両がすべて `electric` の編成だけが電化した軌道を要る（`simconvoi.cc` の `check_electrification`）。

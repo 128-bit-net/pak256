@@ -164,9 +164,9 @@ def vehicle_position():
     half = 3.9 / TILE_M / 2  # 幅 3.9m（2.8m × 1.40）
     for ox, title, heading, label in (
         (20, "e（右下へ進む。軸の向き）", (1.0, 0.0), "length 12 = 19.8m"),
-        (560, "ne（右へ進む。横の斜め）", (math.sqrt(0.5), -math.sqrt(0.5)), "length 12 = 画面で約 136px"),
+        (520, "ne（右へ進む。横の斜め）", (math.sqrt(0.5), -math.sqrt(0.5)), "length 12 = 画面で約 136px（図は 0.75 倍）"),
     ):
-        k = 1.0
+        k = 0.75  # 3×2 のタイルが半分の幅に収まる倍率
         cx, cy = ox + 300, 300  # 基準点（タイルの中心）
 
         def p(x, y):
