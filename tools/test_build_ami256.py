@@ -32,8 +32,10 @@ class SettingsTest(unittest.TestCase):
             with self.assertRaises(SystemExit, msg=bad):
                 B.check_version(bad)
 
-    def test_paks_are_seven(self):
-        self.assertEqual(len(B.PAKS), 7)
+    def test_paks(self):
+        self.assertEqual(len(B.PAKS), 9)
+        self.assertIn("ami_maglev", B.PAKS)
+        self.assertIn("ami_narrow", B.PAKS)
         self.assertNotIn("ami_rail_old", B.PAKS)
 
     def test_child_env_scrubs(self):

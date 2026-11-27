@@ -12,7 +12,7 @@ build: vendor/ami/build.env の AMI_COMMIT（--ref で一度だけ別のコミ�
               跨座式のトンネル）は、2 回目にまとめて描く（AMI README の「pak の大きさ」の描く順序）
     4. icons  blender/icons.py を全部のシートに（render.py は描いたシートの分しか書かない。試しでは飛ばす）
     5. check  AMI の check.sh の 256 の検査（check_scaled・check_icons・check_cells・check_crossing・check_depot・check_embankment・
-              dat_lint_extra・dat_linter の src256）と、pak256 の check_way_edges.py（道の縁の段。#111）
+              check_snow_edge・check_curve_join・dat_lint_extra・dat_linter の src256）と、pak256 の check_way_edges.py（道の縁の段。#111）
     6. build  build.py（dist256/ に pak。makeobj の警告で止まる）
     7. release release.py --version <版> --paks <PAKS>（work/release/ami-256-<版>.zip）
     8. dist/ami-256-<版>.zip と、組んだ元を書いた dist/ami-256-<版>.json に写す
@@ -52,8 +52,8 @@ BUILD_ENV = os.path.join(VENDOR, "build.env")
 WORK = os.path.join(ROOT, "build", "ami256")
 DIST = os.path.join(ROOT, "dist")
 RELEASE_REPO = "128-bit-net/pak256"
-# 同梱する pak（alpha.2・alpha.3 と同じ 7 つ。旧描画位置の ami_rail_old と全部入りの ami は入れない）
-PAKS = ("ami_rail", "ami_road", "ami_tram", "ami_extra", "ami_monorail", "ami_canal", "ami_scenery")
+# 同梱する pak（旧描画位置の ami_rail_old と全部入りの ami は入れない。AMI の build.py の分け方と合わせる）
+PAKS = ("ami_rail", "ami_road", "ami_tram", "ami_extra", "ami_monorail", "ami_maglev", "ami_narrow", "ami_canal", "ami_scenery")
 STEPS = ("dat", "render", "icons", "check", "build", "release")
 # 子に渡さない環境変数（残っていると、絵の無い物を黙って飛ばしたり、別のモードで描いたりする）
 SCRUB = ("BUILD_SKIP_MISSING", "CHECK_SKIP_MISSING", "CHECK_256_FULL", "SHEET_LAYOUT", "SHEET_ONLY", "AMI_ROUND", "AMI_FAMILY", "AMI_SURFACE")
@@ -61,9 +61,11 @@ SCRUB = ("BUILD_SKIP_MISSING", "CHECK_SKIP_MISSING", "CHECK_256_FULL", "SHEET_LA
 CHECKS_FULL = (
     ("check_scaled.py",), ("check_icons.py",), ("check_cells.py", "--self-test"), ("check_cells.py",),
     ("check_crossing.py",), ("check_depot.py",), ("check_embankment.py",),
+    ("check_snow_edge.py", "--self-test"), ("check_snow_edge.py",),
+    ("check_curve_join.py", "--self-test"), ("check_curve_join.py",),
     ("../../tools/dat_lint_extra/dat_lint_extra.py", "--self-test"), ("../../tools/dat_lint_extra/dat_lint_extra.py", "src256"),
 )
-CHECKS_PARTIAL = (("check_icons.py",), ("check_cells.py",))
+CHECKS_PARTIAL = (("check_icons.py",), ("check_cells.py",), ("check_snow_edge.py",), ("check_curve_join.py",))
 # dat_linter（AMI の check.sh が ci.env の版を TOOLS_DIR に取る）の場所。環境変数 DAT_LINTER_BIN → PATH → check.sh の既定の置き場
 DAT_LINTER_CACHE = os.path.join(os.path.expanduser("~"), ".cache", "simutrans-addon-dev", "ci-tools", "dat_linter")
 VERSION_RE = re.compile(r"^[a-z0-9][a-z0-9.\-]*$")
@@ -385,7 +387,7 @@ def collect(ami, wt, version, commit, partial, blender):
         die(f"zip が無い: {src}")
     paks = zip_paks(src)
     if not partial and sorted(paks) != sorted(p + ".pak" for p in PAKS):
-        die(f"zip の pak が同梱する 7 つと違う: {sorted(paks)}")
+        die(f"zip の pak が同梱する {len(PAKS)} つと違う: {sorted(paks)}")
     changes = tree_changes(wt)
     if changes:
         log(f"AMI の追跡しているファイルが {len(changes)} 個変わっている（この zip は置き場に上げられない）: {' '.join(changes[:10])}")

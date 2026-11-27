@@ -552,6 +552,15 @@ def g_tower(c):
     c.rect(58, 52, 70, 68, DRK)
 
 
+def g_edit_attraction(c):
+    """名所を建てる窓: 塔のある建物に鉛筆。"""
+    c.rect(24, 60, 88, 102, W)
+    c.rect(44, 30, 68, 60, W)
+    c.poly([(38, 32), (56, 12), (74, 32)], YEL)
+    c.rect(48, 80, 64, 102, BRN)
+    badge(c, "edit")
+
+
 def g_edit_house(c):
     house(c, 56, 60, 0.85)
     badge(c, "edit")
@@ -704,6 +713,26 @@ def g_monorail_tool(c):
 def g_monorail_x(c):
     """モノレールの撤去: モノレールに赤い ×。"""
     monorail(c, 56, 56, 0.85)
+    badge(c, "x")
+
+
+def maglev(c, x=64, y=64, k=1.0):
+    """リニア: 左右の側壁のある溝の中の、丸い鼻の車体（正面）。"""
+    c.xf(x, y, k)
+    c.poly([(12, 74), (26, 74), (34, 100), (94, 100), (102, 74), (116, 74), (106, 114), (22, 114)], GRY, outline=W, w=3)
+    c.rect(34, 30, 94, 92, W, r=28, outline=DRK, w=3)
+    c.rect(44, 46, 84, 64, DRK, r=8)
+    c.rect(38, 74, 90, 80, BLU)
+    c.xf()
+
+
+def g_maglev_tool(c):
+    maglev(c)
+
+
+def g_maglev_x(c):
+    """リニアの撤去: リニアに赤い ×。"""
+    maglev(c, 56, 56, 0.85)
     badge(c, "x")
 
 
@@ -956,6 +985,7 @@ ICONS = {
     ("dialog", 17): g_goods,
     ("dialog", 18): g_factory,
     ("dialog", 19): g_tower,
+    ("dialog", 21): g_edit_attraction,
     ("dialog", 22): g_edit_house,
     ("dialog", 23): g_edit_tree,
     ("dialog", 24): g_enlarge,
@@ -1013,6 +1043,8 @@ ICONS = {
     ("bar", 53): g_airstrip_x,
     ("bar", 56): g_monorail_x,
     ("bar", 57): g_monorail_tool,
+    ("bar", 58): g_maglev_x,
+    ("bar", 59): g_maglev_tool,
 }
 
 BG = {      # 地の色を変える絵（気候は色で見分けやすくする）
@@ -1023,6 +1055,7 @@ BG = {      # 地の色を変える絵（気候は色で見分けやすくする
     ("bar", 49): (170, 56, 50),
     ("bar", 53): (170, 56, 50),
     ("bar", 56): (170, 56, 50),
+    ("bar", 58): (170, 56, 50),
     ("bar", 32): (30, 90, 170),
     ("bar", 33): (190, 150, 60),
     ("bar", 34): (30, 130, 80),

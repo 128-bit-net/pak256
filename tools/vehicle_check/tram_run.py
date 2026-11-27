@@ -36,6 +36,7 @@ def main():
     ap.add_argument("--origin", default="60,60")
     ap.add_argument("--cars", type=int, default=1, help="1 編成の両数")
     ap.add_argument("--no-cities", action="store_true")
+    ap.add_argument("--catenary", type=int, choices=(0, 1, 2), default=1, help="架線: 0 無し・1 全部・2 道路の区間と車庫だけ（#189）")
     ap.add_argument("--timeout", type=float, default=300.0, help="曲がりを撮る全体の待ち（実時間の秒）")
     ap.add_argument("--run", type=float, default=0.0, help="撮り終えた後、速さ 64 で進める秒数（旅客とお金の確かめ）")
     ap.add_argument("--mcp-client", default=os.environ.get("MCP_CLIENT"))
@@ -50,7 +51,7 @@ def main():
     want = {name: (2 if "corner" in name else 1) for name, _, _ in spots}
     done = {}
     with Game(args.env, args.save, args.port, client=args.mcp_client, pak_dir=args.pak, simuconf_extra=["show_names = 0"]) as game:
-        head = f'OX <- {ox}; OY <- {oy}; CARS <- {args.cars};\n'
+        head = f'OX <- {ox}; OY <- {oy}; CARS <- {args.cars}; CATENARY <- {args.catenary};\n'
         # 保存データの会社の残高は、置く前から大きくマイナスのことがある。置く前の残高を出しておく
         print("[cash before]", game.sq("return player_x(0).get_current_cash()"), flush=True)
         with open(os.path.join(HERE, "tram.nut"), encoding="utf-8") as f:

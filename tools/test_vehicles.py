@@ -596,7 +596,7 @@ class TestTram(unittest.TestCase):
         self.assertEqual(self.raw, self.mod.yaml_lines())
         table = yaml.safe_load(self.raw)
         self.assertEqual((table["length"], table["waytype"], table["freight"]), (7, "tram_track", "Passagiere"))
-        self.assertEqual(table["engine_type"], "diesel")  # 架線が無い
+        self.assertEqual(table["engine_type"], "electric")  # AMI の架線（ami_tram_catenary）の下を走る
         self.assertNotIn("cell_size", table)
         # 単独か、路面電車どうしの連結だけ
         for key in ("prev", "next"):
@@ -613,13 +613,26 @@ class TestTram(unittest.TestCase):
                     for z in zs:
                         pts.append(V.to_screen(x, y, z * V.RAIL_HEIGHT_SCALE))
             ex = (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
-            box = self.img.crop((i * 256, 0, (i + 1) * 256, 256)).getchannel("A").getbbox()
+            box = self.mod.draw_cell(d, collector=False).getchannel("A").getbbox()  # 車体だけ（集電装置は別の検査）
             for g, e, name in zip(box, ex, ("left", "top", "right", "bottom")):
                 self.assertLessEqual(abs(g - e), TOL, f"{d} {name}: 絵 {box} 決まり {tuple(round(v, 1) for v in ex)}")
 
     def test_screen_size(self):
-        for got, want, tol, key in zip(screen_size(self.img, 256), self.mod.TARGET_PX, (5, TOL, TOL), ("長さ", "幅", "高さ")):
+        body = self.mod.draw_sheet(collector=False)
+        for got, want, tol, key in zip(screen_size(body, 256), self.mod.TARGET_PX, (5, TOL, TOL), ("長さ", "幅", "高さ")):
             self.assertLessEqual(abs(got - want), tol, f"{key}: {got} 目標 {want}")
+
+    def test_sheet_is_what_the_script_draws(self):
+        self.assertEqual(self.img.tobytes(), self.mod.draw_sheet().tobytes())
+
+    def test_collector_reaches_the_wire(self):
+        # 集電装置の舟は、どの向きでも架線の高さ（タイルの中心の地面から WIRE_PX）より上の端が届く
+        for i, d in enumerate(V.DIRECTIONS):
+            top = self.img.crop((i * 256, 0, (i + 1) * 256, 256)).getchannel("A").getbbox()[1]
+            whole, _ = self.mod.boxes(d)
+            cx, cy = (whole[0][0] + whole[2][0]) / 2, (whole[0][1] + whole[2][1]) / 2
+            wire_y = V.to_screen(cx, cy)[1] - self.mod.WIRE_PX
+            self.assertTrue(wire_y - 8 <= top <= wire_y + TOL, f"{d}: 絵の上端 {top} 架線 {wire_y:.1f}")
 
     def test_no_special_colors_and_binary_alpha(self):
         found = {f"{r:02X}{g:02X}{b:02X}" for _, (r, g, b, a) in self.img.getcolors(1 << 20) if a and (r << 16 | g << 8 | b) in SPECIAL}

@@ -1,13 +1,13 @@
 # 路面電車（絵は仮）。この表と PNG は draw_tram.py が書き出す。直すときはスクリプトを直して流し直す。
 # 実物 12m ÷ 1.65 = 7.27 → length 7（docs/vehicles.md）。
-# 架線（路面軌道の way-object）がどの pak にも無いので、engine_type は架線の要らない diesel にする。
+# 架線（AMI の ami_tram_catenary）を張った路面軌道だけを走る（engine_type: electric）。
 obj: vehicle
 name: pak256_tram
 copyright: pak256.LongScale チーム
 waytype: tram_track
 freight: Passagiere
 payload: 72
-engine_type: diesel
+engine_type: electric
 sound: pak256_tram.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 113
 speed: 50
