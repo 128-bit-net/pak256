@@ -10,8 +10,17 @@ import os
 import re
 import unittest
 
+from PIL import Image
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SMOKE = os.path.join(ROOT, "objects", "smoke")
+
+
+def load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def read(path):
@@ -48,15 +57,24 @@ class SmokeTest(unittest.TestCase):
         })
 
     def test_dat_matches_script(self):
-        spec = importlib.util.spec_from_file_location("draw_smoke", os.path.join(SMOKE, "draw_smoke.py"))
-        ds = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(ds)
+        ds = load("draw_smoke", os.path.join(SMOKE, "draw_smoke.py"))
         self.assertEqual(read(os.path.join(SMOKE, "smoke.dat")), ds.dat_text())
 
     def test_chimney_smoke_place(self):
-        table = read(os.path.join(ROOT, "objects", "industry", "coal_chain", "coal_power_plant.yaml"))
-        self.assertIn('smoketile: {0: "1,0"}', table)
-        self.assertIn('smokeoffset: {0: "2,-26"}', table)
+        # 表の位置が、今の煙突の寸法から出した値と同じこと（煙突を動かして流し直し忘れたら落ちる）
+        folder = os.path.join(ROOT, "objects", "industry", "coal_chain")
+        di = load("draw_industry", os.path.join(folder, "draw_industry.py"))
+        tile, offset = di.smoke_place(di.CHIMNEY)
+        table = read(os.path.join(folder, "coal_power_plant.yaml"))
+        self.assertIn(f'smoketile: {{0: "{tile}"}}', table)
+        self.assertIn(f'smokeoffset: {{0: "{offset}"}}', table)
+
+    def test_png_frames_match_dat(self):
+        # 絵の幅がコマ数と合うこと（image[N] の分だけ 256px のセルが並ぶ）
+        ds = load("draw_smoke", os.path.join(SMOKE, "draw_smoke.py"))
+        for spec in ds.SMOKES:
+            with Image.open(os.path.join(SMOKE, spec["stem"] + ".png")) as im:
+                self.assertEqual(im.size, (ds.CELL * len(spec["frames"]), ds.CELL), spec["name"])
 
 
 if __name__ == "__main__":

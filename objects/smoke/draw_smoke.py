@@ -31,7 +31,7 @@ SPECIAL = {
     0xC9C9C9, 0xDFDFDF, 0xE3E3FF, 0xC1B1D1, 0x4D4D4D, 0xFF017F, 0x0101FF, 0xE7FFFF,
 }
 
-# 煙の種類。frames: (粒の群れの半径 px, 不透明度 0〜255) をコマの順に。lift: 粒の中心を上げる px
+# 煙の種類。center: 粒の群れの中心（セルの px。出る位置を上下に合わせる）。frames: (粒の群れの半径 px, 不透明度 0〜255) をコマの順に
 SMOKES = [
     {
         "name": "pak256_smoke_chimney", "stem": "chimney", "title": "煙突の煙（工場）",
