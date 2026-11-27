@@ -6,7 +6,7 @@
 ## リンク
 
 - [ドキュメントサイト](https://128-bit-net.github.io/pak256/)
-- [配布（Releases）](https://github.com/128-bit-net/pak256/releases)（`vendor:` で始まる物は組むための素材で、配布物ではありません）
+- [配布（Releases）](https://github.com/128-bit-net/pak256/releases)（タグが `vendor-` で始まる物は組むための素材で、配布物ではありません）
 - [参加のしかた](CONTRIBUTING.md)
 - [使用許諾](LICENSE.md)・[作者の一覧](CREDITS.md)
 - 文書の入口:
