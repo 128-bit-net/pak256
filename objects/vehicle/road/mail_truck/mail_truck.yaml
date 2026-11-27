@@ -7,6 +7,7 @@ waytype: road
 freight: Post
 payload: 44
 engine_type: diesel
+sound: pak256_truck.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 77
 speed: 60
 gear: 80

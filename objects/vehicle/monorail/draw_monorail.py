@@ -115,6 +115,7 @@ def yaml_lines(spec):
         "freight: Passagiere",
         f"payload: {spec['payload']}",
         "engine_type: diesel",
+        "sound: pak256_monorail.wav  # 停留所から発車するときの音（docs/sound.md）",
         f"power: {spec['power']}",
         f"speed: {spec['speed']}",
         f"gear: {spec['gear']}",

@@ -111,6 +111,8 @@ MINE = dict(
         "electricity_amount": 150, "electricity_boost": 800,
         "mail_demand": 0, "mail_boost": 0, "passenger_demand": 20, "passenger_boost": 500,
         "needs_ground": 1, "intro_year": 1700,
+        # 音（docs/sound.md）。生産しているあいだ、sound_interval ミリ秒より間を空けて鳴る
+        "sound": "pak256_coal_mine.wav", "sound_interval": 8000,
     },
     note="炭鉱。立坑の櫓（高さ 17m）・巻上げ小屋・積込み小屋・石炭の山。2x2 タイル。値は pak128 の shaft_coal_mine に合わせた",
 )
@@ -157,6 +159,8 @@ PLANT = dict(
         "mail_demand": 5, "mail_boost": 500, "passenger_demand": 20, "passenger_boost": 800,
         "inputgood": ["Kohle"], "inputcapacity": [8000], "inputsupplier": [0], "inputfactor": [50],
         "needs_ground": 1, "intro_year": 1890,
+        # 音（docs/sound.md）
+        "sound": "pak256_power_plant.wav", "sound_interval": 12000,
         # 煙（objects/smoke/。docs/smoke.md）。lifetime はミリ秒、uplift は昇る速さ
         "smoke": "pak256_smoke_chimney",
         "smoketile": {0: smoke_place(CHIMNEY)[0]},

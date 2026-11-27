@@ -36,4 +36,5 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/pedestrian/walkers`（歩行者 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_pedestrians.py` は MIT） |
 | `objects/smoke`（煙 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_smoke.py` は MIT） |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
+| `sound`（車両と産業の効果音と `sound.tab`。`tools/make_sounds.py` で合成した自作の物。録音や他人の素材は使っていない） | pak256.LongScale チーム | | | CC BY-SA 4.0（`tools/make_sounds.py` は MIT） |
 | `demo`（初期マップ `demo.sve`） | 128na | `128na` | | CC BY-SA 4.0 |

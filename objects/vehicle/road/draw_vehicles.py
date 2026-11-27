@@ -68,7 +68,7 @@ VEHICLES = [
         # 手本は pak128 の S_Kroytor_Ikarus-260（49,11,12）と Man_Lions_City（51,11,12）の平均の 2 倍
         "target_px": (100, 22, 24), "length": 9, "scale": (1.22, 1.30),
         "freight": "Passagiere", "payload": 70, "power": 205, "speed": 60, "gear": 80,
-        "weight": 11, "cost": 661000, "runningcost": 39, "intro_year": 1930,
+        "weight": 11, "sound": "pak256_bus.wav", "cost": 661000, "runningcost": 39, "intro_year": 1930,
         "parts": [(0.0, 1.0, 3.2, (214, 196, 150), (52, 112, 84), "bus")],
     },
     {
@@ -77,7 +77,7 @@ VEHICLES = [
         # 手本は pak128 の Mail_Truck_2（34,12,11）の 2 倍
         "target_px": (68, 24, 22), "length": 6, "scale": (1.62, 1.18),
         "freight": "Post", "payload": 44, "power": 77, "speed": 60, "gear": 80,
-        "weight": 5, "cost": 863000, "runningcost": 38, "intro_year": 1930,
+        "weight": 5, "sound": "pak256_truck.wav", "cost": 863000, "runningcost": 38, "intro_year": 1930,
         "parts": [
             (0.0, 0.3, 2.3, (190, 52, 44), None, "cab"),  # 運転席
             (0.3, 1.0, 3.0, (200, 62, 52), (236, 220, 120), "van"),  # 荷台の箱
@@ -89,7 +89,7 @@ VEHICLES = [
         # 手本は pak128 の Bulk_Truck_2（43,11,14）の 2 倍
         "target_px": (86, 22, 28), "length": COAL_LENGTH, "scale": COAL_SCALE,
         "freight": "Kohle", "payload": 12, "power": 95, "speed": 55, "gear": 90,
-        "weight": 8, "cost": 384000, "runningcost": 24, "intro_year": 1930,
+        "weight": 8, "sound": "pak256_truck.wav", "cost": 384000, "runningcost": 24, "intro_year": 1930,
         "note": "値は pak128 の石炭のトラック（Bulk_Truck_2）に合わせた（docs/vehicles.md の表）。登場年だけ見本のバスと同じ 1930。",
         "freight_image": True,  # 2 行目に積んだ絵（freightimage）。0 行 = 空、1 行 = 積んだ
         "boxes_empty": PARTS_EMPTY, "boxes_loaded": PARTS_LOADED,
@@ -282,6 +282,7 @@ def yaml_lines(spec, name=None):
         f"freight: {spec['freight']}",
         f"payload: {spec['payload']}",
         "engine_type: diesel",
+        f"sound: {spec['sound']}  # 停留所から発車するときの音（docs/sound.md）",
         f"power: {spec['power']}",
         f"speed: {spec['speed']}",
         f"gear: {spec['gear']}",

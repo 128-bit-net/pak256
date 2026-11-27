@@ -8,6 +8,7 @@ waytype: monorail_track
 freight: Passagiere
 payload: 82
 engine_type: diesel
+sound: pak256_monorail.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 330
 speed: 100
 gear: 80

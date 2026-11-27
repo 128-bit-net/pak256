@@ -1,9 +1,10 @@
-"""build/ の pak と、config/・text/・許諾の文を、配布の zip にまとめる（docs/layout.md の「配布の zip」）。
+"""build/ の pak と、config/・text/・sound/・許諾の文を、配布の zip にまとめる（docs/layout.md の「配布の zip」）。
 
 zip の中身（先頭のフォルダ名は pak256。本体の pak のフォルダにそのまま置ける）:
     pak256/*.pak              build/pak/ の pak（自前の物と、あれば AMI）
     pak256/config/            config/ の中身（.gitkeep は除く）
     pak256/text/              text/ の中身（同上）
+    pak256/sound/             sound/ の中身（音。docs/sound.md）
     pak256/demo.sve           demo/demo.sve（保存データが無いときに本体が読む初期マップ。docs/layout.md の「初期マップ」）
     pak256/LICENSE.md
     pak256/LICENSES/          許諾の本文（CC BY-SA 4.0・MIT）
@@ -27,12 +28,13 @@ BUILD = os.path.join(ROOT, "build")
 DIST = os.path.join(ROOT, "dist")
 TOP = "pak256"
 SKIP = {".gitkeep"}
+SETTING_DIRS = ("config", "text", "sound")  # build/pak/ の pak と一緒に入れるフォルダ
 DEMO = "demo.sve"  # 本体が pak のフォルダから読む初期マップの名前。元はリポジトリの demo/demo.sve
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)  # 同じ中身なら同じ zip になるように
 
 
 def collect_runtime(root=ROOT, build=BUILD):
-    """(zip の中の名前, 元のファイル) のうち、ゲームが読む物（pak・config・text・初期マップ）だけ。許諾の文の検査はしない。
+    """(zip の中の名前, 元のファイル) のうち、ゲームが読む物（pak・config・text・sound・初期マップ）だけ。許諾の文の検査はしない。
 
     配布の zip（collect）も、ゲームに入れる道具（game.install_pak・install_local.py。#38）も、ここから取る。
     pak が 1 つも無ければ止まる。
@@ -51,9 +53,9 @@ def collect_runtime(root=ROOT, build=BUILD):
 
 
 def collect_settings(root):
-    """(zip の中の名前, 元のファイル) のうち、root の config/ と text/ の物。"""
+    """(zip の中の名前, 元のファイル) のうち、root の config/・text/・sound/ の物。"""
     files = []
-    for sub in ("config", "text"):
+    for sub in SETTING_DIRS:
         base = os.path.join(root, sub)
         for dirpath, dirnames, filenames in os.walk(base):
             dirnames.sort()

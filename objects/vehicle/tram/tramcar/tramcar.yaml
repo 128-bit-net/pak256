@@ -8,6 +8,7 @@ waytype: tram_track
 freight: Passagiere
 payload: 72
 engine_type: diesel
+sound: pak256_tram.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 113
 speed: 50
 gear: 110

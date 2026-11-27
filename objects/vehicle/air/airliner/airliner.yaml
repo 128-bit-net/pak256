@@ -8,6 +8,7 @@ cell_size: 512
 freight: Passagiere
 payload: 18
 engine_type: diesel
+sound: pak256_airplane.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 1599
 speed: 211
 gear: 50

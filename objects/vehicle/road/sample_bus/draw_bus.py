@@ -133,6 +133,7 @@ def write_yaml(path, stem, name=NAME):
         "freight: Passagiere",
         "payload: 40",
         "engine_type: diesel",
+        "sound: pak256_bus.wav  # 停留所から発車するときの音（docs/sound.md）",
         "power: 90",
         "speed: 60",
         "gear: 100",
