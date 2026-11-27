@@ -26,9 +26,17 @@ VitePress 1.6.4 で、`site/` の外の `../docs/standards.md` を `<!--@include
 - 寸法の図: `site/figures/draw_spec_figures.py`。
 - 画面: [2026-11-26_scale-check-screens/run.py](2026-11-26_scale-check-screens/run.py) を今の pak で流し（OTRP v64、`flat_512_left_v64`）、`A_road_z3.png` の (240, 240)-(1500, 878) と `B_rail_z3.png` の (240, 200)-(1500, 800) を切り出して 256 色にした。
 
-## 本体のコードで確かめた事（コードを読んだだけ）
+## 直した古い記述
 
-特別な色（`descriptor/image.cc`）、透明の扱いと画像の指定（`descriptor/writer/image_writer.cc`）、登場年と気候の既定（`descriptor/intro_dates.h`、各 writer）、建物の季節（`obj/gebaeude.cc`）、車両の 8 方向（`dataobj/ribi.h`、`descriptor/writer/vehicle_writer.cc`）、画面への投影（`display/viewport.cc`）。木と地面の飾りは `climates` を省くとどの気候にも出ないと読めるが、ゲームでは確かめていない。
+- `layout.md`: 「物の種類」の表の重なった `objects/station/` の行を消し、道具の表に抜けていた道具と検査を足した。
+- `roadmap.md`: 必須の地面から `Shore` を外し、駅の種類の記号の注意、停留所を pak256 の物に戻したこと、歩行者と煙を入れたこと、段階 3 の後の版の見方を直した。
+- `config.md`: ツールバーの見た目を確かめ済みにし、車両の長さの言い方と、AMI の停留所の記述を直した。
+- `concept.md`: 冒頭に今の決まりの場所を足し、曲がり・斜め・坂の「未確認」を直した。
+- `standards.md`: 冒頭の説明と、高さの上限の重なりを直した。7 章の地面の寸法は、地面のページを書くときに移す。
+
+## 本体のコードで確かめた事
+
+特別な色（`descriptor/image.cc`）、透明の扱いと画像の指定（`descriptor/writer/image_writer.cc`）、登場年と気候の既定（`descriptor/intro_dates.h`、各 writer）、建物の季節（`obj/gebaeude.cc`）、車両の 8 方向（`dataobj/ribi.h`、`descriptor/writer/vehicle_writer.cc`）、画面への投影（`display/viewport.cc`）。木と地面の飾りは `climates` を省くと、気候が 1 つも無い値になる。makeobj 60.12 で、省いた pak と `climates=` を空にした pak は同じで、`climates=temperate` の pak とは気候の値の 1 バイトが違った（`tabfileobj_t::get` はキーが無いと空文字を返すので、writer の「北極を除く」の分岐は通らない）。ゲームでは確かめていない。`dat.md` の車両の例も 60.12 で警告なく組めた。
 
 ## 組んだサイトの画面
 
