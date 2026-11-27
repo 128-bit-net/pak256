@@ -1,4 +1,6 @@
 """install_local.py と game.install_pak の検査（ゲームは起動しない）。python -X utf8 -m unittest discover -s tools -p "test_*.py" """
+import contextlib
+import io
 import os
 import sys
 import tempfile
@@ -67,12 +69,30 @@ class InstallLocalTest(unittest.TestCase):
     def test_play_bat_created_once_and_not_overwritten(self):
         self.install()
         text = self.read("play.bat")
-        self.assertIn("-singleuser -objects pak256/", text)
+        self.assertIn("-singleuser -objects pak256/ -sound", text)
+        self.assertNotIn("-midi", text)
         self.assertIn(game.EXE, text)
         self.assertIn("\r\n", text)
         put(os.path.join(self.dest, "play.bat"), "mine")
         self.install()
         self.assertEqual(self.read("play.bat"), "mine")
+
+    def install_output(self, bat):
+        put(os.path.join(self.dest, "play.bat"), bat)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.install()
+        self.assertEqual(self.read("play.bat"), bat)  # 既存の play.bat は書き換えない
+        return out.getvalue()
+
+    def test_existing_play_bat_warnings(self):
+        out = self.install_output('start "" "x.exe" -singleuser -objects pak256/\r\n')
+        self.assertIn("-sound が無く", out)
+        self.assertNotIn("-objects pak256/ が無い", out)
+        out = self.install_output('start "" "x.exe" -sound\r\n')
+        self.assertIn("-objects pak256/ が無い", out)
+        self.assertNotIn("-sound が無く", out)
+        self.assertNotIn("注意", self.install_output('start "" "x.exe" -objects pak256/ -sound\r\n'))
 
     def test_no_play_bat(self):
         self.install(make_bat=False)

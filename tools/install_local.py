@@ -3,7 +3,7 @@
 テストプレイのフォルダの形（本体の実行ファイルの横に pak256/ を置く）:
     <dest>/sim-WinGDI64-OTRPv64.exe
     <dest>/pak256/          この道具が入れる（*.pak・config/・text/・sound/・demo.sve・VERSION。VERSION は入れた物の版の名前）
-    <dest>/play.bat         無ければ作る（-singleuser -objects pak256/ を付けて起動する）
+    <dest>/play.bat         無ければ作る（-singleuser -objects pak256/ -sound を付けて起動する）。既にあれば触らず、足りなければ注意を出す
     <dest>/save/ settings.xml ...   触らない
 
 使い方:
@@ -31,7 +31,7 @@ PLAY_BAT = "play.bat"
 def play_bat_text(exe=game.EXE):
     return ("@echo off\r\n"
             'cd /d "%~dp0"\r\n'
-            f'start "" "{exe}" -singleuser -objects {PAK_FOLDER}/\r\n')
+            f'start "" "{exe}" -singleuser -objects {PAK_FOLDER}/ -sound\r\n')  # -sound が無いと本体は効果音を消音で始める
 
 
 def version_name(zip_path=None, root=game.ROOT):
@@ -76,8 +76,11 @@ def install_local(dest, zip_path=None, build=None, root=game.ROOT, exe=game.EXE,
         print(f"[install_local] {PLAY_BAT} を作った")
     elif os.path.isfile(bat):
         with open(bat, encoding="utf-8", errors="replace") as f:
-            if f"-objects {PAK_FOLDER}/" not in f.read():
-                print(f"[install_local] 注意: 既存の {PLAY_BAT} に -objects {PAK_FOLDER}/ が無い（触らない）")
+            text = f.read()
+        if f"-objects {PAK_FOLDER}/" not in text:
+            print(f"[install_local] 注意: 既存の {PLAY_BAT} に -objects {PAK_FOLDER}/ が無い（触らない）")
+        if "-sound" not in text.split():
+            print(f"[install_local] 注意: 既存の {PLAY_BAT} に -sound が無く、効果音が消音で始まる（触らない）")
     return placed
 
 

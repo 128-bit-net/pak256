@@ -276,7 +276,7 @@ python -X utf8 tools/install_local.py <テストプレイのフォルダ>       
 python -X utf8 tools/install_local.py <テストプレイのフォルダ> --zip <配布の zip>  # Release の zip などを直接入れる
 ```
 
-- 入れ先の形: `<dest>/<本体の実行ファイル>`・`<dest>/pak256/`（この道具が入れる）・`<dest>/play.bat`（無ければ作る。`-singleuser -objects pak256/` を付けて起動する。既にあれば触らない）。`save/`・`settings.xml` には触らない。
+- 入れ先の形: `<dest>/<本体の実行ファイル>`・`<dest>/pak256/`（この道具が入れる）・`<dest>/play.bat`（無ければ作る。`-singleuser -objects pak256/ -sound` を付けて起動する。`-sound` が無いと効果音が消音で始まる（[sound.md](sound.md)）。音楽の `-midi` は付けない。既にあれば触らず、`-objects pak256/` や `-sound` が無ければ注意を出す）。`save/`・`settings.xml` には触らない。
 - `pak256/VERSION` に入れた物の版の名前を書く（手元で組んだ物は `local-<短いコミット>`、作業ツリーに変更があれば `-dirty`。zip は `zip-<zip のファイル名>`）。
 - `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/`・`sound/`・`demo/demo.sve` を、配布の zip と同じ一覧から直接入れる）。
 - 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`demo.sve`・`config/`・`text/`・`sound/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
