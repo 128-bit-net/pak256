@@ -135,6 +135,15 @@ class StationTest(unittest.TestCase):
                     top = 128 + k * 64 - 3  # 歩道（高さ 0.15m）の奥の端の画面の y。少し上まで許す
                     bad += [(x, y) for y in range(int(top)) if px[col * 256 + x, row * 256 + y] != (231, 255, 255)]
                 self.assertEqual(bad[:5], [], f"{sheet}: {row} 行 {col} 列が架線の柱の列に掛かる（{len(bad)} 画素）")
+        # 屋根を消して通ることが無いように、後ろの絵は柱の列の左右の両方に屋根の色の面がある（屋根の上面の色は ROOF_TRAM）
+        spec = importlib.util.spec_from_file_location(
+            "tram_draw_stops", os.path.join(ROOT, "objects", "station", "tram_stops", "draw_stops.py"))
+        ds = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ds)
+        for col in range(LAYOUTS):
+            side = -1 if col % 2 == 0 else 1
+            ks = [(x + 0.5 - 128) / 128 * side for x in range(256) for y in range(256) if px[col * 256 + x, y] == ds.ROOF_TRAM]
+            self.assertTrue(any(k < near for k in ks) and any(k > far for k in ks), f"{sheet}: {col} 列の屋根が柱の両側に無い")
 
     def test_bus_stop_back_edge(self):
         """バス停の後ろの絵の歩道は、タイルの端（c = 0）の近くまである（#139）。

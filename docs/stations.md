@@ -120,7 +120,7 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 
 - 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
 - 奥の側に緑の屋根の待合（高さ 2.9m）2 つのある乗り場、手前の側に低い歩道。設備は道路の停留所と同じく白線の外に置くので、道路に敷いた軌道でも土の上の専用の軌道でも使う（`tools/test_stations.py` の白線の検査は `tram_track` の停留所にも掛かる）。
-- 架線の柱の所を空ける（[#195](https://github.com/128-bit-net/pak256/issues/195)）。AMI の路面軌道の架線（`ami_tram_catenary`）の柱は、直線の升の中央（軸の向き a = 0.5）、奥の側の c = 0.08 に、太さ 0.035 タイルで地面から立つ（AMI の `TRAM_CAT_POLE_U` 4.2・`CAT_POLE_S` 0.35、1 タイル 10。2026-11-27 に AMI の `catenary_parts.py` を読み、ゲームで撮って確かめた）。待合の屋根・柱・ベンチは a = 0.39〜0.61 に置かない（画面で柱に重ならない幅）。`tools/test_stations.py` の `test_tram_stop_clear_of_catenary_pole` が検査する。AMI の版を上げて柱の位置が動いたら、`draw_stops.py` の `ROOFS` と検査の値を直して撮り直す（[記録](records/2026-11-27_tram195.md)）。
+- 架線の柱の所を空ける（[#195](https://github.com/128-bit-net/pak256/issues/195)）。AMI の路面軌道の架線（`ami_tram_catenary`）の柱は、直線の升の中央（軸の向き a = 0.5）、奥の側の c = 0.08 に、太さ 0.035 タイルで地面から立つ（AMI の `TRAM_CAT_POLE_U` 4.2・`CAT_POLE_S` 0.35、1 タイル 10。2026-11-27 に AMI の `catenary_parts.py` を読み、ゲームで撮って確かめた）。待合の屋根・柱・ベンチは a = 0.39〜0.61 に置かない。画面で柱に重なるかは a − c で決まり（柱の列は a − c = 0.385〜0.455）、この範囲を空ければ奥の帯（c = 0.018〜0.132）のどこに置いても重ならない。`tools/test_stations.py` の `test_tram_stop_clear_of_catenary_pole` が検査する。AMI の版を上げて柱の位置が動いたら、`draw_stops.py` の `ROOFS` と検査の値を直して撮り直す（[記録](records/2026-11-27_tram195.md)）。
 - 向きの絵は下の「向きの絵」と同じ並び。置くのは直線の軌道の升だけ（交差する道の升には置けない。街の道がつながった升に置こうとすると `No through station here!` になった）。
 - ゲームでの確かめは [記録](records/2026-11-26_tram.md)。
 
