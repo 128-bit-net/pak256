@@ -76,7 +76,7 @@
 - 大きさは道路の車両と同じ「pak128 の手本の 2 倍」。表は [standards.md](standards.md) の 4 章。手本の幅はバス（11px）と同じなので、画面の幅もバスと同じ 22px になる。
 - citycar の dat に `length` は無いので、描く長さは目標の長さ（px）をそのまま単位に直す（端数のまま）。
 - 描画位置は道路の車両と同じ（右側の車線・車体の前の端が基準点）。本体は左側通行のずれを `private_car_t::get_screen_offset` で道路の車両と同じに足す（`vehicle/simroadtraffic.cc`）。
-- ゲームで走らせた結果と、街が車を出す数の本体の式は [記録](records/2026-11-27_citycars.md)。
+- ゲームで走らせた結果は [記録](records/2026-11-27_citycars.md)。街が車を出す数の本体の式と、台数・寿命の設定は [config.md](config.md) の「街の車」。
 
 ## 線路の車両
 
