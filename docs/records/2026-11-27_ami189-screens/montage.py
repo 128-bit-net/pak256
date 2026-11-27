@@ -107,7 +107,7 @@ sheet("8_toolbar.png", [
     ("編集（公共のプレーヤー。左から 5 つ目が足した名所の窓）", window("toolbar_edit", 1)),
     ("上の帯（モノレールの次がリニア）", top),
 ], cols=1)
-d = Image.open(os.path.join(src, "toolbar/curiosity.png")).convert("RGB").crop((400, 70, 940, 530))
+d = Image.open(os.path.join(src, "toolbar/curiosity_window.png")).convert("RGB")
 d.save(os.path.join(out, "10_curiosity.png"), optimize=True)
 sheet("9_catenary_missing.png", [
     ("架線が道路の区間と車庫だけ", crop("nocat/nocat2_list.png", (0, 100, 1600, 900))),

@@ -7,6 +7,8 @@ import os
 import sys
 import time
 
+from PIL import Image
+
 sys.path.insert(0, os.path.abspath("tools"))
 from game import Game  # noqa: E402
 
@@ -27,6 +29,9 @@ with Game(env, "flat_512_left_v64", port, build=build) as g:
         shot(g, "toolbar_" + name)
     g.sq("gui.close_all_windows(); gui.open_dialog_tool(21); return 1", player_nr=1)
     shot(g, "curiosity")
+    wins = [part for part in g.sq(WINDOWS).split(";") if part]
+    x, y, w, h = (int(v) for v in wins[-1].split(",bounds=")[1].split(",")[0].split("/"))  # 窓の画面の上の枠
+    Image.open(os.path.join(out, "curiosity.png")).crop((x, y, x + w, y + h)).save(os.path.join(out, "curiosity_window.png"))
     g.sq("gui.close_all_windows(); gui.click(552, 24); return 1")
     shot(g, "special")
     windows = g.sq(WINDOWS)
