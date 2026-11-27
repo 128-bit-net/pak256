@@ -25,9 +25,17 @@
 - 大きさ・`length`・描く位置・セルの決まりは、サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）。手本の実物は Junkers Ju 52/3m の長さ 18.9m・翼の幅 29.25m・高さ 4.5m（[SKYbrary](https://skybrary.aero/index.php/JU52)・[Warbirds Resource Group](https://warbirdsresourcegroup.org/LRG/luftwaffe_junkers_ju52_specifications.html)。2026-11-26 に検索で確かめた。高さは別の型や測り方で 5.55m・6.1m とする資料もある）。`length` は 11。
 - 置き場は `objects/vehicle/air/`。`draw_aircraft.py`（MIT）が書き出す。
 
-## 空港の作り方・絵・飛行の高さ
+## 空港の作り方
 
-決まりはサイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）。経緯と本体の読みは [記録](records/2026-11-27_spec-ship-air.md)、ゲームの確かめは [記録](records/2026-11-26_air.md)。確かめた並びを作る道具は `tools/vehicle_check/air.nut`。絵の幅と停止線の値は `objects/airport/draw_airport.py`。
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「本体の動きの注意」。確かめた並びを作る道具は `tools/vehicle_check/air.nut`。経緯と本体の読みは [記録](records/2026-11-27_spec-ship-air.md)、ゲームの確かめは [記録](records/2026-11-26_air.md)。
+
+## 絵の決まり
+
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「大きさと基準点」「絵」。幅と停止線の値は `objects/airport/draw_airport.py`。
+
+## 飛行の高さと影
+
+サイトの [飛行機・空港](https://128-bit-net.github.io/pak256/spec/air)（元は [site/spec/air.md](../site/spec/air.md)）の「本体の動きの注意」「層と季節」。
 
 ## 確かめていないこと
 
