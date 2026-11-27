@@ -63,7 +63,7 @@ class TableTest(unittest.TestCase):
             if "sound" in obj:
                 self.assertIn(obj["sound"], make_sounds.SOUNDS, f"{path}: {name}")
                 used.add(obj["sound"])
-                if kind == "factory":  # 省くと本体はほぼ鳴らさない
+                if kind == "factory":  # 省くと間隔が効かない（docs/sound.md）
                     self.assertGreater(obj.get("sound_interval", 0), 0, f"{path}: {name}")
         self.assertEqual(used, set(make_sounds.SOUNDS))  # 使われない音を残さない
 
