@@ -79,6 +79,12 @@ pak256_mail_truck
 Mail Truck
 pak256_coal_truck
 Coal Truck
+pak256_citycar_small
+Small Car
+pak256_citycar_sedan
+Sedan
+pak256_citycar_large
+Large Car
 pak256_railcar
 Railcar
 pak256_railcar_trailer
@@ -115,3 +121,9 @@ pak256_monorail_station
 Monorail Station
 pak256_monorail
 Monorail
+pak256_pedestrian_man
+Pedestrian (man)
+pak256_pedestrian_woman
+Pedestrian (woman)
+pak256_pedestrian_child
+Pedestrian (child)

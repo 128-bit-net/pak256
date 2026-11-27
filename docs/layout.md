@@ -28,6 +28,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/gui/` | 記号・カーソル・ツールバーのアイコン | #6 |
 | `objects/goods/` | 貨物（`Passagiere`・`Post`・`None` を含む）。[goods.md](goods.md) | #4 |
 | `objects/city/` | 役場・住宅・商業・工業の建物・記念物・本社 | #8 |
+| `objects/citycar/` | 街の車（`obj: citycar`）。[vehicles.md](vehicles.md) の「街の車」 | #173 |
 | `objects/industry/` | 産業（炭鉱・発電所など）。[industry.md](industry.md) | #43 |
 | `objects/vehicle/<rail\|road\|air\|…>/` | 車両。乗り物の種類で 1 段下に分ける。長さと描画位置は [standards.md](standards.md)（確かめは [vehicles.md](vehicles.md)。飛行機は [airport.md](airport.md)） | #40 |
 | `objects/airport/` | 滑走路・誘導路・空港の駅・格納庫。[airport.md](airport.md) | #155 |
@@ -38,6 +39,7 @@ ci.env                CI の道具の版（makeobj など）
 | `objects/station/` | 道路の停留所（`road_stops/`）と線路の駅（`rail_stops/`）。どちらも pak256 の物（AMI は駅を作らず、停留所は #94 で自前に戻した）。[stations.md](stations.md) | #44・#46・#73・#94 |
 | `objects/station/monorail_stops/`・`objects/vehicle/monorail/` | モノレールの駅と車両（跨座式。[stations.md](stations.md)・[vehicles.md](vehicles.md)） | #156 |
 | `objects/signal/` | 線路の信号（閉塞信号 1 種）。[signals.md](signals.md) | #73 |
+| `objects/pedestrian/` | 歩行者（`walkers/`。男性・女性・子ども）。[pedestrians.md](pedestrians.md) | #172 |
 
 - 物のフォルダ 1 つが、[CREDITS.md](../CREDITS.md) の「物（フォルダ）」の 1 行に当たる。作者が違う物は、別のフォルダにする。
 - 種類が足りなくなったら、`objects/` の下に足し、この表に書く。
@@ -112,6 +114,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `fetch_ami.py` | AMI の 256 版の pak を取る（下の「AMI の 256 版を同梱する」）。`build.py` が使う |
 | `test_datgen.py` | `datgen.py` の検査。`python -X utf8 -m unittest discover -s tools -p "test_*.py"` |
 | `test_cityrules.py` | `cityrules.tab` の街の規則が、狙った盤面で当てはまる・当てはまらないことの検査（[buildings.md](buildings.md)） |
+| `test_citycars.py` | 街の車の表と絵の検査（スクリプトの出力と同じか・手本の 2 倍の大きさ・8 方向の位置 ±2px・特別な色・訳。[vehicles.md](vehicles.md) の「街の車」。Pillow・PyYAML が要る） |
 | `test_trees.py` | 木の絵の高さ・幅が [trees.md](trees.md) の表の ±5% に収まり、特別な色が混じらないこと、表（.yaml）の気候・季節、各気候の木と `simuconf.tab` の食い違いの検査（Pillow・PyYAML が要る） |
 | `tree_check.py` | 木を各気候・各季節でゲームに撮る道具（[trees.md](trees.md)。`game.py` の上）。気候の区画を作って林を置き、月を進めて夏・秋・冬・春を撮り、`--montage` で PR に付ける画像を並べる |
 | `test_stations.py` | 停留所・駅・港の表の検査（港は `PortTest`: 型・向きの数・シート・`draw_ports.py` が書く表と同じこと・`stations.md` に載ること。#154）: `type: stop`・`waytype`（`road_stops/` は `road`、`rail_stops/` は `track`）・向き 8 通りの絵が PNG にあること、`stations.md` の表に全部載っていること、道路の停留所の絵が画面で道路の白線の内側に掛からないこと（#115）（Pillow が要る） |
@@ -121,7 +124,8 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_town_buildings.py` | 街の建物の季節の絵の添字（4 枚: 夏・秋・冬・春。冬だけが右の絵）の検査（[buildings.md](buildings.md)。Pillow・PyYAML が要る） |
 | `docs-policy.json` | 文書の検査 docs-lint の設定（[../CONTRIBUTING.md](../CONTRIBUTING.md) の「文書の検査」） |
 | `test_air.py` | 飛行機と空港の表・絵（スクリプトの出力と同じか・道の絵がタイルからはみ出さないか・旅客機の大きさ）と飛行機のツールバーの検査（Pillow・PyYAML が要る） |
-| `test_smoke.py` | 煙の検査: 表が引く煙の名前が `smoke.dat` にあること、煙を出す物の一覧、`smoke.dat` がスクリプトの出力と同じこと、発電所の煙の位置（[smoke.md](smoke.md)） |
+| `test_smoke.py` | 煙の検査: 表が引く煙の名前が `smoke.dat` にあること、煙を出す物の一覧、`smoke.dat` がスクリプトの出力と同じこと、絵のコマ数、発電所の煙の位置（[smoke.md](smoke.md)） |
+| `test_pedestrians.py` | 歩行者の絵と表の検査: スクリプトの出力と同じ・8 方向の絵と背丈・足元の位置と `offset` の組・特別な色・`pedestrians.md` の表（Pillow が要る） |
 | `test_signals.py` | 線路の信号の表の検査: `obj: roadsign`・`waytype: track`・`is_signal`・状態 2 × 向き 4 の絵が PNG にあること、道具の絵とカーソル、`menuconf.tab` の信号の撤去（`general_tool[46]`）、`signals.md` の表（Pillow が要る） |
 | `test_industry.py` | 産業の表の検査: 発電所の名前が `kraftwerk` / `Power Plant` で終わること（本体がそれで発電所と見なす）、絵の名前と PNG の大きさが `dims` と合うこと（[industry.md](industry.md)。Pillow が要る） |
 | `check_way_edges.py` | AMI の 256 版の道（`obj=way`）の絵の縁が、横 4px・縦 2px の階段になっていないかの検査（256 の段は横 2px・縦 1px。#111）。`build_ami256.py` の `check` の段が流す。単独なら `python -X utf8 tools/check_way_edges.py <AMI の src256>` |

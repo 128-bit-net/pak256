@@ -79,6 +79,12 @@ pak256_mail_truck
 郵便のトラック
 pak256_coal_truck
 石炭トラック
+pak256_citycar_small
+街の車（小型）
+pak256_citycar_sedan
+街の車（セダン）
+pak256_citycar_large
+街の車（大型）
 pak256_railcar
 気動車
 pak256_railcar_trailer
@@ -115,3 +121,9 @@ pak256_monorail_station
 モノレールの駅
 pak256_monorail
 モノレール
+pak256_pedestrian_man
+男性の歩行者
+pak256_pedestrian_woman
+女性の歩行者
+pak256_pedestrian_child
+子どもの歩行者
