@@ -2,16 +2,16 @@
 
 テストプレイのフォルダの形（本体の実行ファイルの横に pak256/ を置く）:
     <dest>/sim-WinGDI64-OTRPv64.exe
-    <dest>/pak256/          この道具が入れる（*.pak・config/・text/・demo.sve・VERSION。VERSION は入れた物の版の名前）
+    <dest>/pak256/          この道具が入れる（*.pak・config/・text/・sound/・demo.sve・VERSION。VERSION は入れた物の版の名前）
     <dest>/play.bat         無ければ作る（-singleuser -objects pak256/ を付けて起動する）
     <dest>/save/ settings.xml ...   触らない
 
 使い方:
-    python -X utf8 tools/install_local.py <dest> --build   # build.py で組んでから、build/pak/ と config/・text/ を入れる
+    python -X utf8 tools/install_local.py <dest> --build   # build.py で組んでから、build/pak/ と config/・text/・sound/ を入れる
     python -X utf8 tools/install_local.py <dest>       # 組み済みの build/pak/ を入れる（--build が無いとき）
     python -X utf8 tools/install_local.py <dest> --zip pak256-v0.1.0.zip   # 配布の zip（Release の物を含む）を入れる
 
-入れ替えのとき、pak256/ の中の古い *.pak・config/・text/・demo.sve・VERSION は消す（pak256/ のほかの物と、pak256/ の外は消さない）。
+入れ替えのとき、pak256/ の中の古い *.pak・config/・text/・sound/・demo.sve・VERSION は消す（pak256/ のほかの物と、pak256/ の外は消さない）。
 配布用の許諾の文の検査は通さない（ゲームで試すだけで、配るわけではないため）。ゲームは起動しない。
 """
 import argparse

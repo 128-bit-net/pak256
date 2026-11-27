@@ -15,6 +15,7 @@ CHECK = os.path.join(HERE, "vehicle_check")
 # ゲームを起動する道具。river_run.py は起動せず、game.py --interactive で開いたゲームへ流すだけ
 LAUNCHERS = ("run", "rail_run", "rail_curve_run", "air_run", "monorail_run", "tram_run")
 NO_LAUNCH = ("river_run",)
+SCENES = ("sound_run",)  # --save・--out を受けず、--scene を受ける
 
 
 class Stop(Exception):
@@ -40,13 +41,22 @@ class RunScriptArgumentTest(Base):
 
     def test_every_run_script_is_listed(self):
         names = {os.path.basename(p)[:-3] for p in glob.glob(os.path.join(CHECK, "*run.py"))}
-        self.assertEqual(names, set(LAUNCHERS) | set(NO_LAUNCH))
+        self.assertEqual(names, set(LAUNCHERS) | set(NO_LAUNCH) | set(SCENES))
 
     def test_default_is_none_and_given_folder_is_passed(self):
         for name in LAUNCHERS:
             with self.subTest(name):
                 self.assertIsNone(self.game_kwargs(name)["pak_dir"])
                 self.assertEqual(self.game_kwargs(name, "--pak", "some/pak256")["pak_dir"], "some/pak256")
+
+    def test_sound_run_passes_pak_and_sound_mode(self):
+        module = load("sound_run")
+        for extra, sound in (((), "on"), (("--check",), "load")):
+            argv = ["sound_run.py", "--env", self.env, "--port", "47900", "--scene", "bus", "--pak", "some/pak256", *extra]
+            with mock.patch.object(sys, "argv", argv), mock.patch.object(module, "Game", side_effect=Stop) as made:
+                with self.assertRaises(Stop):
+                    module.main()
+            self.assertEqual((made.call_args.kwargs["pak_dir"], made.call_args.kwargs["sound"]), ("some/pak256", sound))
 
 
 class GameCommandTest(unittest.TestCase):

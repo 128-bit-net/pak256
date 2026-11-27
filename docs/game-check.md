@@ -38,19 +38,20 @@ python -X utf8 tools/game.py --env <検証環境> --save flat_512_left_v64 --por
 python -X utf8 tools/vehicle_check/rail_run.py --env <検証環境> --save flat_512_left_v64 --port 47880 --out work/rail --pak <展開した所>/pak256
 ```
 
-- **フォルダに `config/` があるとき**（配布の zip を展開した `pak256/`）は、`config/`・`text/`・`demo.sve` もそのフォルダの物を使う。リポジトリの物は混ぜない。
-- `config/` が無いとき（`build/pak/` の形）は、`config/`・`text/`・`demo/demo.sve` はリポジトリの物を使う。
+- **フォルダに `config/` があるとき**（配布の zip を展開した `pak256/`）は、`config/`・`text/`・`sound/`・`demo.sve` もそのフォルダの物を使う。リポジトリの物は混ぜない。
+- `config/` が無いとき（`build/pak/` の形）は、`config/`・`text/`・`sound/`・`demo/demo.sve` はリポジトリの物を使う。
 - フォルダが無い・直下に `*.pak` が無い・`config/` に `simuconf.tab` が無い・作業フォルダの中にある、のときは、作業フォルダを消す前に止まる。zip のファイルは渡せない（先に展開する）。
-- 受ける道具: `tools/game.py`（起動する呼び出し。`--send`・`--build` とは一緒に使えない）と、`tools/vehicle_check/` の `run.py`・`rail_run.py`・`rail_curve_run.py`・`air_run.py`・`monorail_run.py`・`tram_run.py`。`river_run.py` はゲームを起動しないので受けない（`game.py --interactive --pak <フォルダ>` で開いたゲームに流す）。
+- 受ける道具: `tools/game.py`（起動する呼び出し。`--send`・`--build` とは一緒に使えない）と、`tools/vehicle_check/` の `run.py`・`rail_run.py`・`rail_curve_run.py`・`air_run.py`・`monorail_run.py`・`tram_run.py`・`sound_run.py`。`river_run.py` はゲームを起動しないので受けない（`game.py --interactive --pak <フォルダ>` で開いたゲームに流す）。
 - 自分の道具からは `Game(…, pak_dir=<フォルダ>)`。
 
 ## やること・やらないこと
 
 - 検証環境から写すのは、実行ファイル・DLL・`config/`・`font/`・`themes/`・`text/`・`script/`・`music/` と、指定した保存データだけ。**`settings.xml` は写さない**（本体が送信用の記録を持ち、起動のたびに使用状況を外へ送るため）。`pak128` などの絵・`addons/` も写さない。検証環境には書かない。
-- 手元で組んだ pak（`build/pak/` の自前の物と AMI。`--pak` を付けたときはそのフォルダの pak）と `config/`・`text/` を、作業フォルダの `pak/` に入れる（配布の zip の `pak256/` と同じ中身）。
+- 手元で組んだ pak（`build/pak/` の自前の物と AMI。`--pak` を付けたときはそのフォルダの pak）と `config/`・`text/`・`sound/` を、作業フォルダの `pak/` に入れる（配布の zip の `pak256/` と同じ中身）。
 - `config/simuconf.tab`（本体の物と pak の物の両方）の末尾に `day_night_shift = 0` を足し、昼夜の切り替えを止める。昼まで早送りして撮り直さない。
 - 写した保存データの街の道路・街どうしの道路の名前を、pak の `config/simuconf.tab` の指定に書き換える（下の「保存データの道路名」）。
 - 起動は `-singleuser -set_workdir <作業フォルダ> -objects pak/ -load <保存データ> -freeplay -mute -lang ja -mcp-port <ポート> -screensize 1600x900`。MCP が答えるまで待つ（本体は起動画面の間は答えない。保存データを `-load` で読むので、新しい地図の作成画面は経由しない）。
+- 音は既定で `-mute`。`--sound load`（`Game(sound="load")`）は音を読むだけで鳴らさず、`--sound on` はスピーカーから鳴る（[sound.md](sound.md)）。
 - ゲームは**起動したときの PID で閉じる**（実行ファイルの名前では止めない）。閉じた後に `tasklist` で残りを確かめ、残ったら知らせて終了コード 1 で終わる（その作業フォルダは消せないので残す）。
 - **本体が FATAL ERROR・通知の窓で止まったら、待たずに閉じて失敗で終わる**（[#132](https://github.com/128-bit-net/pak256/issues/132)・[#142](https://github.com/128-bit-net/pak256/issues/142)）。本体は、起動した後の失敗では「PRESS ANY KEY」の画面のまま残って MCP に答えない。起動の途中の失敗（pak が無いなど）では「Fatal Error」の通知の窓（`dr_fatal_notify`）が出る。窓のまま残った回（45 秒以上）と、12〜24 秒で本体が自分で終了コード 1 になった回があり、違いの理由は分かっていない。`game.py` は MCP の答えや `settle` を待つ間も起動のログ（`game.log`）を見て、`FATAL ERROR` か `dr_fatal_notify: ERROR:` が出ていたら、起動した PID を閉じ、その行から後ろのエラーの文を出して終了コード 1 で終わる。起動の待ち・Squirrel・撮影・`settle`・`--interactive` の見張りで同じ。ほかの道具から `Game` を使うときは `game.GameFatalError`（`RuntimeError` の一種）が上がる。見るのはこの 2 つの文だけ。通知の窓を実機で確かめたのは、`ground.Outside.pak` を抜いた起動だけ（2026-11-26、OTRP v64。起動から約 1 秒で文がログに出て、コマンドは終了コード 1）。フォントが無いときなど、ほかの `dr_fatal_notify` は本体のソースを読んで同じ文が出ると見ている。
 
@@ -277,10 +278,10 @@ python -X utf8 tools/install_local.py <テストプレイのフォルダ> --zip 
 
 - 入れ先の形: `<dest>/<本体の実行ファイル>`・`<dest>/pak256/`（この道具が入れる）・`<dest>/play.bat`（無ければ作る。`-singleuser -objects pak256/` を付けて起動する。既にあれば触らない）。`save/`・`settings.xml` には触らない。
 - `pak256/VERSION` に入れた物の版の名前を書く（手元で組んだ物は `local-<短いコミット>`、作業ツリーに変更があれば `-dirty`。zip は `zip-<zip のファイル名>`）。
-- `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/`・`demo/demo.sve` を、配布の zip と同じ一覧から直接入れる）。
-- 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`demo.sve`・`config/`・`text/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
+- `package.py` は通さない（配布用の許諾の検査・zip への固めと展開は、ゲームで試すだけの用途に要らないため。`build.py` の後の `build/pak/` と `config/`・`text/`・`sound/`・`demo/demo.sve` を、配布の zip と同じ一覧から直接入れる）。
+- 入れ替えるとき、`pak256/` の最上段の古い `*.pak`・`demo.sve`・`config/`・`text/`・`sound/`・`VERSION` は消す。`pak256/` の下位のフォルダなどほかの物は残す（pak を下位のフォルダに置かない）。入れる物が揃わない（pak が無い・zip に pak が無い）ときは、消す前に止まる。
 - 入れ先に本体の実行ファイルが無い・このリポジトリの中なら止まる（間違った場所へ入れない）。
-- zip は、消す前に壊れていないか・危ない名前が無いかを調べる。先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`demo.sve`・`config/`・`text/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
+- zip は、消す前に壊れていないか・危ない名前が無いかを調べる。先頭が `pak256/` の形（`package.py` の物）でも、先頭の無い形でもよい。入れるのは最上段の `*.pak`・`demo.sve`・`config/`・`text/`・`sound/` だけ（許諾の文などは入れない）。`..`・絶対パスの名前は止める。
 - 配布用の許諾の文の検査（`LICENSE.md` の例外など）は通さない。ゲームで試すだけで、配るわけではない。配るのは `package.py`。
 
 pak を入れる処理は `game.install_pak(dest, zip_path=…, clean=…)` で、`Game` の作業フォルダ（`<作業フォルダ>/pak/`）も同じ関数で入れる。配布の zip の一覧のうち、ゲームが読む物だけを返す `package.collect_runtime` を土台にしていて、許諾の検査（`package.collect`）とは切り離してある。

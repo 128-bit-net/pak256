@@ -153,6 +153,7 @@ def yaml_lines(spec):
     ]
     if spec["powered"]:
         lines.append("engine_type: diesel")
+        lines.append("sound: pak256_railcar.wav  # 停留所から発車するときの音（docs/sound.md）")
         lines.append("smoke: pak256_smoke_diesel  # 加速中に出る（objects/smoke/。docs/smoke.md）")
     lines += [
         f"power: {spec['power']}",

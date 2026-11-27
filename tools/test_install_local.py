@@ -27,6 +27,7 @@ class InstallLocalTest(unittest.TestCase):
         put(os.path.join(self.root, "config", "simuconf.tab"), "a = 1\n")
         put(os.path.join(self.root, "config", ".gitkeep"), "")
         put(os.path.join(self.root, "text", "ja.tab"))
+        put(os.path.join(self.root, "sound", "a.wav"))
         put(os.path.join(self.root, "demo", "demo.sve"), "demo")
         put(os.path.join(self.build, "pak", "own.one.pak"), "new")
         self.dest = os.path.join(t, "play")
@@ -56,8 +57,8 @@ class InstallLocalTest(unittest.TestCase):
 
     def test_installs_into_pak256_and_leaves_user_files(self):
         placed = self.install()
-        self.assertEqual(sorted(placed), ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "text/ja.tab"])
-        for rel in ("own.one.pak", "demo.sve", "config/simuconf.tab", "text/ja.tab"):
+        self.assertEqual(sorted(placed), ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "sound/a.wav", "text/ja.tab"])
+        for rel in ("own.one.pak", "demo.sve", "config/simuconf.tab", "text/ja.tab", "sound/a.wav"):
             self.assertTrue(self.exists("pak256", *rel.split("/")), rel)
         self.assertFalse(self.exists("pak256", "config", ".gitkeep"))
         self.assertEqual(self.read("settings.xml"), "設定")
@@ -80,10 +81,12 @@ class InstallLocalTest(unittest.TestCase):
     def test_reinstall_replaces_old_files_only(self):
         put(os.path.join(self.dest, "pak256", "old.pak"))
         put(os.path.join(self.dest, "pak256", "text", "old.tab"))
+        put(os.path.join(self.dest, "pak256", "sound", "old.wav"))
         put(os.path.join(self.dest, "pak256", "memo.txt"), "残す")
         self.install()
         self.assertFalse(self.exists("pak256", "old.pak"))
         self.assertFalse(self.exists("pak256", "text", "old.tab"))
+        self.assertFalse(self.exists("pak256", "sound", "old.wav"))
         self.assertEqual(self.read("pak256", "memo.txt"), "残す")
         self.assertEqual(self.read("pak256", "own.one.pak"), "new")
 
@@ -204,7 +207,7 @@ class InstallLocalTest(unittest.TestCase):
         self.assertIn("pak256/LICENSE.md", names)
         z = self.make_zip(names)
         self.assertEqual(sorted(self.install(zip_path=z)),
-                         ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "text/ja.tab"])
+                         ["VERSION", "config/simuconf.tab", "demo.sve", "own.one.pak", "sound/a.wav", "text/ja.tab"])
 
     def test_install_pak_extra_still_works(self):
         src = os.path.join(self.tmp.name, "b", "road.pak")

@@ -8,6 +8,7 @@ waytype: road
 freight: Kohle
 payload: 12
 engine_type: diesel
+sound: pak256_truck.wav  # 停留所から発車するときの音（docs/sound.md）
 power: 95
 speed: 55
 gear: 90

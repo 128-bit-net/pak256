@@ -132,22 +132,22 @@ def default_client():
 # --- 作業フォルダの用意（ゲームを使わない。検査できる） ---
 
 def _is_runtime(rel):
-    """配布の zip の pak256/ の中の相対パスのうち、ゲームが読む物（最上段の *.pak・demo.sve・config/・text/）か。"""
-    return (rel.endswith(".pak") and "/" not in rel) or rel == package.DEMO or rel.split("/", 1)[0] in ("config", "text")
+    """配布の zip の pak256/ の中の相対パスのうち、ゲームが読む物（最上段の *.pak・demo.sve・config/・text/・sound/）か。"""
+    return (rel.endswith(".pak") and "/" not in rel) or rel == package.DEMO or rel.split("/", 1)[0] in package.SETTING_DIRS
 
 
 VERSION_FILE = "VERSION"  # install_local.py が書く版の名前のファイル（入れ替えのとき一緒に消す）
 
 
 def clean_pak(dest):
-    """dest の中の、入れる種類の物（最上段の *.pak・demo.sve・config/・text/・VERSION）だけを消す。下位のフォルダなどほかの物は残す。"""
+    """dest の中の、入れる種類の物（最上段の *.pak・demo.sve・config/・text/・sound/・VERSION）だけを消す。下位のフォルダなどほかの物は残す。"""
     if not os.path.isdir(dest):
         return
     for name in os.listdir(dest):
         path = os.path.join(dest, name)
         if os.path.isfile(path) and (name.endswith(".pak") or name in (VERSION_FILE, package.DEMO)):
             os.remove(path)
-        elif os.path.isdir(path) and name in ("config", "text"):
+        elif os.path.isdir(path) and name in package.SETTING_DIRS:
             shutil.rmtree(path)
 
 
@@ -477,10 +477,21 @@ def prepare_workdir(env, work, save, exe=EXE, night=False, extra_paks=(), root=R
     return placed
 
 
-def launch_command(work, save, port, exe=EXE, screensize=SCREENSIZE):
-    """起動のコマンド。-singleuser が無いと本体が作業フォルダでなく別の場所を見る。-lang ja が無いと言語選びの画面で止まる。"""
+SOUND_MODES = (None, "load", "on")
+
+
+def launch_command(work, save, port, exe=EXE, screensize=SCREENSIZE, sound=None, extra_args=()):
+    """起動のコマンド。-singleuser が無いと本体が作業フォルダでなく別の場所を見る。-lang ja が無いと言語選びの画面で止まる。
+
+    sound は音の扱い（SOUND_MODES）。None は -mute（音を読まない）。"load" は音を読むが鳴らさない（本体は -sound が無いと消音で始まる）。
+    "on" は -sound を付けて鳴らす。extra_args は本体にそのまま足す引数（-debug 3 など）。
+    """
+    if sound not in SOUND_MODES:
+        raise RuntimeError(f"sound は {SOUND_MODES} のどれか: {sound!r}")
+    audio = {None: ["-mute"], "load": [], "on": ["-sound"]}[sound]
     return [os.path.join(work, exe), "-singleuser", "-set_workdir", work, "-objects", PAK_DIR + "/",
-            "-load", save, "-freeplay", "-mute", "-lang", "ja", "-mcp-port", str(port), "-screensize", screensize]
+            "-load", save, "-freeplay", *audio, "-lang", "ja", "-mcp-port", str(port), "-screensize", screensize,
+            *extra_args]
 
 
 def resolve_port_range(port_range=None):
@@ -658,8 +669,9 @@ class Game:
 
     def __init__(self, env, save, port, work=None, night=False, extra_paks=(), client=None, exe=EXE,
                  screensize=SCREENSIZE, keep=False, root=ROOT, build=None, simuconf_extra=(), port_range=None,
-                 rewrite_roads=True, pak_dir=None):
+                 rewrite_roads=True, pak_dir=None, sound=None, extra_args=()):
         check_port(port, port_range)
+        self.sound, self.extra_args = sound, extra_args
         self.pak_dir = os.path.abspath(pak_dir) if pak_dir else pak_dir  # 空文字は abspath しない（今の場所になる）
         self.rewrite_roads = rewrite_roads
         self.simuconf_extra = check_simuconf_lines(simuconf_extra)
@@ -696,7 +708,7 @@ class Game:
         self.prepared = True
         prepare_workdir(self.env, self.work, self.save, self.exe, self.night, self.extra_paks, self.root, self.build,
                         simuconf_extra=self.simuconf_extra, rewrite_roads=self.rewrite_roads, pak_dir=self.pak_dir)
-        cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize)
+        cmd = launch_command(self.work, self.save, self.port, self.exe, self.screensize, self.sound, self.extra_args)
         with open(os.path.join(self.work, "game.log"), "wb") as log:
             try:
                 self.job = JobObject()
@@ -1099,6 +1111,8 @@ def main():
     add_pak_argument(ap)
     ap.add_argument("--night", action="store_true", help="昼夜の切り替えを止めない（夜の灯りを見るとき）")
     ap.add_argument("--keep", action="store_true", help="閉じた後も作業フォルダを残す")
+    ap.add_argument("--sound", choices=("load", "on"),
+                    help="音を読む（省くと -mute）。load は読むだけで鳴らさない。on はスピーカーから鳴る")
     ap.add_argument("--keep-save-roads", action="store_true",
                     help="保存データの写しの道路名を pak の指定に書き換えない（保存された名前を確かめるとき）")
     ap.add_argument("--work", help="作業フォルダ（既定は work/game/<ポート>/）")
@@ -1147,7 +1161,7 @@ def main():
     try:
         with Game(args.env, args.save, args.port, work=args.work, night=args.night, extra_paks=args.extra_pak,
                   client=args.mcp_client, keep=args.keep, port_range=args.port_range,
-                  rewrite_roads=not args.keep_save_roads, pak_dir=args.pak) as g:
+                  rewrite_roads=not args.keep_save_roads, pak_dir=args.pak, sound=args.sound) as g:
             if args.interactive:
                 print(f"[interactive] 待っている。別の窓から: python -X utf8 tools/game.py --port {args.port} --send \"return 1\"", flush=True)
                 try:

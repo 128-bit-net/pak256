@@ -283,6 +283,17 @@ class GameToolTest(Base):
         for flag in ("-freeplay", "-mute", "-screensize"):
             self.assertIn(flag, cmd)
 
+    def test_launch_command_sound(self):
+        load = game.launch_command("W", "map", 47880, sound="load")
+        self.assertNotIn("-mute", load)
+        self.assertNotIn("-sound", load)  # 読むだけ（本体は -sound が無いと消音で始まる）
+        on = game.launch_command("W", "map", 47880, sound="on", extra_args=("-debug", "3"))
+        self.assertNotIn("-mute", on)
+        self.assertIn("-sound", on)
+        self.assertEqual(on[-2:], ["-debug", "3"])
+        with self.assertRaises(RuntimeError):
+            game.launch_command("W", "map", 47880, sound="off")
+
     def test_port_range(self):
         with mock.patch.dict(os.environ):
             os.environ.pop(game.PORT_RANGE_ENV, None)

@@ -19,6 +19,8 @@ passenger_demand: 20
 passenger_boost: 500
 needs_ground: 1
 intro_year: 1700
+sound: pak256_coal_mine.wav
+sound_interval: 8000
 dims: 2,2
 backimage:        # backimage[配置][y][x][高さ][コマ]。絵は draw_industry.py が描く
   0:

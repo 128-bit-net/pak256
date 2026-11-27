@@ -8,6 +8,7 @@
 objects/<種類>/<物>/   物。表・描く元・描いた PNG を一緒に置く
 config/               設定ファイル（simuconf.tab など。#3）
 text/                 物の名前の訳と街の名前（#10）
+sound/                車両と産業の効果音と sound.tab（sound.md。#175）
 demo/                 初期マップ demo.sve（下の「初期マップ」。#79）
 vendor/ami/           同梱する AMI の版の指定・組む元と許諾の文（下の「AMI の 256 版を同梱する」）
 tools/                道具（下の「道具」）
@@ -107,7 +108,7 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `install_local.py` | 組んだ pak か配布の zip を、テストプレイのフォルダの `pak256/` に入れる（[game-check.md](game-check.md)） |
 | `pakimage.py` | 組んだ pak の画像をゲームを起動せずに取り出して見る（[game-check.md](game-check.md) の「pak の中の画像を見る」）。Pillow が要る |
 | `test_pakimage.py` | `pakimage.py` の検査（pak の読み方。makeobj があれば、組んで取り出した画素が元の PNG と合うことも） |
-| `package.py` | `build/` の pak と `config/`・`text/`・`demo/demo.sve`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
+| `package.py` | `build/` の pak と `config/`・`text/`・`sound/`・`demo/demo.sve`・許諾の文を配布の zip にまとめる（下の「配布の zip と CI」） |
 | `check_demo.py` | 初期マップ `demo/demo.sve` が使う物の名前が、`build/pak/` にあるかの検査（下の「初期マップ」。CI で流す） |
 | `test_check_demo.py` | `check_demo.py` の検査（保存データの名前の読み方・`makeobj list` の読み方） |
 | `ci/setup_makeobj.sh` | CI の Linux に makeobj を用意する |
@@ -137,9 +138,11 @@ makeobj の `pak256`・`pak512` などの数字は、PNG を何 px のマスで�
 | `test_vehicles.py` | 車両の決まりの計算と、見本のバス・バス・郵便のトラックの表の `length`・絵の位置（±2px）・特別な色・訳の検査（Pillow が要る） 。`TestRailVehicles` は線路の車両（#46）で、20m・512 のセル・位置合わせ・車線のずれ無しの位置|
 | `game.py` | ゲームの起動と後片付け（作業フォルダの写し・pak の導入・昼夜を止める・MCP・PID で閉じる）。[game-check.md](game-check.md) |
 | `test_game.py` | `game.py` の検査（ゲームは起動しない） |
+| `make_sounds.py` | 効果音を合成して `sound/` に書く（[sound.md](sound.md)） |
+| `test_sounds.py` | 音の検査: WAV の形式、車両・産業の表の `sound` が指すファイルがあること |
 | `title_shot.py` | 起動の窓と後ろの地図を撮る道具（`-load` 無し・MCP 無し。[game-check.md](game-check.md) の「起動の画面を撮る」。Windows だけ） |
 | `test_title_shot.py` | `title_shot.py` の検査（ゲームは起動しない） |
-| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。組む道具ではない |
+| `vehicle_check/` | 車両を道路で走らせて向きごとに撮る試験（`course.nut`・`run.py`。[vehicles.md](vehicles.md) の「試験」。飛行機は `air.nut`・`air_run.py`（[airport.md](airport.md)）。信号の周回は `signal.nut`（#73）、道路の停留所でバスと石炭のトラックを走らせる確かめは `road_stop_bus.nut`・`road_stop_coal.nut`（#94））、路面電車を道路の上と専用の軌道で走らせる試験（`tram.nut`・`tram_cities.nut`・`tram_run.py`。#153）、船と港の確かめ（`ship.nut`・`ship_ports.nut`。#154）と、線路で列車を往復させて撮る試験（`rail.nut`・`rail_run.py`。#46）、川の確かめ（`river_run.py`・`river_terrain.nut`・`river_enlarge.nut`・`river_ship.nut`・`river_slopes.nut`。#158）。音を耳で確かめる場面（`sound_run.py`。[sound.md](sound.md)）。組む道具ではない |
 | `poc_upscale_pak128.py` | pak128 を 2 倍にする試し（concept の 4 章）。組む道具ではない |
 
 物をまたいで使う描画の道具は `tools/blender/` に置く（まだ無い）。
@@ -164,6 +167,7 @@ python -X utf8 tools/build.py
 pak256/*.pak            build/pak/ の pak（自前の物と AMI）
 pak256/config/          config/ の中身
 pak256/text/            text/ の中身
+pak256/sound/           sound/ の中身
 pak256/demo.sve         demo/demo.sve（初期マップ）
 pak256/LICENSE.md
 pak256/LICENSES/        許諾の本文

@@ -33,7 +33,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 | 車両 | 列車（旅客・郵便・貨物）・バス・トラック・路面電車・船・飛行機・モノレール | pak256 | 要る（バス・トラックを少し。列車は [#46](https://github.com/128-bit-net/pak256/issues/46) で気動車と付随車の仮の 2 種。船は [#154](https://github.com/128-bit-net/pak256/issues/154) で旅客船と貨物船の仮の 2 種と、港 3 つ） |
 | 景観 | 木・岩などの物・川 | pak256 | 要る（木を数種。川は [#158](https://github.com/128-bit-net/pak256/issues/158) で仮の 3 段） |
 | 街の動き | 歩行者・街の車・煙 | pak256 | 要らない。街の車は #173 で仮の 3 種を入れた |
-| 音 | 車両・環境の音 | pak256 | 要らない（本体の既定で鳴る分でよい） |
+| 音 | 車両・環境の音 | pak256 | 最初の版には要らない（本体の既定で鳴る分でよい）。車両と産業の音は後で入れた（[sound.md](sound.md)）。環境の音は無い |
 | 文言 | 物の名前の訳（日本語・英語）・街の名前 | pak256 | 要る（日本語・英語） |
 | 道具 | dat を表から作る道具・Blender の描画・CI での pak 作り・配布の zip | pak256 | 要る |
 
@@ -99,7 +99,7 @@ pak128（`refs/pak128`）の中身と、本体が起動に求める物（下の�
 - ツールバーのアイコンを、何の道具か分かる絵にする（[#66](https://github.com/128-bit-net/pak256/issues/66)。済み）。
 - 車両の顔ぶれと時代（登場年・引退年）。
 - 路面電車・船と港（仮の 2 種と港 3 つは [#154](https://github.com/128-bit-net/pak256/issues/154)）・飛行機と空港（仮の旅客機 1 種と空港の物は [#155](https://github.com/128-bit-net/pak256/issues/155)）・モノレール。
-- 歩行者・街の車・煙・音（歩行者は [#172](https://github.com/128-bit-net/pak256/issues/172) で仮の 3 種。[pedestrians.md](pedestrians.md)。街の車は [#173](https://github.com/128-bit-net/pak256/issues/173) で仮の 3 種を入れた。煙は [#174](https://github.com/128-bit-net/pak256/issues/174) で仮の物を入れた。[smoke.md](smoke.md)）。
+- 歩行者・街の車・煙・音（歩行者は [#172](https://github.com/128-bit-net/pak256/issues/172) で仮の 3 種。[pedestrians.md](pedestrians.md)。街の車は [#173](https://github.com/128-bit-net/pak256/issues/173) で仮の 3 種を入れた。煙は [#174](https://github.com/128-bit-net/pak256/issues/174) で仮の物を入れた。[smoke.md](smoke.md)。車両と産業の音は [#175](https://github.com/128-bit-net/pak256/issues/175) で合成の物を入れた。[sound.md](sound.md)）。
 - 街の建物の数。
 
 ### 4. ベータ
