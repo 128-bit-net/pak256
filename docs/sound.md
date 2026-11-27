@@ -47,6 +47,17 @@ pak を組むときに WAV は要らない（名前だけを持ち、ゲーム�
 3. `python -X utf8 -m unittest discover -s tools -p "test_*.py"` を流す。
 4. ゲームで読めたかは、`-debug 3 -log` を付けて起動し、ログの `Successfully loaded sound` と `not found` を見る。起動の道具は `Game(sound="load", extra_args=("-log", "-debug", "3"))`（[game-check.md](game-check.md)）。耳で確かめるときは `--sound on`。
 
+## 耳で確かめる
+
+運び方と産業ごとの場面を 1 つ作って、閉じるまで待つ道具がある。pak を組んだ後（`python -X utf8 tools/build.py`）に流す。
+
+```
+python -X utf8 tools/vehicle_check/sound_run.py --env <検証環境> --port 47920 --scene bus
+```
+
+場面は `bus`・`coal`・`plant`・`rail`・`tram`・`monorail`・`air`・`ship`。停留所や産業の上にマウスのカーソルを置いて聞き、Enter で閉じる。
+`--check` を付けると、鳴らさずに停留所からの発車だけを読んで閉じる。
+
 ## sound.tab
 
 `sound.tab` は、昔の番号で引く音と画面の操作の音（`sound[0]`〜`sound[15]`）の指定で、今はどれも指定していない。そのため、道具の音などは鳴らない。車両と産業の音は名前で読むので、`sound.tab` が無くても鳴る。`sound.tab` があると本体は環境の音（`beaches.wav`・`forest.wav`・気候の名前の WAV）も探し、無い分はログに `not found` の警告を出す。環境の音は入れていない。
