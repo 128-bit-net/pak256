@@ -9,6 +9,7 @@ from unittest import mock
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import game  # noqa: E402
+import tree_check  # noqa: E402
 from test_game import Base, put  # noqa: E402
 
 CHECK = os.path.join(HERE, "vehicle_check")
@@ -57,6 +58,28 @@ class RunScriptArgumentTest(Base):
                 with self.assertRaises(Stop):
                     module.main()
             self.assertEqual((made.call_args.kwargs["pak_dir"], made.call_args.kwargs["sound"]), ("some/pak256", sound))
+
+
+class TreeCheckArgumentTest(Base):
+    def run_main(self, *extra):
+        argv = ["tree_check.py", "--env", self.env, "--port", "47900", "--out", os.path.join(self.work, "out"), *extra]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(tree_check, "Game", side_effect=Stop) as made, \
+                mock.patch.object(tree_check, "montage") as montaged:
+            with self.assertRaises((Stop, SystemExit)) as caught:
+                tree_check.main()
+        self.assertFalse(montaged.called)
+        return made, caught.exception
+
+    def test_default_is_none_and_given_folder_is_passed(self):
+        for extra, want in (((), None), (("--pak", "some/pak256"), "some/pak256")):
+            made, _ = self.run_main(*extra)
+            self.assertEqual(made.call_args.kwargs["pak_dir"], want)
+
+    def test_rejects_pak_with_montage(self):
+        made, error = self.run_main("--montage", os.path.join(self.work, "montage"), "--pak", "some/pak256")
+        self.assertIsInstance(error, SystemExit)
+        self.assertIn("--pak", str(error))
+        self.assertFalse(made.called)
 
 
 class GameCommandTest(unittest.TestCase):

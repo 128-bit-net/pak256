@@ -6,6 +6,7 @@
 
     python -X utf8 tools/tree_check.py --env <検証環境> --port 47841 --out work/tree_check
 
+pak は build/pak/ の物（--pak で別のフォルダの pak を使える。docs/game-check.md の「pak の場所を指定する」）。
 撮った画像は `<out>/<区画>_<季節>.png`。PR に付ける画像を作るのは `--out <撮った所> --montage <出す所>`（Pillow）。
 """
 import argparse
@@ -15,7 +16,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from game import SEASON_MONTHS, Game  # noqa: E402
+from game import SEASON_MONTHS, Game, add_pak_argument  # noqa: E402
 
 N = 14          # 区画の一辺（タイル）
 STEP = 22       # 区画の間隔
@@ -86,13 +87,16 @@ def main():
     ap.add_argument("--only", nargs="*", help="撮る区画の名前（既定は全部）")
     ap.add_argument("--keep", action="store_true")
     ap.add_argument("--montage", metavar="OUT_DIR", help="ゲームを起動せず、--out の画像から PR に付ける画像を OUT_DIR に作る")
+    add_pak_argument(ap)
     args = ap.parse_args()
+    if args.montage and args.pak is not None:
+        sys.exit("--pak は起動する呼び出しに付ける（--montage はゲームを起動しない）")
     if args.montage:
         montage(os.path.abspath(args.out), os.path.abspath(args.montage))
         return
     out = os.path.abspath(args.out)
     os.makedirs(out, exist_ok=True)
-    with Game(args.env, args.save, args.port, keep=args.keep) as g:
+    with Game(args.env, args.save, args.port, keep=args.keep, pak_dir=args.pak) as g:
         centers = {}
         for idx, (name, climate, lift) in enumerate(PLOTS):
             if args.only and name not in args.only:

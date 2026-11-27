@@ -41,7 +41,7 @@ python -X utf8 tools/vehicle_check/rail_run.py --env <検証環境> --save flat_
 - **フォルダに `config/` があるとき**（配布の zip を展開した `pak256/`）は、`config/`・`text/`・`sound/`・`demo.sve` もそのフォルダの物を使う。リポジトリの物は混ぜない。
 - `config/` が無いとき（`build/pak/` の形）は、`config/`・`text/`・`sound/`・`demo/demo.sve` はリポジトリの物を使う。
 - フォルダが無い・直下に `*.pak` が無い・`config/` に `simuconf.tab` が無い・作業フォルダの中にある、のときは、作業フォルダを消す前に止まる。zip のファイルは渡せない（先に展開する）。
-- 受ける道具: `tools/game.py`（起動する呼び出し。`--send`・`--build` とは一緒に使えない）と、`tools/vehicle_check/` の `run.py`・`rail_run.py`・`rail_curve_run.py`・`air_run.py`・`monorail_run.py`・`tram_run.py`・`sound_run.py`。`river_run.py` はゲームを起動しないので受けない（`game.py --interactive --pak <フォルダ>` で開いたゲームに流す）。
+- 受ける道具: `tools/game.py`（起動する呼び出し。`--send`・`--build` とは一緒に使えない）と、`tools/vehicle_check/` の `run.py`・`rail_run.py`・`rail_curve_run.py`・`air_run.py`・`monorail_run.py`・`tram_run.py`・`sound_run.py`、`tools/tree_check.py`（`--montage` とは一緒に使えない。#181）。`river_run.py` はゲームを起動しないので受けない（`game.py --interactive --pak <フォルダ>` で開いたゲームに流す）。
 - 自分の道具からは `Game(…, pak_dir=<フォルダ>)`。
 
 ## やること・やらないこと
