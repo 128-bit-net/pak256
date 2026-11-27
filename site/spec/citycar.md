@@ -54,7 +54,7 @@ image[nw]=car.0.7
 
 ## 本体の動きの注意
 
-- **台数と寿命は pak の `simuconf.tab`（`citycar_level`・`default_citycar_life`）で決まります。** アドオンからは変えられません（遊んでいる人は、表示の設定の交通量で変えられます）。pak256 の値は [docs/config.md](https://github.com/128-bit-net/pak256/blob/main/docs/config.md#%E8%A1%97%E3%81%AE%E8%BB%8A) にあります。小さい街ほど少なくなります。
+- **台数と寿命は pak の `simuconf.tab`（`citycar_level`・`default_citycar_life`）で決まります。** アドオンからは変えられません。pak256 の値は [docs/config.md](https://github.com/128-bit-net/pak256/blob/main/docs/config.md#%E8%A1%97%E3%81%AE%E8%BB%8A) にあります。小さい街ほど少なくなります。
 - 左側通行の地図では、道路の車両と同じに絵がずれます。
 - 停留所の後ろなど追い越しできない所では、前の車の後ろに詰まって止まります。追い越せる道では、追い越し車線に出ます。
 - 年表を使う地図で、その年に使える街の車が 1 つも無いと、街の車は出ません。
