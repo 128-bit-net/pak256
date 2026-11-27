@@ -62,7 +62,7 @@ AMI の停留所は AMI の側で外した。経緯と、保存データを読�
 8 通りの向きと、後ろと前の 2 層の決まりは、サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「絵」。この pak の道具の並び:
 
 - シートは 8 列（向き）× 3 行（0 行 = 後ろ、1 行 = 前、2 行 = 道具の絵）。セルの名前は `<名前>.<行>.<列>`。
-- 道具の絵（`icon`）は 2 行 0 列のセルの左上の角に置いた 192px の角丸の四角（`draw_stops.py` の `tool_icon`）。道路の停留所は後ろ（奥の側）の絵だけ、線路の駅は向き 0 の後ろと前を重ねた絵から作る。理由は [記録](records/2026-11-25_rail-leftovers.md)（[#71](https://github.com/128-bit-net/pak256/issues/71)）。`cursor` は書かない。
+- 道具の絵（`icon`）は 2 行 0 列のセルの左上の角に置いた 192px の角丸の四角（`draw_stops.py` の `tool_icon`）。道路の停留所は後ろ（奥の側）の絵だけ、線路の駅は向き 0 の後ろと前を重ねた絵から作る（理由は [記録](records/2026-11-27_spec-stations.md)）。192px にした理由は [記録](records/2026-11-25_rail-leftovers.md)（[#71](https://github.com/128-bit-net/pak256/issues/71)）。`cursor` は書かない。
 
 ## 港（pak256 の物）
 
