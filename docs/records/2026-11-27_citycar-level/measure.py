@@ -36,7 +36,7 @@ TOWN = os.environ.get("TOWN182")
 
 
 def patched(sve, simuconf):
-    if TOWN:  # 同じ街の保存データ（mksave182.py）に差し替える
+    if TOWN:  # 同じ街の保存データ（mksave.py）に差し替える
         shutil.copy(TOWN, sve)
         msg = None
     else:
