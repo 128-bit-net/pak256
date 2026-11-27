@@ -1,6 +1,6 @@
 # 車両の大きさ
 
-道路と線路の車両に共通の決まりです。船・飛行機は別の決まりで、[大きさの規格の 4 章](https://github.com/128-bit-net/pak256/blob/main/docs/standards.md) にあります（人の大きさは [歩行者](./pedestrian.md)）。絵と dat は [線路の車両](./vehicle-rail.md)・[道路の車両](./vehicle-road.md)・[街の車](./citycar.md) を見てください。
+道路と線路の車両に共通の決まりです。[船](./ship.md)と[飛行機](./air.md)は別の決まりです（人の大きさは [歩行者](./pedestrian.md)）。絵と dat は [線路の車両](./vehicle-rail.md)・[道路の車両](./vehicle-road.md)・[街の車](./citycar.md) を見てください。
 
 ## 画面の大きさ
 
