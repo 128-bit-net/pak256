@@ -5,7 +5,7 @@
   中心に描く（`footprint(centered=True)`。本体は路面電車を線路の車両として描く）。
 - 画面の長さと幅は pak128.Japan の路面電車（`Toden 400`）の 2 倍に合わせる。長さは実物の換算（12m → length 7）、幅と高さは
   実物の値に `tools/vehicles.py` の `RAIL_WIDTH_SCALE`・`RAIL_HEIGHT_SCALE` を掛ける。手本の絵の高さは集電装置（屋根の上の
-  ポール）を含むので高さの目標にせず、屋根の高さだけにする（pak256 には架線が無く、集電装置は描かない）。
+  ポール）を含むので高さの目標にせず、屋根の高さだけにする。集電装置は、AMI の架線の線の高さに届くように描く。
 - 7 単位の車体は 256 のセルに収まる（`cell_size` は書かない）。
 - 8 方向のセルを横に並べたシート（2048x256）を `tramcar/tramcar.png` に、表を `tramcar.yaml` に書く。
 - 面の向きや明るさの決まりは、道路の車両の道具（objects/vehicle/road/draw_vehicles.py）の関数を読んで使う。
@@ -46,6 +46,10 @@ WINDOW_M = (1.7, 2.8)  # 窓の下端と上端
 BAND_M = 1.5  # 下の帯の上端
 BOGIE_WIDTH_M = 1.8
 TARGET_PX = (82, 22, 25)  # 長さ・幅は Toden 400（41,11）の 2 倍。高さは屋根まで（3.5m × 1.2 = 約 25px）
+# AMI の路面軌道の架線のトロリ線の高さ（地面からの画面の px。集電装置の舟はここに届く）。AMI の docs/objects/rail.md の寸法の表の
+# CAT_WIRE_Z（128 でタイルの中心の地面から約 24px。256 は 2 倍）。AMI の版を上げて架線の高さが変わったら合わせる
+WIRE_PX = 48
+COLLECTOR_HALF = 0.055  # 舟の長さの半分（タイルの単位）
 
 # 値は pak128 の路面電車（MHz_TRAM_1930）の機能上の数値に合わせた（docs/vehicles.md の表）
 SPEC = {
@@ -101,8 +105,27 @@ def boxes(direction):
     return whole, bogie
 
 
-def draw_cell(direction, marker=False):
-    """1 方向のセル（256x256、RGBA）を描く。前後が同じ形なので、逆向きに走っても崩れない。"""
+def draw_collector(c, direction, cx, cy):
+    """屋根の上の集電装置（くの字の腕と、線路を横切る舟）。舟は車体の中心の真上の、架線の高さ。"""
+    hx, hy = V.HEADING[direction]
+
+    def at(along, side, z_px):
+        # along・side はタイルの単位（前・右が正）。z_px は地面からの画面の高さ
+        p = (cx + hx * along - hy * side, cy + hy * along + hx * side)
+        return c.scr(p, z_px / (V.PX_PER_M_Z * V.RAIL_HEIGHT_SCALE))
+
+    roof = HEIGHT_M * V.RAIL_HEIGHT_SCALE * V.PX_PER_M_Z
+    knee = (roof + WIRE_PX) / 2
+    head = [at(0.0, -COLLECTOR_HALF, WIRE_PX), at(0.0, COLLECTOR_HALF, WIRE_PX)]
+    base = [at(-0.02, -0.025, roof), at(-0.02, 0.025, roof)]
+    c.d.line(base, fill=CHASSIS, width=3 * SS)
+    c.d.line([at(-0.02, 0.0, roof), at(0.055, 0.0, knee), at(0.0, 0.0, WIRE_PX)], fill=CHASSIS, width=2 * SS)
+    c.d.line(head, fill=CHASSIS, width=2 * SS)
+
+
+def draw_cell(direction, marker=False, collector=True):
+    """1 方向のセル（256x256、RGBA）を描く。前後が同じ形なので、逆向きに走っても崩れない。
+    collector=False は車体だけ（位置と大きさの検査が使う）。"""
     spec = SPEC
     whole, bogie = boxes(direction)
     cx = (whole[0][0] + whole[2][0]) / 2
@@ -126,6 +149,8 @@ def draw_cell(direction, marker=False):
                     c.quad(dv.lerp(a, b, t0), dv.lerp(a, b, t0 + 0.92 / SIDE_WINDOWS * 0.75), WINDOW_M[0], WINDOW_M[1],
                            dv.shade(GLASS, k))
     c.top(whole, HEIGHT_M, dv.shade(ROOF, 1.1))
+    if collector:
+        draw_collector(c, direction, cx, cy)
     if marker:
         fr, fl, bl, br = whole
         pts = [c.scr(p, 0.0) for p in whole]
@@ -143,14 +168,14 @@ def yaml_lines(spec=SPEC):
     lines = [
         f"# {spec['title']}（絵は仮）。この表と PNG は draw_tram.py が書き出す。直すときはスクリプトを直して流し直す。",
         f"# 実物 {spec['real_length_m']:g}m ÷ 1.65 = {spec['real_length_m'] / V.M_PER_UNIT:.2f} → length {length}（docs/vehicles.md）。",
-        "# 架線（路面軌道の way-object）がどの pak にも無いので、engine_type は架線の要らない diesel にする。",
+        "# 架線（AMI の ami_tram_catenary）を張った路面軌道だけを走る（engine_type: electric）。",
         "obj: vehicle",
         f"name: {spec['name']}",
         "copyright: pak256.LongScale チーム",
         "waytype: tram_track",
         "freight: Passagiere",
         f"payload: {spec['payload']}",
-        "engine_type: diesel",
+        "engine_type: electric",
         "sound: pak256_tram.wav  # 停留所から発車するときの音（docs/sound.md）",
         f"power: {spec['power']}",
         f"speed: {spec['speed']}",
@@ -175,10 +200,10 @@ def yaml_lines(spec=SPEC):
     return "\n".join(lines) + "\n"
 
 
-def draw_sheet(marker=False):
+def draw_sheet(marker=False, collector=True):
     sheet = Image.new("RGBA", (V.CELL * len(V.DIRECTIONS), V.CELL), (0, 0, 0, 0))
     for i, direction in enumerate(V.DIRECTIONS):
-        sheet.paste(draw_cell(direction, marker), (i * V.CELL, 0))
+        sheet.paste(draw_cell(direction, marker, collector), (i * V.CELL, 0))
     return sheet
 
 
