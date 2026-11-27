@@ -82,7 +82,7 @@ AMI の 256 版は、`ami-256-alpha.1` では `ami_road_local`（生活道路・
 
 台数の頭打ちは、およそ「月に出る台数 × 寿命の月数」（今の値で人口 6 千の街が約 24 台、4 万 6 千の街が約 36 台。実測は記録）。
 
-**保存データ**は `citycar_level`・`default_citycar_life` を自分で持つので、この値は新しい地図から効く。遊んでいる地図の `citycar_level` は、表示の設定の窓の交通量の欄（0〜16）か、スクリプトの `settings.set_traffic_level` で変える（欄は本体の `gui/display_settings.cc` を読んで確かめた。画面では見ていない。ネットワークの地図では公共のプレーヤーだけ）。寿命を遊んでいる地図で変える手は見つけていない。
+**保存データ**は `citycar_level`・`default_citycar_life` を自分で持つので、この値は新しい地図から効く。遊んでいる地図の `citycar_level` は、表示の設定の窓の交通量の欄（0〜16）か、スクリプトの `settings.set_traffic_level` で変える（欄は本体の `gui/display_settings.cc` を読んで確かめた。画面では見ていない。ネットワークの地図では公共のプレーヤーだけ）。寿命を遊んでいる地図で変える手は、ゲームの中には見つけていない。同梱の初期マップ `demo/demo.sve` は、`tools/demo_citycar.py` でこの 2 つの値に合わせる（[layout.md](layout.md) の「街の車の値を合わせる」）。
 
 ## 川
 
