@@ -1,5 +1,6 @@
 """#219 の撮った画面を、前（alpha.9）と後（alpha.10）を並べた画像にする。MIT License。
 使い方（リポジトリの直下で）: python -X utf8 docs/records/2026-11-27_ami219-screens/montage.py <shot_before> <shot_after> <出力フォルダ>
+5_names.png は、第 4 引数に names.py の出力フォルダ（ja・en の両方）を渡したときに作る。
 入力は scene.py の撮った画面（1600x900、拡大 3 の等倍）。見出しの座標は flat_512_left_v64 の位置（温暖の原点 (60,60)・降雪の原点 (316,60)）。"""
 import os
 import sys
@@ -7,6 +8,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 before, after, out = sys.argv[1], sys.argv[2], sys.argv[3]
+names = sys.argv[4] if len(sys.argv) > 4 else None
 os.makedirs(out, exist_ok=True)
 FONT = ImageFont.truetype("C:/Windows/Fonts/meiryo.ttc", 15)
 LOOP = (350, 130, 1450, 870)
@@ -62,3 +64,15 @@ for i, (shot, title, box) in enumerate(ZOOM):
         d.text((x + 4, y + 2), f"{ver}　温暖　{title}　4 倍", fill=(255, 230, 80), font=FONT)
         img.paste(Image.open(os.path.join(folder, shot + ".png")).convert("RGB").crop(box).resize((600, 380), Image.NEAREST), (x, y + 24))
 img.save(os.path.join(out, "4_end_defect.png"), optimize=True)
+
+if names:  # 名前が画面に出る窓（左上の 520x444）を、日本語と英語で並べる
+    box = (0, 58, 520, 502)
+    w, h = box[2] - box[0], box[3] - box[1]
+    img = Image.new("RGB", (w * 2 + 4, (h + 24) * 2), (0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for i, (lang, label) in enumerate((("ja", "日本語"), ("en", "英語"))):
+        for j, (kind, title) in enumerate((("road_info", "一般道路の情報窓 (42,100)"), ("curiosity", "名所の窓（盛土の建物）"))):
+            x, y = j * (w + 4), i * (h + 24)
+            d.text((x + 4, y + 2), f"{label}　{title}", fill=(255, 230, 80), font=FONT)
+            img.paste(Image.open(os.path.join(names, f"{lang}_{kind}.png")).convert("RGB").crop(box), (x, y + 24))
+    img.save(os.path.join(out, "5_names.png"), optimize=True)
