@@ -4,6 +4,7 @@
 コース（OX, OY が西北の角）:
 - 北の辺（y=OY）: 高さ 2 の丘。地面を 1 マスごとに 1 段ずつ上げ下げする（1 段の坂が 2 つ続く）。
 - 東の辺から南西へ向かう階段（斜め）。南の辺（y=OY+14）の x=OX+10 で南へ分かれる分岐。
+- 1 タイルで 2 段の坂（OY+50）: 同じ格子点を 2 回上げた丘。気動車 + 付随車。
 - 路面電車（OY+30）: 道路（ami_road_local）に重ねた軌道と専用の軌道（ami_tram）に、高さ 1 の丘が 1 つずつ。
 """
 import os
@@ -15,7 +16,7 @@ os.makedirs(out, exist_ok=True)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "tools")))
 from game import Game  # noqa: E402
 
-OX, OY, TY = 40, 40, 70
+OX, OY, TY, DY = 40, 40, 70, 90
 COMMON = r'''
 local pl = player_x(0), s = "";
 function r(name, v) { if (v != null) s += name + "=[" + v + "] "; }
@@ -83,17 +84,29 @@ run(wt_tram, coord3d(OX + 7, TY + 1, 0), ["pak256_tram"], [[OX + 2, TY], [OX + 3
 return s + "ok";
 '''
 
-# 撮る場所: (名前, 中心のタイル, 近さ, 編成の番号)。編成は線路（0）、路面電車（1）の順
+DOUBLE = COMMON + f'''
+local OX = {OX}, DY = {DY};
+for (local k = 0; k < 2; k++) raise(OX + 12, OX + 18, DY);   // 同じ格子点を 2 回上げる
+lay(OX, DY, OX + 32, DY, "ami_rail_ballast");
+foreach (x in [2, 3, 4, 28, 29, 30]) r("st", command_x(tool_build_station).work(pl, coord3d(OX + x, DY, 0), "pak256_train_station"));
+depot_at(OX + 7, DY, "ami_rail_depot", "ami_rail_ballast");
+run(wt_rail, coord3d(OX + 7, DY + 1, 0), ["pak256_railcar", "pak256_railcar_trailer"], [[OX + 3, DY], [OX + 29, DY]]);
+local h = ""; for (local x = OX + 10; x <= OX + 20; x++) h += z(x, DY) + "/" + tile_x(x, DY, z(x, DY)).get_slope() + " ";
+return s + "heights: " + h;
+'''
+
+# 撮る場所: (名前, 中心のタイル, 近さ, 編成の番号)。編成は線路（0）、路面電車（1）、2 段の坂の線路（2）の順
 SPOTS = [
     ("slope_up", (OX + 15, OY), 1, 0), ("slope_top", (OX + 18, OY), 1, 0), ("slope_down", (OX + 22, OY), 1, 0),
     ("diagonal", (OX + 26, OY + 10), 2, 0), ("switch", (OX + 10, OY + 14), 1, 0), ("branch", (OX + 10, OY + 16), 1, 0),
     ("tram_road_up", (OX + 12, TY), 1, 1), ("tram_road_down", (OX + 16, TY), 1, 1),
     ("tram_own_up", (OX + 28, TY), 1, 1), ("tram_own_down", (OX + 32, TY), 1, 1),
+    ("double_up", (OX + 12, DY), 1, 2), ("double_down", (OX + 19, DY), 1, 2),
 ]
 POS = 'local s = ""; foreach (c in world.get_convoy_list()) { local p = c.get_pos(); s += p.x + " " + p.y + " " + p.z + ";"; } return s'
 
 with Game(env, "flat_512_left_v64", port, simuconf_extra=["show_names = 0"]) as g:
-    for name, code in (("rail", RAIL), ("tram", TRAM)):
+    for name, code in (("rail", RAIL), ("tram", TRAM), ("double", DOUBLE)):
         tmp = os.path.join(out, name + ".nut")
         with open(tmp, "w", encoding="utf-8") as f:
             f.write(code)
