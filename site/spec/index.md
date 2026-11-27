@@ -20,7 +20,12 @@ pak256.LongScale は α 版で、仕様は変わることがあります。
 3. [絵の共通の決まり](./drawing.md): 光・透明・特別な色・冬の絵
 4. [dat の共通のキー](./dat.md): 名前・登場年・気候・画像の指定と、組み方
 
-物の種類ごとのページ（車両・建物・駅など）は順に足します。まだ無い種類は、[大きさの規格](https://github.com/128-bit-net/pak256/blob/main/docs/standards.md) と [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書を見てください。
+そのあとは、作りたい物の種類のページを読みます。
+
+- [車両の大きさ](./vehicle-size.md): 道路と線路の車両の大きさ・`length`・描く位置
+- [線路の車両](./vehicle-rail.md): 列車・路面電車・モノレール
+
+ほかの種類（道路の車両・建物・駅など）のページは順に足します。まだ無い種類は、[大きさの規格](https://github.com/128-bit-net/pak256/blob/main/docs/standards.md) と [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書を見てください。
 
 ## 決まりと手本の値
 
