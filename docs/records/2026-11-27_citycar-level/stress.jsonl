@@ -1,0 +1,8 @@
+{"kind": "setup", "level": "0", "msg": "depot 68 Depots must be built on flat dead-end way tiles! ; depot 69 Depots must be built on flat dead-end way tiles! ; depot 70 Depots must be built on flat dead-end way tiles! ; depot 71 Depots must be built on flat dead-end way tiles! ; convoys 0 ok ; convoys 1 ok ; 60,57:326 160,157:295 60,200:295 ", "roads": "149 328 "}
+{"kind": "stress", "target": 0, "added": "0", "near": "0 0 ", "months": 6, "bus_per_month": [242.2, 241.5, 256.8, 256.8]}
+{"kind": "stress", "target": 25, "added": "0+25 0+25 ", "near": "25 25 ", "months": 6, "bus_per_month": [224.0, 225.2, 254.8, 253.0]}
+{"kind": "stress", "target": 50, "added": "25+25 25+25 ", "near": "50 50 ", "months": 6, "bus_per_month": [174.3, 165.7, 225.2, 223.0]}
+{"kind": "stress", "target": 100, "added": "50+50 50+50 ", "near": "100 100 ", "months": 6, "bus_per_month": [100.0, 89.7, 176.8, 167.5]}
+{"kind": "stress", "target": 200, "added": "100+29 100+100 ", "near": "129 200 ", "months": 6, "bus_per_month": [66.8, 66.8, 116.2, 116.7]}
+{"kind": "stress", "target": 300, "added": "129+16 200+81 ", "near": "145 281 ", "months": 6, "bus_per_month": [54.3, 55.5, 77.0, 72.3]}
+{"kind": "end", "seconds": 304.64438329999984}

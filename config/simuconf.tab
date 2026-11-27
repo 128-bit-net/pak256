@@ -178,6 +178,8 @@ random_grounds_probability = 10
 random_wildlife_probability = 1000
 water_animation_ms = 100
 
-# 街の車（citycar）。物は objects/citycar/（#173）。台数・寿命の値は pak128 と同じ。
-citycar_level = 5
-default_citycar_life = 120
+# 街の車（citycar）。物は objects/citycar/（#173）。台数と寿命は #182 で pak128（5・120）から変えた
+# （docs/config.md の「街の車」）。保存データは自分の値を持つので、この値は新しい地図から効く。
+# citycar_level は月ごとに出す台数（0〜16）。寿命は 36 で約 6 年（72 か月）。
+citycar_level = 8
+default_citycar_life = 36
