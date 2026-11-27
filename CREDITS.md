@@ -32,5 +32,6 @@ pak256.LongScale に入っている物の作者と、直した人の一覧。書
 | `objects/river`（川 3 段。絵は仮。値は pak128 の川を目安にした） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_river.py` は MIT） |
 | `objects/station/monorail_stops`（モノレールの駅。絵は簡単な物。`draw_stops.py` は MIT） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `objects/vehicle/monorail/monorail`（跨座式モノレールの車両。絵は仮。値は pak128 のモノレールの機能上の数値と同じ。`draw_monorail.py` は MIT） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
+| `objects/smoke`（煙 3 種。絵は仮） | pak256.LongScale チーム | | | CC BY-SA 4.0（`draw_smoke.py` は MIT） |
 | `text`（物の名前の訳・街の名前。日本語・英語） | pak256.LongScale チーム | | | CC BY-SA 4.0 |
 | `demo`（初期マップ `demo.sve`） | 128na | `128na` | | CC BY-SA 4.0 |

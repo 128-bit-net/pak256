@@ -119,12 +119,30 @@ MINE = dict(
 # 本体は、名前が「kraftwerk」で終わる産業を発電所と見なす（descriptor/reader/factory_reader.cc）。名前を変えない。
 # ---- 石炭火力の発電所（3x3 タイル = 79.2m 四方）。ボイラー棟・タービン棟・煙突・石炭置き場・開閉所 ----
 
+CHIMNEY = (40, 44, 12, 16, 28.0)  # 煙突の x0, x1, y0, y1（m）と上端の高さ（m）
+SMOKE_ABOVE_PX = 10  # 煙の粒の中心を、煙突の口より何 px 上に出すか
+SMOKE_CENTER = (128, 128)  # 煙の絵のセルの中の粒の中心（objects/smoke/draw_smoke.py の chimney）
+
+
+def smoke_place(chimney):
+    """煙突の口から、dat の smoketile（産業の中のタイル）と smokeoffset（タイル幅の 1/64 単位 = 4px）を出す。
+
+    本体は煙の絵の左上を、タイルのセルの左上から smokeoffset だけずらして置く（docs/smoke.md）。
+    """
+    x0, x1, y0, y1, z = chimney
+    tx, ty = int((x0 + x1) / 2 // TILE_M), int((y0 + y1) / 2 // TILE_M)
+    sx, sy = db.P((x0 + x1) / 2 / TILE_M - tx, (y0 + y1) / 2 / TILE_M - ty, z)
+    off = (round((sx - SMOKE_CENTER[0]) / 4), round((sy - SMOKE_ABOVE_PX - SMOKE_CENTER[1]) / 4))
+    return f"{tx},{ty}", f"{off[0]},{off[1]}"
+
+
 def scene_plant(t):
     t.box(0, 79.2, 0, 79.2, 0, 0.2, CONCRETE, (150, 148, 142))  # 舗装
     t.box(8, 32, 8, 28, 0.2, 20.0, (176, 120, 96), (110, 106, 102))  # ボイラー棟（煉瓦）
     t.box(8, 52, 31, 51, 0.2, 14.0, (200, 196, 184), (120, 118, 112))  # タービン棟
     t.box(39, 45, 11, 17, 0.2, 4.0, (186, 180, 170), (120, 118, 112))  # 煙突の基部
-    t.box(40, 44, 12, 16, 4.0, 28.0, (190, 74, 60), (110, 70, 64))  # 煙突
+    x0, x1, y0, y1, z = CHIMNEY
+    t.box(x0, x1, y0, y1, 4.0, z, (190, 74, 60), (110, 70, 64))  # 煙突
     t.box(56, 72, 8, 26, 0.2, 8.0, (110, 112, 118), (86, 88, 92))  # 石炭の搬入棟
     t.box(58, 72, 40, 50, 0.2, 3.0, (150, 154, 160), (130, 134, 140))  # 開閉所
     t.pile(56, 72, 54, 70, 7.0, COAL)  # 石炭置き場
@@ -139,6 +157,11 @@ PLANT = dict(
         "mail_demand": 5, "mail_boost": 500, "passenger_demand": 20, "passenger_boost": 800,
         "inputgood": ["Kohle"], "inputcapacity": [8000], "inputsupplier": [0], "inputfactor": [50],
         "needs_ground": 1, "intro_year": 1890,
+        # 煙（objects/smoke/。docs/smoke.md）。lifetime はミリ秒、uplift は昇る速さ
+        "smoke": "pak256_smoke_chimney",
+        "smoketile": {0: smoke_place(CHIMNEY)[0]},
+        "smokeoffset": {0: smoke_place(CHIMNEY)[1]},
+        "smokeuplift": 14, "smokelifetime": 6000,
     },
     note="石炭火力の発電所。ボイラー棟（20m）・タービン棟・煙突（28m）・石炭置き場。3x3 タイル。値は pak128 の old_powerplant_kraftwerk に合わせた",
 )
@@ -147,6 +170,8 @@ OBJECTS = [MINE, PLANT]
 
 
 def fmt(v):
+    if isinstance(v, dict):  # 添字つきのキー（smoketile[0] など）。値は引用符で囲んで文字のまま渡す
+        return "{" + ", ".join(f'{k}: "{x}"' for k, x in v.items()) + "}"
     if isinstance(v, list):
         return "[" + ", ".join(str(x) for x in v) + "]"
     return str(v)
