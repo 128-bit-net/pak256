@@ -25,8 +25,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 from game import Game, add_pak_argument  # noqa: E402
 
-# gui.jump で飛んだタイルの中心が出る所の、画面の真ん中からのずれ（1600x900・拡大 3 で、停留所に止まった編成から測った）
-JUMP_X, JUMP_Y = 106, 131
+# gui.jump で飛んだタイルの中心が出る所の、画面の真ん中からのずれ（1600x900・拡大 3。測り方は docs/game-check.md の「画面の中心」）
+JUMP_X, JUMP_Y = 96, 125
 # 輪の寸法（course.nut と同じにする）
 W, D, H = 10, 6, 8
 
