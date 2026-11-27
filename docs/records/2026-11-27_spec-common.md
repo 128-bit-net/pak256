@@ -38,6 +38,10 @@ VitePress 1.6.4 で、`site/` の外の `../docs/standards.md` を `<!--@include
 
 特別な色（`descriptor/image.cc`）、透明の扱いと画像の指定（`descriptor/writer/image_writer.cc`）、登場年と気候の既定（`descriptor/intro_dates.h`、各 writer）、建物の季節（`obj/gebaeude.cc`）、車両の 8 方向（`dataobj/ribi.h`、`descriptor/writer/vehicle_writer.cc`）、画面への投影（`display/viewport.cc`）。木と地面の飾りは `climates` を省くと、気候が 1 つも無い値になる。makeobj 60.12 で、省いた pak と `climates=` を空にした pak は同じで、`climates=temperate` の pak とは気候の値の 1 バイトが違った（`tabfileobj_t::get` はキーが無いと空文字を返すので、writer の「北極を除く」の分岐は通らない）。ゲームでは確かめていない。`dat.md` の車両の例も 60.12 で警告なく組めた。
 
+## 表の左の列の折り返し
+
+「タイルとセル」の最初の表で、左の列が狭く「言葉」「タイル」が 1 文字ずつ折り返した（ユーザーの指摘、2026-11-27）。`site/.vitepress/theme/custom.css` で、全ページの表の左の列を `word-break: keep-all` にした。幅 1280px と 500px で撮って確かめた。
+
 ## 組んだサイトの画面
 
 手元の `vitepress preview` を Edge の画面なしの撮影（幅 1280px）で撮った。
