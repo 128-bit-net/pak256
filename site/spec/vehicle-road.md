@@ -144,7 +144,7 @@ freightimage[nw]=truck.1.7
 費用・性能・定員などは仮の値で、参考です（合わせる必要はありません）。
 
 - [バス・郵便のトラック・石炭のトラック](https://github.com/128-bit-net/pak256/blob/main/docs/vehicles.md#%E9%81%93%E8%B7%AF%E3%81%AE%E8%BB%8A%E4%B8%A1)
-- 停留所は [docs/stations.md](https://github.com/128-bit-net/pak256/blob/main/docs/stations.md)（種類ごとのページを足すまで）
+- 停留所は [駅・停留所](./station.md)
 
 ## 確かめていないこと
 

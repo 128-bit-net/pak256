@@ -319,8 +319,107 @@ def road_directions():
     img.save(os.path.join(OUT, "road-directions.png"), optimize=True)
 
 
+def station_position():
+    """軸に直交する位置 c（0〜1）で、線路の駅と道路の停留所の設備を置く帯を示す。上から見た 1 タイル。"""
+    img = Image.new("RGB", (1260, 560), BG)
+    d = ImageDraw.Draw(img)
+    size = 360
+
+    def band(ox, oy, c0, c1, fill, label, color=INK):
+        d.rectangle([ox, oy + c0 * size, ox + size, oy + c1 * size], fill=fill)
+        text(d, (ox + size + 10, oy + (c0 + c1) / 2 * size), label, 15, color, "lm")
+
+    def mark(ox, oy, c, label):
+        text(d, (ox - 8, oy + c * size), label, 13, DIM, "rm")
+        d.line([(ox - 5, oy + c * size), (ox, oy + c * size)], fill=DIM)
+
+    oy = 110
+    ox = 90
+    text(d, (ox - 60, 20), "線路の駅", 20)
+    d.rectangle([ox, oy, ox + size, oy + size], fill=GROUND, outline=CELL)
+    band(ox, oy, 0.43, 0.57, (150, 130, 110), "線路（道床 約 3.4m）")
+    band(ox, oy, 0.66, 0.98, (200, 198, 190), "ホーム・待合")
+    for c in (0.0, 0.43, 0.57, 0.66, 0.98):
+        mark(ox, oy, c, "%.2f" % c)
+
+    ox = 690
+    text(d, (ox - 60, 20), "道路・路面電車の停留所", 20)
+    d.rectangle([ox, oy, ox + size, oy + size], fill=(150, 150, 154), outline=CELL)
+    band(ox, oy, 0.015, 0.14, (200, 198, 190), "高い物（待合・小屋）")
+    band(ox, oy, 0.86, 0.985, (225, 222, 214), "低い歩道だけ")
+    for c in (0.156, 0.844):
+        d.line([(ox, oy + c * size), (ox + size, oy + c * size)], fill=(245, 245, 245), width=3)
+        mark(ox, oy, c, "%.3f" % c)
+    text(d, (ox + size + 10, oy + 0.5 * size), "車が通る所（空ける）", 15, INK, "lm")
+    for ox in (90, 690):
+        text(d, (ox, oy - 12), "奥の側（画面の上の側）", 15, DIM, "ls")
+        text(d, (ox, oy + size + 22), "手前の側（画面の下の側）", 15, DIM, "ls")
+        text(d, (ox - 60, 52), "縦の数は軸に直交する位置 c（タイルの幅を 1）", 14, CELL)
+    text(d, (30, 524), "上から見た図。白線の位置は AMI の生活道路の値で、道路が変わると変わる", 15, CELL)
+    img.save(os.path.join(OUT, "station-position.png"), optimize=True)
+
+
+def cell_art(path, row, col):
+    """シートの 256 のセル (row, col) を、透明色を抜いた RGBA にする。"""
+    im = Image.open(path).convert("RGBA").crop((col * 256, row * 256, col * 256 + 256, row * 256 + 256))
+    px = im.load()
+    for y in range(256):
+        for x in range(256):
+            if px[x, y][:3] == (231, 255, 255):
+                px[x, y] = (0, 0, 0, 0)
+    return im
+
+
+def ground_frame(img, d, i, cols, label):
+    """i 番目の枠（256 × 220）に地面の菱形と見出しを描き、セルを貼る左上を返す。"""
+    w, h = 256, 220
+    ox, oy = (i % cols) * w, (i // cols) * h
+    d.rectangle([ox, oy, ox + w - 1, oy + h - 1], outline=CELL)
+    bx, by = ox + 128, oy + 150
+    d.polygon([(bx, by - 64), (bx + 127, by), (bx, by + 64), (bx - 128, by)], fill=GROUND)
+    text(d, (ox + 10, oy + 8), label, 16)
+    return ox, by - 192
+
+
+def station_layouts():
+    """線路の駅のシート（objects/station/rail_stops/train_station.png）の 8 通りの向き。"""
+    path = os.path.join(ROOT, "objects", "station", "rail_stops", "train_station.png")
+    labels = ("0: NS 中ほど", "1: EW 中ほど", "2: NS 南端", "3: EW 東端", "4: NS 北端", "5: EW 西端", "6: NS 両端", "7: EW 両端")
+    img = Image.new("RGB", (256 * 4, 220 * 2), BG)
+    d = ImageDraw.Draw(img)
+    for i, label in enumerate(labels):
+        ox, top = ground_frame(img, d, i, 4, label)
+        for row in (0, 1):
+            art = cell_art(path, row, i)
+            img.paste(art, (ox, top), art)
+    img.save(os.path.join(OUT, "station-layouts.png"), optimize=True)
+
+
+def signal_sheet():
+    """信号のシート（objects/signal/rail_signal/rail_signal.png）の向き 4 つと状態 2 つ。矢印は列車の進む向き。"""
+    path = os.path.join(ROOT, "objects", "signal", "rail_signal", "rail_signal.png")
+    # (キー, 画面で進む向き)。矢印は菱形の中心から、進む向きへ
+    dirs = (("n", (1, -0.5)), ("s", (-1, 0.5)), ("w", (-1, -0.5)), ("e", (1, 0.5)))
+    img = Image.new("RGB", (256 * 4, 220 * 2), BG)
+    d = ImageDraw.Draw(img)
+    for i in range(8):
+        key, (dx, dy) = dirs[i % 4]
+        ox, top = ground_frame(img, d, i, 4, "image[%d]: %s、%s" % (i, key, "赤" if i < 4 else "青"))
+        bx, by = ox + 128, top + 192
+        a, b = (bx - dx * 40, by - dy * 40), (bx + dx * 40, by + dy * 40)
+        d.line([a, b], fill=DIM, width=3)
+        for side in (-1, 1):
+            d.line([b, (b[0] - dx * 14 + side * dy * 14, b[1] - dy * 14 - side * dx * 3)], fill=DIM, width=3)
+        art = cell_art(path, 0, i)
+        img.paste(art, (ox, top), art)
+    img.save(os.path.join(OUT, "signal-sheet.png"), optimize=True)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    station_position()
+    station_layouts()
+    signal_sheet()
     road_lane()
     pedestrian_foot()
     road_directions()

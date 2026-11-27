@@ -25,8 +25,10 @@ pak256.LongScale は α 版で、仕様は変わることがあります。
 - [道路の車両](./vehicle-road.md): バス・トラック
 - [街の車](./citycar.md): 街の中を勝手に走る車
 - [歩行者](./pedestrian.md): 道路の脇を歩く人
+- [駅・停留所](./station.md): 道路の停留所と線路の駅
+- [信号](./signal.md): 線路の信号
 
-ほかの種類（建物・駅・船など）のページは順に足します。まだ無い種類は、[大きさの規格](https://github.com/128-bit-net/pak256/blob/main/docs/standards.md) と [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書を見てください。
+ほかの種類（建物・船など）のページは順に足します。まだ無い種類は、[大きさの規格](https://github.com/128-bit-net/pak256/blob/main/docs/standards.md) と [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書を見てください。
 
 ## 決まりと手本の値
 
