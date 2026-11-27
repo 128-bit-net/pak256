@@ -3,3 +3,6 @@ __pycache__/
 /build/
 .claude/worktrees/
 /dist/
+/site/node_modules/
+/site/.vitepress/cache/
+/site/.vitepress/dist/
