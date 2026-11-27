@@ -58,4 +58,4 @@
 | `se` | 下（手前） |
 | `nw` | 上（奥） |
 
-建物と停留所の向きの番号は、種類ごとに意味が違います。種類ごとのページ（足すまでは [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書）で扱います。
+建物と停留所の向きの番号は、種類ごとに意味が違います。停留所の 8 通りは [駅・停留所](./station.md)、そのほかは種類ごとのページ（足すまでは [docs/](https://github.com/128-bit-net/pak256/tree/main/docs) の各文書）で扱います。

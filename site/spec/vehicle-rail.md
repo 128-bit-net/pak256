@@ -164,7 +164,7 @@ emptyimage[nw]=tramcar.0.7
 - [気動車と付随車](https://github.com/128-bit-net/pak256/blob/main/docs/vehicles.md#%E7%B7%9A%E8%B7%AF%E3%81%AE%E8%BB%8A%E4%B8%A1)
 - [路面電車](https://github.com/128-bit-net/pak256/blob/main/docs/vehicles.md#%E8%B7%AF%E9%9D%A2%E9%9B%BB%E8%BB%8A)
 - [モノレール](https://github.com/128-bit-net/pak256/blob/main/docs/vehicles.md#%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%BC%E3%83%AB%E3%81%AE%E8%BB%8A%E4%B8%A1)
-- 駅は [docs/stations.md](https://github.com/128-bit-net/pak256/blob/main/docs/stations.md)、信号は [docs/signals.md](https://github.com/128-bit-net/pak256/blob/main/docs/signals.md)（種類ごとのページを足すまで）
+- 駅は [駅・停留所](./station.md)、信号は [信号](./signal.md)
 
 ## 確かめていないこと
 

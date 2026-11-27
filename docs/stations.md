@@ -1,22 +1,20 @@
 # 道路の停留所・線路の駅（pak256 の物）
 
+停留所と駅の、この pak の値と道具。決まりはサイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)（元は [site/spec/station.md](../site/spec/station.md)）。経緯は [記録](records/2026-11-27_spec-stations.md)。絵は簡単な物（箱を数式で描いた物）で、pak128 の絵は使っていない。
+
 ## 道路の停留所（pak256 の物）
 
-道路の停留所（バス停・荷役所）は、pak256 の物（`pak256_bus_stop`・`pak256_truck_stop`）を使う（[#94](https://github.com/128-bit-net/pak256/issues/94)。2026-11-26、ユーザー: pak256 は基本のアドオンを自分で作り、当面は絵より動くことを優先する。[roadmap.md](roadmap.md) の「進め方」）。[#44](https://github.com/128-bit-net/pak256/issues/44) で仮に作った物を [#72](https://github.com/128-bit-net/pak256/issues/72) で AMI の 256 版（`ami_road_bus_stop`・`ami_road_truck_stop`）に置き換えていたが、#94 で pak256 の物に戻した（#94 の時点の絵は #44 の物。[#115](https://github.com/128-bit-net/pak256/issues/115) で白線に重ならない並びに描き直した）。AMI の停留所には頼らない。
-
-置き場は `objects/station/road_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す（`python -X utf8 objects/station/road_stops/draw_stops.py`。Pillow が要る）。向きの絵・シートの並びは、線路の駅と同じ（下の「向きの絵」）。
+pak256 の物（[#94](https://github.com/128-bit-net/pak256/issues/94)。AMI の停留所には頼らない）。置き場は `objects/station/road_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す（`python -X utf8 objects/station/road_stops/draw_stops.py`。Pillow が要る）。
 
 | `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
 |---|---|---|---|---|---|
 | `pak256_bus_stop` | `building` | `stop` | `road` | 旅客（`enables_pax`）・郵便（`enables_post`） | バス停 / Bus Stop |
 | `pak256_truck_stop` | `building` | `stop` | `road` | 貨物（`enables_ware`。旅客・郵便は扱わない） | トラックの荷役所 / Truck Loading Bay |
 
-- 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
-- バス停: 道路の奥の側の低い歩道（高さ 0.15m）に、屋根つきの待合（高さ 2.9m）、ベンチ、標識。荷役所: 奥の側の高さ 1m の積み降ろし場に、小屋と木箱。どちらも手前の側には低い歩道の帯（高さ 0.15m）だけを置く。
-- 置き方（[#115](https://github.com/128-bit-net/pak256/issues/115)）: AMI の生活道路（`ami_road_local`）は舗装がタイルの端までで、白線は道路の軸に直交する座標 c（0〜1）の 0.156〜0.172 と 0.828〜0.844 にある（画面の画素から測った。ほかの道路の種類は測っていない）。設備は白線の外の路肩に置く。奥の側（荷役所は c = 0.015〜0.14、バス停の歩道は c = 0〜0.14。画面で道路の上側）の高い物は、道路から離れる向きに伸びるので白線に掛からない。手前の側（c = 0.86〜0.985）に背の高い物を置くと、足元が路肩にあっても画面で白線に重なるので、低い歩道だけにする。奥の側は後ろの絵（車の下）、手前の側は前の絵（車の上）。奥の車線に車が停まると、待合・小屋は車の陰に一部隠れる。`tools/test_stations.py` が、どの向きの絵も画面で白線の内側に画素を置かないことを検査する。
-- 奥の帯と道路の奥の縁（[#139](https://github.com/128-bit-net/pak256/issues/139)）: 低い帯（バス停の歩道、高さ 0.15m）は、タイルの端（c = 0）まで伸ばす。タイルの外へは出さない。画面の道路の奥の縁はその先にあり、帯の奥に路面の暗い行が残る。AMI の 256 版 alpha.7 では、c = 0.015 から始めると 3〜4 行、c = 0 から始めると 1〜2 行（alpha.6 で c = 0.015 のときは 0〜2 行）。高い帯（荷役所の高さ 1m）は縁を覆って暗い行が 0 なので、c = 0.015 のまま。alpha.8 の停留所の画面は、帯と道路の縁の形が alpha.7 と同じ（行数は数え直していない。[#159 の記録](records/2026-11-26_ami159.md)）。AMI の版を上げて道路の縁が動いたら、同じ場面を撮って行数を測り直す（[記録](records/2026-11-26_stop-back.md)）。`tools/test_stations.py` の `test_bus_stop_back_edge` が、バス停の歩道の奥の端がこの位置にあることを検査する。
-- カーソル（`cursor`）は書いていない。置くときのカーソルが出るかは未確認（#44 のときから。スクリプトの `tool_build_station` で置いただけで、ツールバーから置く操作は見ていない）。
-- ゲームでの確かめは [記録](records/2026-11-26_road-stops.md)（バスと郵便のトラック、石炭のトラックが、この停留所で積み降ろした）。白線に重ならない並びの確かめは [記録](records/2026-11-26_stop-overlap.md)（東西・南北の道路で、バス・郵便・石炭のトラックを停めた直す前と後）。
+- 値: `level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない。`cursor` は書かない。
+- 置き方と高さの決まりは、サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「大きさと基準点」。白線の位置は AMI の生活道路の 0.156・0.844。描く帯は `draw_stops.py` の `FAR`・`BUS_FAR`・`NEAR`、白線は `LINE_FAR`・`LINE_NEAR`。
+- 検査 `tools/test_stations.py`: どの向きの絵も画面で白線の内側に画素を置かないこと。`test_bus_stop_back_edge` がバス停の歩道の奥の端（c = 0 まで。[#139](https://github.com/128-bit-net/pak256/issues/139)）を検査する。AMI の版を上げて道路の縁が動いたら、同じ場面を撮って奥に残る暗い行数を測り直す（[記録](records/2026-11-26_stop-back.md)）。
+- ゲームでの確かめは [道路の停留所](records/2026-11-26_road-stops.md)・[白線に重ならない並び](records/2026-11-26_stop-overlap.md)の記録。
 
 ### pak256 の道路を作るときに見直す点
 
@@ -27,25 +25,13 @@
 - 道路の絵の側で停留所の分の路肩・歩道を持たせるかを決める（停留所の絵は道路を描かない）。
 - 舗装がタイルの端まであるので、今の歩道は舗装の上に載る。道路の端に草地や歩道を残す形なら、設備をそこへ置ける。
 
-### AMI の停留所の扱い
+### AMI の停留所の扱い・保存データへの影響
 
-AMI の `ami_road_bus_stop`・`ami_road_truck_stop` は、AMI の `ami_road.pak`（`ami-256-alpha.3` 以降の 256 版の zip）に入っていて、pak256 の側からは外せない（pak は makeobj が束ねた 1 つのファイルで、中の物を 1 つだけ除けない。停留所の無い古い版 `ami-256-alpha.2` に戻す手もあるが、alpha.3 以降の道路の直しを失うので採らない。alpha.2 に停留所が無いことは #72 の記述からの推測）。そこで、**外すのは AMI の側**とした（2026-11-26）。流れは [layout.md](layout.md) の「AMI の 256 版を同梱する」のとおり: AMI のコミットで停留所を外す → `vendor/ami/build.env` の `AMI_COMMIT` をそのコミットに上げる PR → `tools/build_ami256.py` で 256 版の zip を組んで上げ、`ami.env` を更新する。AMI の進捗管理への「自前を用意した」の知らせは、pak256 の進捗管理が出す（この PR の worker-report に書いた。AMI 側の対応は未確認）。
-
-AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](https://github.com/128-bit-net/pak256/issues/111)）で取り込んだ。alpha.5 との比較で、`ami_road.pak` から無くなった物はこの 2 つだけ。道路のツールバーに停留所が 2 組並んでいた状態（[記録](records/2026-11-26_road-stops.md)の画像 4）は解けた見込み（alpha.6 のツールバーは撮っていない）。
-
-### 保存データへの影響
-
-保存データは物の名前で引く。
-- α0.2（v0.2.0）・α0.3（v0.3.0）の保存データで、仮の停留所（`pak256_bus_stop`・`pak256_truck_stop`）を置いてあれば、名前が再び見つかるので、停留所は戻る見込み（#72 の版で読み込んで保存し直した保存データは、仮の停留所が消えた後なので戻らない。名前の引きは本体のコードの読み。`gebaeude_t::rdwr`。OTRP 系のソースで読んだもので、125.0.1 そのものではなく、置いて確かめてはいない）。
-- #72 以降の main や v0.3.1（v0.3.0 は #72 を含まない）で AMI の停留所（`ami_road_bus_stop`・`ami_road_truck_stop`）を置いた保存データは、AMI の停留所を外した版を入れた後、その停留所が消える見込み（上と同じ読み。停留所の枠（`haltestelle_t`）と、ダイヤが指す停留所がどうなるかは未確認）。alpha.6 を含む次の Release の説明に「道路の停留所は置き直し」と書く（v0.3.1 は alpha.5 を同梱していて、AMI の停留所も置けた）。
-- v0.3.1 の保存データを v0.4.0 で読んで確かめた（[記録](records/2026-11-26_v040-check.md)）: AMI の停留所は消え、本体は止まらない。ダイヤが指していた所は経由地になって編成は走り続け、同じ升に pak256 の停留所を置き直すと収入が戻った。地図の上に名札の跡が残ることがある。
-
+AMI の停留所は AMI の側で外した。経緯と、保存データを読んだときの動きは [記録](records/2026-11-27_spec-stations.md)。
 
 ## 線路の駅（pak256 の物）
 
-線路の駅は、[#46](https://github.com/128-bit-net/pak256/issues/46) で仮に置いた物を、[#73](https://github.com/128-bit-net/pak256/issues/73) で pak256 の駅として使い続けることにした（2026-11-26、ユーザー。pak256 は基本のアドオンを自分で作り、当面は絵より動くことを優先する。[roadmap.md](roadmap.md) の「進め方」）。AMI の物に置き換えない。物の名前（`pak256_train_station`）は変えなかったので、保存データは今までどおり読める。絵は簡単な物（箱を数式で描いた物）で、pak128 の絵は使っていない。
-
-置き場は `objects/station/rail_stops/`（駅）。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す。直すときはスクリプトを直して流し直す（`python -X utf8 objects/station/rail_stops/draw_stops.py`。Pillow が要る）。線路の信号は [signals.md](signals.md)。
+置き場は `objects/station/rail_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す（`python -X utf8 objects/station/rail_stops/draw_stops.py`。Pillow が要る）。線路の信号は [signals.md](signals.md)。
 
 ## 駅の表
 
@@ -53,44 +39,30 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 |---|---|---|---|---|---|
 | `pak256_train_station` | `building` | `stop` | `track` | 旅客（`enables_pax`。郵便・貨物は扱わない） | 駅 / Train Station |
 
-- 1x1 タイル、`level` 2（容量。本体は level × 32。値は仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
-- 駅（`pak256_train_station`）: 線路（AMI の `ami_rail_ballast`）の脇に、高さ 0.9m のホームと屋根つきの待合を置く。線路はタイルの中央（c = 0.43〜0.57。道床の幅 約 3.4m）を通ると見て、近い側（c = 0.66〜0.98）にホームを置いた。向きの絵・シートの並びは下の「向きの絵」のとおり。**列車は 2 両で 24 単位 = 1.5 タイルあるので、駅は 2〜3 タイル並べて置く**（1 タイルだと編成がはみ出す）。ゲームで 3 タイルを並べ、気動車 + 付随車が停まって旅客を積み降ろしできた（[記録](records/2026-11-25_rail-train.md)）。信号と一緒の確かめは [記録](records/2026-11-26_rail-signal.md)（上の辺と下の辺に 3 タイルずつ置き、4 編成が周回した）。
+- 値: `level` 2（容量 64。仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
+- ホームの位置と高さの決まりは、サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「大きさと基準点」。
+- 確かめは [気動車の停車](records/2026-11-25_rail-train.md)・[信号と周回](records/2026-11-26_rail-signal.md)の記録。
 
 ## モノレールの駅
 
-[#156](https://github.com/128-bit-net/pak256/issues/156)。置き場は `objects/station/monorail_stops/`。`draw_stops.py`（MIT）が、線路の駅の道具を読んで PNG と表を書き出す（`python -X utf8 objects/station/monorail_stops/draw_stops.py`）。向きの絵・道具の絵の形は線路の駅と同じ。
+置き場は `objects/station/monorail_stops/`（[#156](https://github.com/128-bit-net/pak256/issues/156)）。`draw_stops.py`（MIT）が、線路の駅の道具を読んで PNG と表を書き出す（`python -X utf8 objects/station/monorail_stops/draw_stops.py`）。
 
 | `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
 |---|---|---|---|---|---|
 | `pak256_monorail_station` | `building` | `stop` | `monorail_track` | 旅客（`enables_pax`） | モノレールの駅 / Monorail Station |
 
-- 1x1 タイル、`level` 2（仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。
-- 跨座式の桁の手前（c = 0.62〜0.96）に、柱で支えた高さ 2.4m（車両の床の高さ）のホームと屋根を置く。ホームは車両より手前なので、前の絵に描く。
-- 車両は `length=9`（1 タイルは 16）なので、1 両なら 1 タイル、2〜3 両つなぐなら 2 タイル並べる。確かめでは 3 タイル並べた。
+- 値: `level` 2（仮）、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。車両は `length=9` なので、1 両なら 1 タイル、2〜3 両なら 2 タイル並べる。
 
 ## 下の地面
 
-停留所と駅は今ある道（道路・線路）の升に載せて建てるので、下の地面は道の升の物がそのまま描かれる。表に `needs_ground` は書かない（道から離して置く拡張の建物を作るときは要る。[buildings.md](buildings.md) の「下の地面」。#126）。
+サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「地面と季節」。道から離して置く拡張の建物を作るときは `needs_ground` が要る（[buildings.md](buildings.md) の「下の地面」。#126）。
 
 ## 向きの絵
 
-駅の dat は、向きに応じて 8 通りの絵を持つ（本体の決まり。`dims` の 3 つめが 8）。「端」は線路の行き止まりでなく、並んだ駅の連なりの端で、1 つだけ置くと両端（6・7）の絵が出る（ゲームで確かめた）。端の絵は、帯の端に小さな縁を置くだけで、線路はふさがない。
+8 通りの向きと、後ろと前の 2 層の決まりは、サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「絵」。この pak の道具の並び:
 
-| 番号 | 向き |
-|---|---|
-| 0 | NS（左下〜右上の向き）の中ほど |
-| 1 | EW（右下〜左上の向き）の中ほど |
-| 2 | NS の南端 |
-| 3 | EW の東端 |
-| 4 | NS の北端 |
-| 5 | EW の西端 |
-| 6 | NS の両端（単独の駅） |
-| 7 | EW の両端（単独の駅） |
-
-- 絵は後ろ（車の下）と前（車の上）に分ける。シートは 8 列（向き）× 3 行（0 行 = 後ろ、1 行 = 前、2 行 = 道具の絵）。セルの名前は `<名前>.<行>.<列>`。
-- 線路そのものは描かない（線路は AMI が持つ）。線路はタイルの中央を通ると見て、見える側（右下か左下）の脇にホームを置いた。
-- 道路の停留所の道具の絵は、後ろ（奥の側）の絵だけから作る（手前の歩道まで入れると小さくなる。#115）。下の重ね方は線路の駅の物。
-- 道具の絵（`icon`）は、2 行 0 列のセルの左上の角に置いた 192px の角丸の四角（地の色に、向き 0 の後ろと前を重ねた駅の絵を収めたもの。`draw_stops.py` の `tool_icon`）。192px にしたのは、本体がアイコンを `icon_height`（48）に収まる最大の倍率（192 なら 1/4 でちょうど 48）で縮めるため。四角を左上の角から隙間なく置くのは、絵に透明な所があると本体が見える範囲だけを縮めて置くため、枠がずれて灰色の空きに見えたからで、これが線路・道路のツールバーの灰色のアイコンだった（[#71](https://github.com/128-bit-net/pak256/issues/71)。記録は [records/2026-11-25_rail-leftovers.md](records/2026-11-25_rail-leftovers.md)）。`cursor` は書かない（置くときのカーソルが出るかは未確認）。
+- シートは 8 列（向き）× 3 行（0 行 = 後ろ、1 行 = 前、2 行 = 道具の絵）。セルの名前は `<名前>.<行>.<列>`。
+- 道具の絵（`icon`）は 2 行 0 列のセルの左上の角に置いた 192px の角丸の四角（`draw_stops.py` の `tool_icon`）。道路の停留所は後ろ（奥の側）の絵だけ、線路の駅は向き 0 の後ろと前を重ねた絵から作る。理由は [記録](records/2026-11-25_rail-leftovers.md)（[#71](https://github.com/128-bit-net/pak256/issues/71)）。`cursor` は書かない。
 
 ## 港（pak256 の物）
 
@@ -112,16 +84,14 @@ AMI は停留所を外し（AMI #305）、pak256 は `ami-256-alpha.6`（[#111](
 
 # 路面電車の停留所（pak256 の物）
 
-[#153](https://github.com/128-bit-net/pak256/issues/153)。置き場は `objects/station/tram_stops/`。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す。道路の停留所の `draw_stops.py` の関数と定数（白線の外の帯、向きの絵、道具の絵）を読んで使う（写して増やさない）。
+置き場は `objects/station/tram_stops/`（[#153](https://github.com/128-bit-net/pak256/issues/153)）。`draw_stops.py`（MIT）が PNG と表（`.yaml`）を書き出す。道路の停留所の `draw_stops.py` の関数と定数を読んで使う（写して増やさない）。
 
 | `name` | `obj` | `type` | `waytype` | 扱う貨物 | 画面の名前（ja / en） |
 |---|---|---|---|---|---|
 | `pak256_tram_stop` | `building` | `stop` | `tram_track` | 旅客（`enables_pax`。郵便・貨物は扱わない） | 路面電車の停留所 / Tram Stop |
 
-- 1x1 タイル、`level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない（本体の既定）。
-- 奥の側に緑の屋根の待合（高さ 2.9m）2 つのある乗り場、手前の側に低い歩道。設備は道路の停留所と同じく白線の外に置くので、道路に敷いた軌道でも土の上の専用の軌道でも使う（`tools/test_stations.py` の白線の検査は `tram_track` の停留所にも掛かる）。
-- 架線の柱の所を空ける（[#195](https://github.com/128-bit-net/pak256/issues/195)）。AMI の路面軌道の架線（`ami_tram_catenary`）の柱は、直線の升の中央（軸の向き a = 0.5）、奥の側の c = 0.08 に、太さ 0.035 タイルで地面から立つ（AMI の `TRAM_CAT_POLE_U` 4.2・`CAT_POLE_S` 0.35、1 タイル 10。2026-11-27 に AMI の `catenary_parts.py` を読み、ゲームで撮って確かめた）。待合の屋根・柱・ベンチは a = 0.39〜0.61 に置かない。画面で柱に重なるかは a − c で決まり（柱の列は a − c = 0.385〜0.455）、この範囲を空ければ奥の帯（c = 0.018〜0.132）のどこに置いても重ならない。`tools/test_stations.py` の `test_tram_stop_clear_of_catenary_pole` が検査する。AMI の版を上げて柱の位置が動いたら、`draw_stops.py` の `ROOFS` と検査の値を直して撮り直す（[記録](records/2026-11-27_tram195.md)）。
-- 向きの絵は下の「向きの絵」と同じ並び。置くのは直線の軌道の升だけ（交差する道の升には置けない。街の道がつながった升に置こうとすると `No through station here!` になった）。
+- 値: `level` 2、登場年 1900（仮）、`allow_underground` 2、`noinfo` 1。建設費・維持費は書いていない。
+- 置き方の決まり（白線の外、架線の柱の所を空ける）は、サイトの [駅・停留所](https://128-bit-net.github.io/pak256/spec/station)の「大きさと基準点」。柱の位置の値は AMI の `TRAM_CAT_POLE_U` 4.2・`CAT_POLE_S` 0.35（1 タイル 10）から出した a = 0.5・c = 0.08 で、`draw_stops.py` の `ROOFS` と `tools/test_stations.py` の `test_tram_stop_clear_of_catenary_pole` が読む。AMI の版を上げて柱の位置が動いたら、両方を直して撮り直す（[記録](records/2026-11-27_tram195.md)）。
 - ゲームでの確かめは [記録](records/2026-11-26_tram.md)。
 
 # 道路の車庫（AMI の物）
