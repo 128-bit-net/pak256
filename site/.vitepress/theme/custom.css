@@ -3,3 +3,19 @@
 .vp-doc td:first-child {
   word-break: keep-all;
 }
+
+/* 色の見本（color-chips.ts）。四角とコードは離さない。白や黒に近い色も見えるように縁を付ける。 */
+.color-chip {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.color-chip-box {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 4px;
+  vertical-align: middle;
+  border: 1px solid var(--vp-c-text-3);
+  border-radius: 3px;
+}

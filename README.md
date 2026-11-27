@@ -12,7 +12,7 @@
 - 文書の入口:
   - [構想](docs/concept.md)
   - [道筋](docs/roadmap.md)
-  - [作る人向けの仕様](https://128-bit-net.github.io/pak256/spec/)
+  - [アドオン作者向けの仕様](https://128-bit-net.github.io/pak256/spec/)
   - [大きさの規格](docs/standards.md)
   - [リポジトリの形](docs/layout.md)
   - [ゲームでの確認](docs/game-check.md)
